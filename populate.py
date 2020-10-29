@@ -27,7 +27,6 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument("--mode", help="Set user mode", default="users")
 parser.add_argument("--users", help="Amount of users to generate", default=50, type=int)
-#parser.add_argument("--teams", help="Amount of teams to generate", default=10, type=int)
 parser.add_argument(
     "--challenges", help="Amount of challenges to generate", default=20, type=int
 )
@@ -41,7 +40,6 @@ app = create_app()
 
 mode = args.mode
 USER_AMOUNT = args.users
-#TEAM_AMOUNT = args.teams if args.mode == "teams" else 0
 CHAL_AMOUNT = args.challenges
 AWARDS_AMOUNT = args.awards
 
@@ -86,18 +84,8 @@ def gen_sentence():
 def gen_name():
     return fake.first_name()
 
-"""
-def gen_team_name():
-    return fake.word().capitalize() + str(random.randint(1, 1000))
-"""
-
 def gen_email():
     return fake.email()
-
-"""
-def gen_affiliation():
-    return (fake.word() + " " + random.choice(companies)).title()
-"""
 
 def gen_value():
     return random.choice(range(100, 500, 50))
@@ -172,30 +160,8 @@ if __name__ == "__main__":
             db.session.add(chal_file)
 
         db.session.commit()
-        """
-        # Generating Teams
-        print("GENERATING TEAMS")
-        used = []
-        used_oauth_ids = []
-        count = 0
-        while count < TEAM_AMOUNT:
-            name = gen_team_name()
-            if name not in used:
-                used.append(name)
-                team = Teams(name=name, password="password")
-                if random_chance():
-                    team.affiliation = gen_affiliation()
-                if random_chance():
-                    oauth_id = random.randint(1, 1000)
-                    while oauth_id in used_oauth_ids:
-                        oauth_id = random.randint(1, 1000)
-                    used_oauth_ids.append(oauth_id)
-                    team.oauth_id = oauth_id
-                db.session.add(team)
-                count += 1
+       
 
-        db.session.commit()
-        """
         # Generating Users
         print("GENERATING USERS")
         used = []
@@ -270,22 +236,6 @@ if __name__ == "__main__":
                         db.session.add(vot)
                         db.session.commit()
 
-        """
-        if mode == "teams":
-            # Assign Team Captains
-            print("GENERATING TEAM CAPTAINS")
-            teams = Teams.query.all()
-            for team in teams:
-                captain = (
-                    Users.query.filter_by(team_id=team.id)
-                    .order_by(Users.id)
-                    .limit(1)
-                    .first()
-                )
-                if captain:
-                    team.captain_id = captain.id
-            db.session.commit()
-        """
 
         # Generating Solves
         print("GENERATING SOLVES")
@@ -302,7 +252,6 @@ if __name__ == "__main__":
                         user = Users.query.filter_by(id=x + 1).first()
                         solve = Solves(
                             user_id=user.id,
-                            #team_id=user.team_id,
                             challenge_id=chalid,
                             ip="127.0.0.1",
                             provided=gen_word(),
@@ -318,40 +267,7 @@ if __name__ == "__main__":
 
                         db.session.add(solve)
                         db.session.commit()
-        """
-        elif mode == "teams":
-            for x in range(1, TEAM_AMOUNT):
-                used_teams = []
-                used_users = []
-                base_time = datetime.datetime.utcnow() + datetime.timedelta(
-                    minutes=-10000
-                )
-                team = Teams.query.filter_by(id=x).first()
-                members_ids = [member.id for member in team.members]
-                for y in range(random.randint(1, CHAL_AMOUNT)):
-                    chalid = random.randint(1, CHAL_AMOUNT)
-                    user_id = random.choice(members_ids)
-                    if (chalid, team.id) not in used_teams:
-                        if (chalid, user_id) not in used_users:
-                            solve = Solves(
-                                user_id=user_id,
-                                team_id=team.id,
-                                challenge_id=chalid,
-                                ip="127.0.0.1",
-                                provided=gen_word(),
-                            )
-                            new_base = random_date(
-                                base_time,
-                                base_time
-                                + datetime.timedelta(minutes=random.randint(30, 60)),
-                            )
-                            solve.date = new_base
-                            base_time = new_base
-                            db.session.add(solve)
-                            db.session.commit()
-                            used_teams.append((chalid, team.id))
-                            used_users.append((chalid, user_id))
-    """
+    
         db.session.commit()
         
 
@@ -363,7 +279,6 @@ if __name__ == "__main__":
                 user = Users.query.filter_by(id=x + 1).first()
                 award = Awards(
                     user_id=user.id,
-                    #team_id=user.team_id,
                     name=gen_word(),
                     icon=gen_icon(),
                 )
@@ -390,7 +305,6 @@ if __name__ == "__main__":
                     user = Users.query.filter_by(id=x + 1).first()
                     wrong = Fails(
                         user_id=user.id,
-                        #team_id=user.team_id,
                         challenge_id=chalid,
                         ip="127.0.0.1",
                         provided=gen_word(),
