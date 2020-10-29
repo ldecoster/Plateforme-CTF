@@ -398,6 +398,14 @@ class Admins(Users):
     __tablename__ = "admins"
     __mapper_args__ = {"polymorphic_identity": "admin"}
 
+class Contributors(Users):
+    __tablename__ = "contributors"
+    __mapper_args__ = {"polymorphic_identity": "contributor"}
+
+class Contributors_plus(Users):
+    __tablename__ = "contributors_plus"
+    __mapper_args__ = {"polymorphic_identity": "contributor_plus"}
+
 
 class Submissions(db.Model):
     __tablename__ = "submissions"
