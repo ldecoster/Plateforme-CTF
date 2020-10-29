@@ -43,7 +43,10 @@
 		</label>
 
 		<select class="form-control custom-select" name="state">
+			{% if is_admin() or is_contributor_plus()%}
 			<option value="visible" {% if challenge.state == "visible" %}selected{% endif %}>Visible</option>
+			{%endif%}
+			<option value="vote" {% if challenge.state == "vote" %}selected{% endif %}>Vote</option>
 			<option value="hidden" {% if challenge.state == "hidden" %}selected{% endif %}>Hidden</option>
 		</select>
 	</div>

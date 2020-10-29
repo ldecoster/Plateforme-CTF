@@ -87,6 +87,21 @@ def is_admin():
         return False
 
 
+def is_contributor():
+    if authed():
+        user = get_current_user_attrs()
+        return user.type == "contributor"
+    else:
+        return False
+
+def is_contributor_plus():
+    if authed():
+        user = get_current_user_attrs()
+        return user.type == "contributor_plus"
+    else:
+        return False
+
+
 def is_verified():
     if get_config("verify_emails"):
         user = get_current_user_attrs()
