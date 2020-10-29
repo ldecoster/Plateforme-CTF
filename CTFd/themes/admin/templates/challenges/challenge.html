@@ -18,6 +18,7 @@
 			<h2 class="text-center">{{ challenge.category }}</h2>
 			<h2 class="text-center">{{ challenge.type }}</h2>
 			{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-warning' if  challenge.state == 'vote' else 'badge-success'  %}
+			
 			<h5>
 				<span class="badge {{ badge_state }} challenge-state">
 					{{ challenge.state }}
