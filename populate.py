@@ -17,6 +17,7 @@ from CTFd.models import (
     Fails,
     Solves,
     Tracking,
+    Votes,
 )
 from faker import Faker
 
@@ -239,6 +240,35 @@ if __name__ == "__main__":
                     pass
 
         db.session.commit()
+
+        #Generating Votes
+        print("GENERATING VOTES")
+        if mode == "users":
+         for x in range(USER_AMOUNT):
+                used = []
+                base_time = datetime.datetime.utcnow() + datetime.timedelta(
+                    minutes=-10000
+                )
+                for y in range(random.randint(1, CHAL_AMOUNT)):
+                    chalid = random.randint(1, CHAL_AMOUNT)
+                    if chalid not in used:
+                        used.append(chalid)
+                        user = Users.query.filter_by(id=x + 1).first()
+                        vot = Votes(
+                            challenge_id=chalid,
+                            user_id=user.id,
+                            value=random.randint(0, 100),
+                        )
+                        new_base = random_date(
+                            base_time,
+                            base_time
+                            + datetime.timedelta(minutes=random.randint(30, 60)),
+                        )
+                        vot.date = new_base
+                        base_time = new_base
+
+                        db.session.add(vot)
+                        db.session.commit()
 
         """
         if mode == "teams":

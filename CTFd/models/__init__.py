@@ -24,6 +24,13 @@ def get_class_by_tablename(tablename):
             return c
     return None
 
+class Votes(db.Model):
+    __tablename__ = "votes"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
+    challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
+    value = db.Column(db.Integer)
+
 
 class Notifications(db.Model):
     __tablename__ = "notifications"
@@ -258,7 +265,7 @@ class Users(db.Model):
 
     # Supplementary attributes
     website = db.Column(db.String(128))
-    affiliation = db.Column(db.String(128))
+    
     country = db.Column(db.String(32))
     bracket = db.Column(db.String(32))
     hidden = db.Column(db.Boolean, default=False)
