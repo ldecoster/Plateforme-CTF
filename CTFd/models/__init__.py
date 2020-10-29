@@ -31,6 +31,8 @@ class Votes(db.Model):
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
     value = db.Column(db.Integer)
 
+    user = db.relationship("Users", foreign_keys="Votes.user_id", lazy="select")
+
 
 class Notifications(db.Model):
     __tablename__ = "notifications"
@@ -74,12 +76,14 @@ class Challenges(db.Model):
     max_attempts = db.Column(db.Integer, default=0)
     type = db.Column(db.String(80))
     state = db.Column(db.String(80), nullable=False, default="visible")
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
 
     files = db.relationship("ChallengeFiles", backref="challenge")
     tags = db.relationship("Tags", backref="challenge")
     hints = db.relationship("Hints", backref="challenge")
     flags = db.relationship("Flags", backref="challenge")
     comments = db.relationship("ChallengeComments", backref="challenge")
+    author = db.relationship("Users", foreign_keys="Challenges.author_id", lazy="select")
 
     class alt_defaultdict(defaultdict):
         """

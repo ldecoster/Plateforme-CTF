@@ -133,34 +133,6 @@ if __name__ == "__main__":
     with app.app_context():
         db = app.db
 
-        # Generating Challenges
-        print("GENERATING CHALLENGES")
-        for x in range(CHAL_AMOUNT):
-            word = gen_word()
-            chal = Challenges(
-                name=word,
-                description=gen_sentence(),
-            )
-            db.session.add(chal)
-            db.session.commit()
-            f = Flags(challenge_id=x + 1, content=word, type="static")
-            db.session.add(f)
-            db.session.commit()
-
-        # Generating Files
-        print("GENERATING FILES")
-        AMT_CHALS_WITH_FILES = int(CHAL_AMOUNT * (3.0 / 4.0))
-        for x in range(AMT_CHALS_WITH_FILES):
-            chal = random.randint(1, CHAL_AMOUNT)
-            filename = gen_file()
-            md5hash = hashlib.md5(filename.encode("utf-8")).hexdigest()
-            chal_file = ChallengeFiles(
-                challenge_id=chal, location=md5hash + "/" + filename
-            )
-            db.session.add(chal_file)
-
-        db.session.commit()
-       
 
         # Generating Users
         print("GENERATING USERS")
@@ -192,8 +164,6 @@ if __name__ == "__main__":
                         used_oauth_ids.append(oauth_id)
                         user.oauth_id = oauth_id
                     
-                    #if mode == "teams":
-                    #    user.team_id = random.randint(1, TEAM_AMOUNT)
                     db.session.add(user)
                     db.session.flush()
 
@@ -206,6 +176,37 @@ if __name__ == "__main__":
                     pass
 
         db.session.commit()
+
+        # Generating Challenges
+        print("GENERATING CHALLENGES")
+        for x in range(CHAL_AMOUNT):
+            word = gen_word()
+            user = random.randint(1,USER_AMOUNT)
+            chal = Challenges(
+                name=word,
+                description=gen_sentence(),
+                author_id=user,
+            )
+            db.session.add(chal)
+            db.session.commit()
+            f = Flags(challenge_id=x + 1, content=word, type="static")
+            db.session.add(f)
+            db.session.commit()
+
+        # Generating Files
+        print("GENERATING FILES")
+        AMT_CHALS_WITH_FILES = int(CHAL_AMOUNT * (3.0 / 4.0))
+        for x in range(AMT_CHALS_WITH_FILES):
+            chal = random.randint(1, CHAL_AMOUNT)
+            filename = gen_file()
+            md5hash = hashlib.md5(filename.encode("utf-8")).hexdigest()
+            chal_file = ChallengeFiles(
+                challenge_id=chal, location=md5hash + "/" + filename
+            )
+            db.session.add(chal_file)
+
+        db.session.commit()
+       
 
         #Generating Votes
         print("GENERATING VOTES")
@@ -223,7 +224,7 @@ if __name__ == "__main__":
                         vot = Votes(
                             challenge_id=chalid,
                             user_id=user.id,
-                            value=random.randint(0, 100),
+                            value=random.randint(0,1),
                         )
                         new_base = random_date(
                             base_time,
