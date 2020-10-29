@@ -40,9 +40,14 @@
 
             <ul class="navbar-nav ml-md-auto d-block d-sm-flex d-md-flex">
                 {% if authed() %}
-                    {% if is_admin() %}
+                    {% if is_admin() or is_contributor() or is_contributor_plus() %}
                         <li class="nav-item">
+                            {% if is_admin() %}
                             <a class="nav-link" href="{{ url_for('admin.view') }}">
+                            {%endif %}
+                            {% if is_contributor or is_contributor_plus() %}
+                            <a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">
+                            {%endif %}
                                 <span class="d-block" data-toggle="tooltip" data-placement="bottom" title="Admin Panel">
                                     <i class="fas fa-wrench d-none d-md-block d-lg-none"></i>
                                 </span>

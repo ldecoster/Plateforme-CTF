@@ -1,13 +1,19 @@
 from flask import abort, render_template, request, url_for
 
 from CTFd.admin import admin
+
+
 from CTFd.models import Challenges, Flags, Solves
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import contributors_only
+from CTFd.utils.decorators import contributors_plus_admins_only
+from CTFd.utils.decorators import contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import contributors_admins_only
 
 
 @admin.route("/admin/challenges")
-@admins_only
+@contributors_contributors_plus_admins_only
 def challenges_listing():
     q = request.args.get("q")
     field = request.args.get("field")
@@ -32,7 +38,7 @@ def challenges_listing():
 
 
 @admin.route("/admin/challenges/<int:challenge_id>")
-@admins_only
+@contributors_contributors_plus_admins_only
 def challenges_detail(challenge_id):
     challenges = dict(
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
@@ -72,7 +78,7 @@ def challenges_detail(challenge_id):
 
 
 @admin.route("/admin/challenges/new")
-@admins_only
+@contributors_contributors_plus_admins_only
 def challenges_new():
     types = CHALLENGE_CLASSES.keys()
     return render_template("admin/challenges/new.html", types=types)
