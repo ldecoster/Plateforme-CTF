@@ -1,7 +1,7 @@
 from flask import abort, render_template, request, url_for
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Flags, Solves
+from CTFd.models import Challenges, Flags, Solves, Tags
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import admins_only
 
@@ -21,7 +21,6 @@ def challenges_listing():
     query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
     challenges = query.all()
     total = query.count()
-
     return render_template(
         "admin/challenges/challenges.html",
         challenges=challenges,
@@ -44,7 +43,7 @@ def challenges_detail(challenge_id):
         .all()
     )
     flags = Flags.query.filter_by(challenge_id=challenge.id).all()
-
+    tags = Tags.query.all()
     try:
         challenge_class = get_chal_class(challenge.type)
     except KeyError:
@@ -68,6 +67,7 @@ def challenges_detail(challenge_id):
         challenges=challenges,
         solves=solves,
         flags=flags,
+        tags=tags,
     )
 
 

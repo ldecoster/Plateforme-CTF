@@ -93,7 +93,14 @@
 							</td>
 							<td class="text-center">{{ challenge.id }}</td>
 							<td><a href="{{ url_for('admin.challenges_detail', challenge_id=challenge.id) }}">{{ challenge.name }}</a></td>
-							<td class="d-none d-md-table-cell d-lg-table-cell">{{ challenge.category }}</td>
+							<td class="d-none d-md-table-cell d-lg-table-cell">
+								{% for tag in challenge.tags %}
+									<span class='badge badge-primary mx-1 challenge-tag'>
+										<span>{{ tag.value }}</span>
+										<a tag-id="{{ tag.id }}" class='btn-fa delete-tag'> &#215;</a>
+									</span>
+								{% endfor %}
+							</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.value }}</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.type }}</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">
