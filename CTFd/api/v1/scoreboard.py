@@ -4,14 +4,14 @@ from flask_restx import Namespace, Resource
 from sqlalchemy.orm import joinedload
 
 from CTFd.cache import cache, make_cache_key
-from CTFd.models import Awards, Solves, Teams
+from CTFd.models import Awards, Solves
 from CTFd.utils import get_config
 from CTFd.utils.dates import isoformat, unix_time_to_utc
 from CTFd.utils.decorators.visibility import (
     check_account_visibility,
     check_score_visibility,
 )
-from CTFd.utils.modes import TEAMS_MODE, generate_account_url, get_mode_as_word
+from CTFd.utils.modes import generate_account_url, get_mode_as_word
 from CTFd.utils.scores import get_standings, get_user_standings
 
 scoreboard_namespace = Namespace(
@@ -29,7 +29,7 @@ class ScoreboardList(Resource):
         response = []
         mode = get_config("user_mode")
         account_type = get_mode_as_word()
-
+        """
         if mode == TEAMS_MODE:
             team_ids = []
             for team in standings:
@@ -50,7 +50,7 @@ class ScoreboardList(Resource):
             users = {}
             for u in user_standings:
                 users[u.user_id] = u
-
+        """
         for i, x in enumerate(standings):
             entry = {
                 "pos": i + 1,
@@ -61,7 +61,7 @@ class ScoreboardList(Resource):
                 "name": x.name,
                 "score": int(x.score),
             }
-
+            """
             if mode == TEAMS_MODE:
                 members = []
 
@@ -90,7 +90,7 @@ class ScoreboardList(Resource):
                             )
 
                 entry["members"] = members
-
+            """
             response.append(entry)
         return {"success": True, "data": response}
 
@@ -105,12 +105,12 @@ class ScoreboardDetail(Resource):
         response = {}
 
         standings = get_standings(count=count)
-
+        """
         team_ids = [team.account_id for team in standings]
 
         solves = Solves.query.filter(Solves.account_id.in_(team_ids))
         awards = Awards.query.filter(Awards.account_id.in_(team_ids))
-
+        """
         freeze = get_config("freeze")
 
         if freeze:
@@ -127,7 +127,7 @@ class ScoreboardDetail(Resource):
                 {
                     "challenge_id": solve.challenge_id,
                     "account_id": solve.account_id,
-                    "team_id": solve.team_id,
+                    #"team_id": solve.team_id,
                     "user_id": solve.user_id,
                     "value": solve.challenge.value,
                     "date": isoformat(solve.date),
@@ -139,7 +139,7 @@ class ScoreboardDetail(Resource):
                 {
                     "challenge_id": None,
                     "account_id": award.account_id,
-                    "team_id": award.team_id,
+                    #"team_id": award.team_id,
                     "user_id": award.user_id,
                     "value": award.value,
                     "date": isoformat(award.date),
@@ -147,6 +147,7 @@ class ScoreboardDetail(Resource):
             )
 
         # Sort all solves by date
+        """
         for team_id in solves_mapper:
             solves_mapper[team_id] = sorted(
                 solves_mapper[team_id], key=lambda k: k["date"]
@@ -158,4 +159,5 @@ class ScoreboardDetail(Resource):
                 "name": standings[i].name,
                 "solves": solves_mapper.get(standings[i].account_id, []),
             }
+        """
         return {"success": True, "data": response}

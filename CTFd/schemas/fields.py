@@ -1,6 +1,6 @@
 from marshmallow import fields
 
-from CTFd.models import Fields, TeamFieldEntries, UserFieldEntries, db, ma
+from CTFd.models import Fields, UserFieldEntries, db, ma
 
 
 class FieldSchema(ma.ModelSchema):
@@ -23,7 +23,7 @@ class UserFieldEntriesSchema(ma.ModelSchema):
     description = fields.Nested(FieldSchema, only=("description"), attribute="field")
     type = fields.Nested(FieldSchema, only=("field_type"), attribute="field")
 
-
+"""
 class TeamFieldEntriesSchema(ma.ModelSchema):
     class Meta:
         model = TeamFieldEntries
@@ -36,3 +36,4 @@ class TeamFieldEntriesSchema(ma.ModelSchema):
     name = fields.Nested(FieldSchema, only=("name"), attribute="field")
     description = fields.Nested(FieldSchema, only=("description"), attribute="field")
     type = fields.Nested(FieldSchema, only=("field_type"), attribute="field")
+"""

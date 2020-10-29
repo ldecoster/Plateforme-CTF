@@ -1,7 +1,7 @@
 from flask import render_template
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Fails, Solves, Teams, Tracking, Users, db
+from CTFd.models import Challenges, Fails, Solves, Tracking, Users, db
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.modes import get_model
 from CTFd.utils.updates import update_check
@@ -14,7 +14,7 @@ def statistics():
 
     Model = get_model()
 
-    teams_registered = Teams.query.count()
+    #teams_registered = Teams.query.count()
     users_registered = Users.query.count()
 
     wrong_count = (
@@ -75,7 +75,7 @@ def statistics():
     return render_template(
         "admin/statistics.html",
         user_count=users_registered,
-        team_count=teams_registered,
+        #team_count=teams_registered,
         ip_count=ip_count,
         wrong_count=wrong_count,
         solve_count=solve_count,

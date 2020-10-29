@@ -6,7 +6,7 @@ from platform import python_version
 import requests
 from flask import current_app as app
 
-from CTFd.models import Challenges, Teams, Users, db
+from CTFd.models import Challenges, Users, db
 from CTFd.utils import get_app_config, get_config, set_config
 from CTFd.utils.config import is_setup
 from CTFd.utils.crypto import sha256
@@ -47,7 +47,7 @@ def update_check(force=False):
                 "challenge_count": Challenges.query.count(),
                 "user_mode": get_config("user_mode"),
                 "user_count": Users.query.count(),
-                "team_count": Teams.query.count(),
+                #"team_count": Teams.query.count(),
                 "theme": get_config("ctf_theme"),
                 "upload_provider": get_app_config("UPLOAD_PROVIDER"),
                 "channel": app.CHANNEL,

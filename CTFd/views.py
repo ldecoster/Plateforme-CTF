@@ -19,7 +19,7 @@ from CTFd.models import (
     Files,
     Notifications,
     Pages,
-    Teams,
+    #Teams,
     Users,
     UserTokens,
     db,
@@ -110,14 +110,14 @@ def setup():
             pass_short = len(password) == 0
             pass_long = len(password) > 128
             valid_email = validators.validate_email(request.form["email"])
-            team_name_email_check = validators.validate_email(name)
+            #team_name_email_check = validators.validate_email(name)
 
             if not valid_email:
                 errors.append("Please enter a valid email address")
             if names:
                 errors.append("That user name is already taken")
-            if team_name_email_check is True:
-                errors.append("Your user name cannot be an email address")
+            #if team_name_email_check is True:
+            #    errors.append("Your user name cannot be an email address")
             if emails:
                 errors.append("That email has already been used")
             if pass_short:
@@ -382,10 +382,10 @@ def files(path):
             try:
                 data = unserialize(token, max_age=3600)
                 user_id = data.get("user_id")
-                team_id = data.get("team_id")
+                #team_id = data.get("team_id")
                 file_id = data.get("file_id")
                 user = Users.query.filter_by(id=user_id).first()
-                team = Teams.query.filter_by(id=team_id).first()
+                #team = Teams.query.filter_by(id=team_id).first()
 
                 # Check user is admin if challenge_visibility is admins only
                 if (
@@ -402,11 +402,13 @@ def files(path):
                     abort(403)
 
                 # Check that the team isn't banned
+                """
                 if team:
                     if team.banned:
                         abort(403)
                 else:
                     pass
+                """
 
                 # Check that the token properly refers to the file
                 if file_id != f.id:

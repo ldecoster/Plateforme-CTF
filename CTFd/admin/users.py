@@ -5,7 +5,6 @@ from CTFd.admin import admin
 from CTFd.models import Challenges, Tracking, Users
 from CTFd.utils import get_config
 from CTFd.utils.decorators import admins_only
-from CTFd.utils.modes import TEAMS_MODE
 
 
 @admin.route("/admin/users")
@@ -65,13 +64,14 @@ def users_detail(user_id):
     solves = user.get_solves(admin=True)
 
     # Get challenges that the user is missing
-    if get_config("user_mode") == TEAMS_MODE:
+    """if get_config("user_mode") == TEAMS_MODE:
         if user.team:
             all_solves = user.team.get_solves(admin=True)
         else:
             all_solves = user.get_solves(admin=True)
     else:
-        all_solves = user.get_solves(admin=True)
+    """
+    all_solves = user.get_solves(admin=True)
 
     solve_ids = [s.challenge_id for s in all_solves]
     missing = Challenges.query.filter(not_(Challenges.id.in_(solve_ids))).all()

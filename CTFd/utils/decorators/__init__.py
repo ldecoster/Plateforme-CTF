@@ -6,8 +6,7 @@ from CTFd.cache import cache
 from CTFd.utils import config, get_config
 from CTFd.utils import user as current_user
 from CTFd.utils.dates import ctf_ended, ctf_started, ctftime, view_after_ctf
-from CTFd.utils.modes import TEAMS_MODE
-from CTFd.utils.user import authed, get_current_team, is_admin
+from CTFd.utils.user import authed, is_admin
 
 
 def during_ctf_time_only(f):
@@ -116,7 +115,7 @@ def admins_only(f):
 
     return admins_only_wrapper
 
-
+"""
 def require_team(f):
     @functools.wraps(f)
     def require_team_wrapper(*args, **kwargs):
@@ -130,7 +129,7 @@ def require_team(f):
         return f(*args, **kwargs)
 
     return require_team_wrapper
-
+"""
 
 def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
     def ratelimit_decorator(f):

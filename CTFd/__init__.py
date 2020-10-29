@@ -160,7 +160,7 @@ def create_app(config="CTFd.config.Config"):
 
         from CTFd.models import (  # noqa: F401
             db,
-            Teams,
+            #Teams
             Solves,
             Challenges,
             Fails,
@@ -250,7 +250,7 @@ def create_app(config="CTFd.config.Config"):
 
         # Importing here allows tests to use sensible names (e.g. api instead of api_bp)
         from CTFd.views import views
-        from CTFd.teams import teams
+        #from CTFd.teams import teams
         from CTFd.users import users
         from CTFd.challenges import challenges
         from CTFd.scoreboard import scoreboard
@@ -261,7 +261,7 @@ def create_app(config="CTFd.config.Config"):
         from CTFd.errors import page_not_found, forbidden, general_error, gateway_error
 
         app.register_blueprint(views)
-        app.register_blueprint(teams)
+        #app.register_blueprint(teams)
         app.register_blueprint(users)
         app.register_blueprint(challenges)
         app.register_blueprint(scoreboard)

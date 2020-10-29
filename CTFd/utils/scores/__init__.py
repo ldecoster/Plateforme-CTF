@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import union_all
 
 from CTFd.cache import cache
-from CTFd.models import Awards, Challenges, Solves, Teams, Users, db
+from CTFd.models import Awards, Challenges, Solves, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.dates import unix_time_to_utc
 from CTFd.utils.modes import get_model
@@ -115,7 +115,7 @@ def get_standings(count=None, admin=False, fields=[]):
 
     return standings
 
-
+"""
 @cache.memoize(timeout=60)
 def get_team_standings(count=None, admin=False, fields=[]):
     scores = (
@@ -194,7 +194,7 @@ def get_team_standings(count=None, admin=False, fields=[]):
         standings = standings_query.limit(count).all()
 
     return standings
-
+"""
 
 @cache.memoize(timeout=60)
 def get_user_standings(count=None, admin=False, fields=[]):

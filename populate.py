@@ -10,7 +10,6 @@ from CTFd import create_app
 from CTFd.cache import clear_config, clear_standings, clear_pages
 from CTFd.models import (
     Users,
-    Teams,
     Challenges,
     Flags,
     Awards,
@@ -25,9 +24,9 @@ fake = Faker()
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--mode", help="Set user mode", default="teams")
+parser.add_argument("--mode", help="Set user mode", default="users")
 parser.add_argument("--users", help="Amount of users to generate", default=50, type=int)
-parser.add_argument("--teams", help="Amount of teams to generate", default=10, type=int)
+#parser.add_argument("--teams", help="Amount of teams to generate", default=10, type=int)
 parser.add_argument(
     "--challenges", help="Amount of challenges to generate", default=20, type=int
 )
@@ -41,20 +40,10 @@ app = create_app()
 
 mode = args.mode
 USER_AMOUNT = args.users
-TEAM_AMOUNT = args.teams if args.mode == "teams" else 0
+#TEAM_AMOUNT = args.teams if args.mode == "teams" else 0
 CHAL_AMOUNT = args.challenges
 AWARDS_AMOUNT = args.awards
 
-categories = [
-    "Exploitation",
-    "Reversing",
-    "Web",
-    "Forensics",
-    "Scripting",
-    "Cryptography",
-    "Networking",
-]
-companies = ["Corp", "Inc.", "Squad", "Team"]
 icons = [
     None,
     "shield",
@@ -68,6 +57,26 @@ icons = [
     "angry",
 ]
 
+school = ["ISA","ISEN","HEI"]
+
+speciality_ISEN = [
+    "Big Data",
+    "Objets Connectés",
+    "Electronique Embarqué",
+    "Robotique mobile",
+    "Ingénierie d'affaires",
+    "Finance",
+    "Cybersécurité",
+    "Développement Logiciel",
+    "Nanosciences"
+]
+
+speciality_ISA = ["Agriculture","Agroalimentaire",
+"Environnement","Agroéconomie","Entrepreneuriat"]
+
+speciality_HEI = ["TP","Architecture","Management d'entreprise","Conception Mécanique",
+"Energies","Médicale et Santé","Informatique","Chimie","Smart Cities","Innovation et Management textile",
+"Entrepreneuriat","Management opé industrielles et logostiques","Mécatronique et robotique"]
 
 def gen_sentence():
     return fake.text()
@@ -76,22 +85,18 @@ def gen_sentence():
 def gen_name():
     return fake.first_name()
 
-
+"""
 def gen_team_name():
     return fake.word().capitalize() + str(random.randint(1, 1000))
-
+"""
 
 def gen_email():
     return fake.email()
 
-
-def gen_category():
-    return random.choice(categories)
-
-
+"""
 def gen_affiliation():
     return (fake.word() + " " + random.choice(companies)).title()
-
+"""
 
 def gen_value():
     return random.choice(range(100, 500, 50))
@@ -122,6 +127,18 @@ def random_date(start, end):
 def random_chance():
     return random.random() > 0.5
 
+def gen_school():
+    return random.choice(school)
+
+def gen_speciality_ISEN():
+    return random.choice(speciality_ISEN)
+
+def gen_speciality_ISA():
+    return random.choice(speciality_ISA)
+
+def gen_speciality_HEI():
+    return random.choice(speciality_HEI)
+
 
 if __name__ == "__main__":
     with app.app_context():
@@ -134,8 +151,6 @@ if __name__ == "__main__":
             chal = Challenges(
                 name=word,
                 description=gen_sentence(),
-                value=gen_value(),
-                category=gen_category(),
             )
             db.session.add(chal)
             db.session.commit()
@@ -156,7 +171,7 @@ if __name__ == "__main__":
             db.session.add(chal_file)
 
         db.session.commit()
-
+        """
         # Generating Teams
         print("GENERATING TEAMS")
         used = []
@@ -179,7 +194,7 @@ if __name__ == "__main__":
                 count += 1
 
         db.session.commit()
-
+        """
         # Generating Users
         print("GENERATING USERS")
         used = []
@@ -191,17 +206,27 @@ if __name__ == "__main__":
                 used.append(name)
                 try:
                     user = Users(name=name, email=gen_email(), password="password")
+                    user.school = gen_school()
+                    user.promotion = random.randint(62,66)
+
+                    if user.school == "ISEN":
+                        user.speciality = gen_speciality_ISEN()
+                    if user.school == "ISA" : 
+                        user.speciality = gen_speciality_ISA()
+                    if user.school == "HEI":
+                        user.speciality = gen_speciality_HEI()
+
                     user.verified = True
-                    if random_chance():
-                        user.affiliation = gen_affiliation()
+
                     if random_chance():
                         oauth_id = random.randint(1, 1000)
                         while oauth_id in used_oauth_ids:
                             oauth_id = random.randint(1, 1000)
                         used_oauth_ids.append(oauth_id)
                         user.oauth_id = oauth_id
-                    if mode == "teams":
-                        user.team_id = random.randint(1, TEAM_AMOUNT)
+                    
+                    #if mode == "teams":
+                    #    user.team_id = random.randint(1, TEAM_AMOUNT)
                     db.session.add(user)
                     db.session.flush()
 
@@ -209,11 +234,13 @@ if __name__ == "__main__":
                     db.session.add(track)
                     db.session.flush()
                     count += 1
+                    
                 except Exception:
                     pass
 
         db.session.commit()
 
+        """
         if mode == "teams":
             # Assign Team Captains
             print("GENERATING TEAM CAPTAINS")
@@ -228,6 +255,7 @@ if __name__ == "__main__":
                 if captain:
                     team.captain_id = captain.id
             db.session.commit()
+        """
 
         # Generating Solves
         print("GENERATING SOLVES")
@@ -244,7 +272,7 @@ if __name__ == "__main__":
                         user = Users.query.filter_by(id=x + 1).first()
                         solve = Solves(
                             user_id=user.id,
-                            team_id=user.team_id,
+                            #team_id=user.team_id,
                             challenge_id=chalid,
                             ip="127.0.0.1",
                             provided=gen_word(),
@@ -260,6 +288,7 @@ if __name__ == "__main__":
 
                         db.session.add(solve)
                         db.session.commit()
+        """
         elif mode == "teams":
             for x in range(1, TEAM_AMOUNT):
                 used_teams = []
@@ -292,8 +321,9 @@ if __name__ == "__main__":
                             db.session.commit()
                             used_teams.append((chalid, team.id))
                             used_users.append((chalid, user_id))
-
+    """
         db.session.commit()
+        
 
         # Generating Awards
         print("GENERATING AWARDS")
@@ -303,9 +333,8 @@ if __name__ == "__main__":
                 user = Users.query.filter_by(id=x + 1).first()
                 award = Awards(
                     user_id=user.id,
-                    team_id=user.team_id,
+                    #team_id=user.team_id,
                     name=gen_word(),
-                    value=random.randint(-10, 10),
                     icon=gen_icon(),
                 )
                 new_base = random_date(
@@ -331,7 +360,7 @@ if __name__ == "__main__":
                     user = Users.query.filter_by(id=x + 1).first()
                     wrong = Fails(
                         user_id=user.id,
-                        team_id=user.team_id,
+                        #team_id=user.team_id,
                         challenge_id=chalid,
                         ip="127.0.0.1",
                         provided=gen_word(),
