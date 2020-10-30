@@ -40,7 +40,7 @@ def require_authentication_if_config(config_key):
         def __require_authentication_if_config(*args, **kwargs):
             value = get_config(config_key)
             if value and current_user.authed():
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
             else:
                 return f(*args, **kwargs)
 
@@ -91,7 +91,7 @@ def authed_only(f):
             ):
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return authed_only_wrapper
 
@@ -111,7 +111,7 @@ def admins_only(f):
             if request.content_type == "application/json":
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return admins_only_wrapper
 
@@ -131,7 +131,7 @@ def contributors_admins_only(f):
             if request.content_type == "application/json":
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return contributors_admins_only_wrapper
 
@@ -151,7 +151,7 @@ def contributors_only(f):
             if request.content_type == "application/json":
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return contributors_only_wrapper
 
@@ -171,7 +171,7 @@ def contributors_plus_only(f):
             if request.content_type == "application/json":
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return contributors_plus_only_wrapper
 
@@ -191,7 +191,7 @@ def contributors_plus_admins_only(f):
             if request.content_type == "application/json":
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return contributors_plus_admins_only_wrapper
 
@@ -211,7 +211,7 @@ def contributors_contributors_plus_admins_only(f):
             if request.content_type == "application/json":
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return contributors_contributors_plus_admins_only_wrapper
 
