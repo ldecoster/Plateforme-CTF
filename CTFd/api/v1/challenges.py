@@ -36,6 +36,7 @@ from CTFd.utils.config.visibility import (
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     admins_only,
+    contributors_contributors_plus_admins_only,
     during_ctf_time_only,
     require_verified_emails,
 )
@@ -207,7 +208,7 @@ class ChallengeList(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @admins_only
+    @contributors_contributors_plus_admins_only
     @challenges_namespace.doc(
         description="Endpoint to create a Challenge object",
         responses={
@@ -229,7 +230,7 @@ class ChallengeList(Resource):
 
 @challenges_namespace.route("/types")
 class ChallengeTypes(Resource):
-    @admins_only
+    @contributors_contributors_plus_admins_only
     def get(self):
         response = {}
 
@@ -407,7 +408,7 @@ class Challenge(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @admins_only
+    @contributors_contributors_plus_admins_only
     @challenges_namespace.doc(
         description="Endpoint to edit a specific Challenge object",
         responses={
@@ -425,7 +426,7 @@ class Challenge(Resource):
         response = challenge_class.read(challenge)
         return {"success": True, "data": response}
 
-    @admins_only
+    @contributors_contributors_plus_admins_only
     @challenges_namespace.doc(
         description="Endpoint to delete a specific Challenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -683,7 +684,7 @@ class ChallengeSolves(Resource):
 
 @challenges_namespace.route("/<challenge_id>/files")
 class ChallengeFiles(Resource):
-    @admins_only
+    @contributors_contributors_plus_admins_only
     def get(self, challenge_id):
         response = []
 
@@ -698,7 +699,7 @@ class ChallengeFiles(Resource):
 
 @challenges_namespace.route("/<challenge_id>/tags")
 class ChallengeTags(Resource):
-    @admins_only
+    @contributors_contributors_plus_admins_only
     def get(self, challenge_id):
         response = []
 
@@ -713,7 +714,7 @@ class ChallengeTags(Resource):
 
 @challenges_namespace.route("/<challenge_id>/hints")
 class ChallengeHints(Resource):
-    @admins_only
+    @contributors_contributors_plus_admins_only
     def get(self, challenge_id):
         hints = Hints.query.filter_by(challenge_id=challenge_id).all()
         schema = HintSchema(many=True)
@@ -727,7 +728,7 @@ class ChallengeHints(Resource):
 
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
-    @admins_only
+    @contributors_contributors_plus_admins_only
     def get(self, challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)
