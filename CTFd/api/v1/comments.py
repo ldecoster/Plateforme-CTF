@@ -15,7 +15,7 @@ from CTFd.models import (
     db,
 )
 from CTFd.schemas.comments import CommentSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 
 comments_namespace = Namespace("comments", description="Endpoint to retrieve Comments")
@@ -110,7 +110,7 @@ class CommentList(Resource):
             "data": response.data,
         }
 
-    @admins_only
+    @contributors_contributors_plus_admins_only
     @comments_namespace.doc(
         description="Endpoint to create a Comment object",
         responses={
