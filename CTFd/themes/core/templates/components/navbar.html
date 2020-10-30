@@ -44,15 +44,20 @@
                         <li class="nav-item">
                             {% if is_admin() %}
                             <a class="nav-link" href="{{ url_for('admin.view') }}">
-                            {%endif %}
-                            {% if is_contributor or is_contributor_plus() %}
+                            {% elif is_contributor() or is_contributor_plus() %}
                             <a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">
                             {%endif %}
                                 <span class="d-block" data-toggle="tooltip" data-placement="bottom" title="Admin Panel">
                                     <i class="fas fa-wrench d-none d-md-block d-lg-none"></i>
                                 </span>
                                 <span class="d-sm-block d-md-none d-lg-block">
-                                    <i class="fas fa-wrench pr-1"></i>Admin Panel
+                                    <i class="fas fa-wrench pr-1"></i>
+                                    {% if is_admin() %}
+                                    Admin
+                                    {% elif is_contributor() or is_contributor_plus() %}
+                                    Contributor
+                                    {% endif %}
+                                     Panel
                                 </span>
                             </a>
                         </li>
