@@ -77,6 +77,8 @@ speciality_HEI = ["TP","Architecture","Management d'entreprise","Conception Méc
 "Energies","Médicale et Santé","Informatique","Chimie","Smart Cities","Innovation et Management textile",
 "Entrepreneuriat","Management opé industrielles et logostiques","Mécatronique et robotique"]
 
+companies = ["Corp", "Inc.", "Squad", "Team"]
+
 def gen_sentence():
     return fake.text()
 
@@ -105,6 +107,9 @@ def gen_file():
 
 def gen_ip():
     return fake.ipv4()
+
+def gen_affiliation():
+    return (fake.word() + " " + random.choice(companies)).title()
 
 
 def random_date(start, end):
@@ -156,7 +161,8 @@ if __name__ == "__main__":
                         user.speciality = gen_speciality_HEI()
 
                     user.verified = True
-
+                    if random_chance():
+                        user.affiliation = gen_affiliation()
                     if random_chance():
                         oauth_id = random.randint(1, 1000)
                         while oauth_id in used_oauth_ids:
