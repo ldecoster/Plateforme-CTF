@@ -14,7 +14,6 @@ def statistics():
 
     Model = get_model()
 
-    #teams_registered = Teams.query.count()
     users_registered = Users.query.count()
 
     wrong_count = (
@@ -30,13 +29,15 @@ def statistics():
     )
 
     challenge_count = Challenges.query.count()
-
+    
+    """
     total_points = (
         Challenges.query.with_entities(db.func.sum(Challenges.value).label("sum"))
         .filter_by(state="visible")
         .first()
         .sum
     ) or 0
+    """
 
     ip_count = Tracking.query.with_entities(Tracking.ip).distinct().count()
 
@@ -75,12 +76,11 @@ def statistics():
     return render_template(
         "admin/statistics.html",
         user_count=users_registered,
-        #team_count=teams_registered,
         ip_count=ip_count,
         wrong_count=wrong_count,
         solve_count=solve_count,
         challenge_count=challenge_count,
-        total_points=total_points,
+        #total_points=total_points,
         solve_data=solve_data,
         most_solved=most_solved,
         least_solved=least_solved,

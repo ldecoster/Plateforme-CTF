@@ -64,13 +64,6 @@ def users_detail(user_id):
     solves = user.get_solves(admin=True)
 
     # Get challenges that the user is missing
-    """if get_config("user_mode") == TEAMS_MODE:
-        if user.team:
-            all_solves = user.team.get_solves(admin=True)
-        else:
-            all_solves = user.get_solves(admin=True)
-    else:
-    """
     all_solves = user.get_solves(admin=True)
 
     solve_ids = [s.challenge_id for s in all_solves]
