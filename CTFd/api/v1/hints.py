@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Hints, HintUnlocks, db
 from CTFd.schemas.hints import HintSchema
-from CTFd.utils.decorators import admins_only, authed_only, during_ctf_time_only
+from CTFd.utils.decorators import admins_only,contributors_plus_admins_only, authed_only, during_ctf_time_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import get_current_user, is_admin
 
@@ -37,7 +37,7 @@ hints_namespace.schema_model(
 
 @hints_namespace.route("")
 class HintList(Resource):
-    @admins_only
+    @contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to list Hint objects in bulk",
         responses={
@@ -75,7 +75,7 @@ class HintList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to create a Hint object",
         responses={
@@ -140,7 +140,7 @@ class Hint(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to edit a specific Hint object",
         responses={
@@ -168,7 +168,7 @@ class Hint(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

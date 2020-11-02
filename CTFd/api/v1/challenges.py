@@ -37,6 +37,7 @@ from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_tim
 from CTFd.utils.decorators import (
     admins_only,
     contributors_contributors_plus_admins_only,
+    contributors_plus_admins_only,
     during_ctf_time_only,
     require_verified_emails,
 )
@@ -48,7 +49,9 @@ from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import authed, get_current_user, is_admin
+from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.security.auth import login_user
+from flask import session
 
 challenges_namespace = Namespace(
     "challenges", description="Endpoint to retrieve Challenges"
@@ -419,11 +422,15 @@ class Challenge(Resource):
         },
     )
     def patch(self, challenge_id):
-        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        challenge_class = get_chal_class(challenge.type)
-        challenge = challenge_class.update(challenge, request)
-        response = challenge_class.read(challenge)
-        return {"success": True, "data": response}
+        author_id = session["id"]
+        if is_admin() or is_contributor_plus or (is_contributor() and self.author_id==author_id):
+            challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+            challenge_class = get_chal_class(challenge.type)
+            challenge = challenge_class.update(challenge, request)
+            response = challenge_class.read(challenge)
+            return {"success": True, "data": response}
+        else :
+            return {"success":False,"errors":response.errors}
 
     @contributors_contributors_plus_admins_only
     @challenges_namespace.doc(
@@ -431,11 +438,14 @@ class Challenge(Resource):
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, challenge_id):
-        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        chal_class = get_chal_class(challenge.type)
-        chal_class.delete(challenge)
+        author_id = session["id"]
+        if is_admin() or is_contributor_plus or (is_contributor() and self.author_id==author_id):
+            challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+            chal_class = get_chal_class(challenge.type)
+            chal_class.delete(challenge)
 
-        return {"success": True}
+            return {"success": True}
+        return {"success": False}
 
 
 @challenges_namespace.route("/attempt")
@@ -698,7 +708,7 @@ class ChallengeFiles(Resource):
 
 @challenges_namespace.route("/<challenge_id>/tags")
 class ChallengeTags(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_plus_admins_only
     def get(self, challenge_id):
         response = []
 
@@ -727,7 +737,7 @@ class ChallengeHints(Resource):
 
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_plus_admins_only
     def get(self, challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)
