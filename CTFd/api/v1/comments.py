@@ -17,6 +17,7 @@ from CTFd.models import (
 from CTFd.schemas.comments import CommentSchema
 from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
+from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
 
 comments_namespace = Namespace("comments", description="Endpoint to retrieve Comments")
 
@@ -56,7 +57,7 @@ def get_comment_model(data):
 
 @comments_namespace.route("")
 class CommentList(Resource):
-    @admins_only
+    @contributors_contributors_plus_admins_only
     @comments_namespace.doc(
         description="Endpoint to list Comment objects in bulk",
         responses={
@@ -141,15 +142,18 @@ class CommentList(Resource):
 
 @comments_namespace.route("/<comment_id>")
 class Comment(Resource):
-    @admins_only
+    @contributors_contributors_plus_admins_only
     @comments_namespace.doc(
         description="Endpoint to delete a specific Comment object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, comment_id):
-        comment = Comments.query.filter_by(id=comment_id).first_or_404()
-        db.session.delete(comment)
-        db.session.commit()
-        db.session.close()
+        author_id = session["id"]
+        if is_admin() or is_contributor_plus() or (is_contributor() and self.author_id==author_id):
+            comment = Comments.query.filter_by(id=comment_id).first_or_404()
+            db.session.delete(comment)
+            db.session.commit()
+            db.session.close()
 
-        return {"success": True}
+            return {"success": True}
+        return {"success":False}
