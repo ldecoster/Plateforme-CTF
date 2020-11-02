@@ -440,7 +440,7 @@ class Challenge(Resource):
     )
     def delete(self, challenge_id):
         author_id = session["id"]
-        if is_admin() or is_contributor_plus or (is_contributor() and self.author_id==author_id):
+        if is_admin() or is_contributor_plus() or (is_contributor() and self.author_id==author_id):
             challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
             chal_class = get_chal_class(challenge.type)
             chal_class.delete(challenge)
