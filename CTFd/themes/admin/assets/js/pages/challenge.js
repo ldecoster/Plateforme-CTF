@@ -336,7 +336,7 @@ $(() => {
       }
     });
   });
-
+    
   $("#challenge-update-container > form").submit(function(e) {
     e.preventDefault();
     var params = $(e.target).serializeJSON(true);
@@ -405,7 +405,6 @@ $(() => {
   });
 
   $("#challenge-create-options form").submit(handleChallengeOptions);
-
   $("#tags-add-input").keyup(addTag);
   $(".delete-tag").click(deleteTag);
 

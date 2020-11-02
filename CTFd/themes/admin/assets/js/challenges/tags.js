@@ -1,6 +1,7 @@
 import $ from "jquery";
 import CTFd from "core/CTFd";
 
+
 export function deleteTag(_event) {
   const $elem = $(this);
   const tag_id = $elem.attr("tag-id");
@@ -13,17 +14,34 @@ export function deleteTag(_event) {
 }
 
 export function addTag(event) {
-  if (event.keyCode != 13) {
-    return;
-  }
 
-  const $elem = $(this);
+  CTFd.api.get_tag_list().then(response => {
 
-  const tag = $elem.val();
-  const params = {
-    value: tag,
-    challenge: window.CHALLENGE_ID
-  };
+    const tagsList = response.data;
+    const $elem = $(this);
+    const searchtag = $elem.val();
+
+    //get match to the current input
+    let matches = tagsList.filter(tag =>{
+      const regex = new RegExp(`^${searchtag}`,'gi');
+      return tag.value.match(regex);
+    });
+    if(searchtag.length === 0){
+      matches = [];
+      $("#match-list").html('');
+    }
+
+    outputHtml(matches);
+
+    if (event.keyCode != 13) {
+      return;
+    }
+    
+    const params = {
+      value: searchtag,
+      challenge: window.CHALLENGE_ID
+    };    
+  });
 
   CTFd.api.post_tag_list({}, params).then(response => {
     if (response.success) {
@@ -39,4 +57,20 @@ export function addTag(event) {
   });
 
   $elem.val("");
+}
+
+//show result in HTML format
+const outputHtml = matches =>{
+  if (matches.length > 0){
+    const html = matches
+    .map(
+      match =>`
+      <div class="card card-body mb-1">
+        <h4>${match.value}</h4>
+      </div>
+    `
+    ).join('');
+    console.log(html);
+    $("#match-list").html(html);
+  }
 }
