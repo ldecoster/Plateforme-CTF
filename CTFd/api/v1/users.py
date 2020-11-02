@@ -25,7 +25,7 @@ from CTFd.schemas.awards import AwardSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
-from CTFd.utils.decorators import admins_only, authed_only, ratelimit
+from CTFd.utils.decorators import admins_only,contributors_plus_admins_only, authed_only, ratelimit
 from CTFd.utils.decorators.visibility import (
     check_account_visibility,
     check_score_visibility,
@@ -133,7 +133,7 @@ class UserList(Resource):
         }
 
     @users_namespace.doc()
-    @admins_only
+    @contributors_plus_admins_only
     @users_namespace.doc(
         description="Endpoint to create a User object",
         responses={
@@ -203,7 +203,7 @@ class UserPublic(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @contributors_plus_admins_only
     @users_namespace.doc(
         description="Endpoint to edit a specific User object",
         responses={
@@ -244,7 +244,7 @@ class UserPublic(Resource):
 
         return {"success": True, "data": response}
 
-    @admins_only
+    @contributors_plus_admins_only
     @users_namespace.doc(
         description="Endpoint to delete a specific User object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
