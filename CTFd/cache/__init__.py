@@ -41,7 +41,7 @@ def clear_standings():
     cache.delete_memoized(get_user_standings)
 
     # Clear out the individual helpers for accessing score via the model
-    cache.delete_memoized(Users.get_score)
+   
     cache.delete_memoized(Users.get_place)
 
     # Clear the Jinja Attrs constants

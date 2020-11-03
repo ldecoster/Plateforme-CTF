@@ -81,7 +81,7 @@ def users_detail(user_id):
     awards = user.get_awards(admin=True)
 
     # Get user properties
-    score = user.get_score(admin=True)
+  
     place = user.get_place(admin=True)
 
     return render_template(
@@ -89,7 +89,7 @@ def users_detail(user_id):
         solves=solves,
         user=user,
         addrs=addrs,
-        score=score,
+        score=0,
         missing=missing,
         place=place,
         fails=fails,

@@ -12,16 +12,6 @@
 	</div>
 	{% endblock %}
 
-	{% block category %}
-	<div class="form-group">
-		<label>
-			Category<br>
-			<small class="form-text text-muted">Challenge Category</small>
-		</label>
-		<input type="text" class="form-control chal-category" name="category" value="{{ challenge.category }}">
-	</div>
-	{% endblock %}
-
 	{% block message %}
 	<div class="form-group">
 		<label>
@@ -33,19 +23,7 @@
 		<textarea id="desc-editor" class="form-control chal-desc-editor markdown" name="description" rows="10">{{ challenge.description }}</textarea>
 	</div>
 	{% endblock %}
-
-	{% block value %}
-	<div class="form-group">
-		<label for="value">
-			Value<br>
-			<small class="form-text text-muted">
-				This is how many points teams will receive once they solve this challenge.
-			</small>
-		</label>
-		<input type="number" class="form-control chal-value" name="value" value="{{ challenge.value }}" required>
-	</div>
-	{% endblock %}
-
+    
 	{% block max_attempts %}
 	<div class="form-group">
 		<label>

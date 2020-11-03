@@ -132,7 +132,6 @@ class ChallengeList(Resource):
             challenges = (
                 Challenges.query.filter_by(**query_args)
                 .filter(*filters)
-                .order_by(Challenges.value)
                 .all()
             )
             solve_ids = set([challenge.id for challenge in challenges])
@@ -143,7 +142,6 @@ class ChallengeList(Resource):
                 )
                 .filter_by(**query_args)
                 .filter(*filters)
-                .order_by(Challenges.value)
                 .all()
             )
 
@@ -195,13 +193,14 @@ class ChallengeList(Resource):
                 continue
 
             # Challenge passes all checks, add it to response
+            # TODO ISEN : remove unused "value" and "category"
             response.append(
                 {
                     "id": challenge.id,
                     "type": challenge_type.name,
                     "name": challenge.name,
-                    "value": challenge.value,
-                    "category": challenge.category,
+                    "value": 0,
+                    "category": "",
                     "tags": tag_schema.dump(challenge.tags).data,
                     "template": challenge_type.templates["view"],
                     "script": challenge_type.scripts["view"],

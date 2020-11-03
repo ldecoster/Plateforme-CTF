@@ -51,9 +51,7 @@ class BaseChallenge(object):
         data = {
             "id": challenge.id,
             "name": challenge.name,
-            "value": challenge.value,
             "description": challenge.description,
-            "category": challenge.category,
             "state": challenge.state,
             "max_attempts": challenge.max_attempts,
             "type": challenge.type,
