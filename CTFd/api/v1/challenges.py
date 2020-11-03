@@ -128,7 +128,6 @@ class ChallengeList(Resource):
             challenges = (
                 Challenges.query.filter_by(**query_args)
                 .filter(*filters)
-                .order_by(Challenges.value)
                 .all()
             )
             solve_ids = set([challenge.id for challenge in challenges])
@@ -139,7 +138,6 @@ class ChallengeList(Resource):
                 )
                 .filter_by(**query_args)
                 .filter(*filters)
-                .order_by(Challenges.value)
                 .all()
             )
 
