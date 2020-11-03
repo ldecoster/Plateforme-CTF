@@ -272,7 +272,6 @@ function getSolves(id) {
 }
 
 function loadChals() {
-  console.log("test");
   return CTFd.api.get_challenge_list().then(function(resChall) {
     CTFd.api.get_tag_list().then(function(restagList){
       const $challenges_board = $("#challenges-board");
