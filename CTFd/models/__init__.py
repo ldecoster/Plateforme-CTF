@@ -76,6 +76,7 @@ class Challenges(db.Model):
     max_attempts = db.Column(db.Integer, default=0)
     type = db.Column(db.String(80))
     state = db.Column(db.String(80), nullable=False, default="visible")
+    requirements = db.Column(db.JSON)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
 
     files = db.relationship("ChallengeFiles", backref="challenge")
