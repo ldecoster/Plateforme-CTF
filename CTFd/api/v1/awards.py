@@ -10,7 +10,6 @@ from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Awards, Users, db
 from CTFd.schemas.awards import AwardSchema
-from CTFd.utils.config import is_teams_mode
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
 
@@ -52,7 +51,6 @@ class AwardList(Resource):
     @validate_args(
         {
             "user_id": (int, None),
-            "team_id": (int, None),
             "type": (str, None),
             "value": (int, None),
             "category": (int, None),
@@ -100,26 +98,6 @@ class AwardList(Resource):
     )
     def post(self):
         req = request.get_json()
-
-        # Force a team_id if in team mode and unspecified
-        if is_teams_mode():
-            team_id = req.get("team_id")
-            if team_id is None:
-                user = Users.query.filter_by(id=req["user_id"]).first()
-                if user.team_id is None:
-                    return (
-                        {
-                            "success": False,
-                            "errors": {
-                                "team_id": [
-                                    "User doesn't have a team to associate award with"
-                                ]
-                            },
-                        },
-                        400,
-                    )
-                req["team_id"] = user.team_id
-
         schema = AwardSchema()
 
         response = schema.load(req, session=db.session)
@@ -136,7 +114,7 @@ class AwardList(Resource):
         clear_standings()
 
         return {"success": True, "data": response.data}
-
+    
 
 @awards_namespace.route("/<award_id>")
 @awards_namespace.param("award_id", "An Award ID")

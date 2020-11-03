@@ -47,7 +47,7 @@ from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
+from CTFd.utils.user import authed, get_current_user, is_admin
 
 challenges_namespace = Namespace(
     "challenges", description="Endpoint to retrieve Challenges"
@@ -155,9 +155,6 @@ class ChallengeList(Resource):
                 # TODO: Convert this into a re-useable decorator
                 if is_admin():
                     pass
-                else:
-                    if config.is_teams_mode() and get_current_team() is None:
-                        abort(403)
             else:
                 solve_ids = set()
 
@@ -328,14 +325,10 @@ class Challenge(Resource):
         hints = []
         if authed():
             user = get_current_user()
-            team = get_current_team()
 
             # TODO: Convert this into a re-useable decorator
             if is_admin():
                 pass
-            else:
-                if config.is_teams_mode() and team is None:
-                    abort(403)
 
             unlocked_hints = set(
                 [
@@ -349,7 +342,6 @@ class Challenge(Resource):
             for f in chal.files:
                 token = {
                     "user_id": user.id,
-                    "team_id": team.id if team else None,
                     "file_id": f.id,
                 }
                 files.append(
@@ -490,11 +482,6 @@ class ChallengeAttempt(Resource):
             )
 
         user = get_current_user()
-        team = get_current_team()
-
-        # TODO: Convert this into a re-useable decorator
-        if config.is_teams_mode() and team is None:
-            abort(403)
 
         fails = Fails.query.filter_by(
             account_id=user.account_id, challenge_id=challenge_id
@@ -530,7 +517,7 @@ class ChallengeAttempt(Resource):
         if kpm > 10:
             if ctftime():
                 chal_class.fail(
-                    user=user, team=team, challenge=challenge, request=request
+                    user=user, challenge=challenge, request=request
                 )
             log(
                 "submissions",
@@ -575,7 +562,7 @@ class ChallengeAttempt(Resource):
             if status:  # The challenge plugin says the input is right
                 if ctftime() or current_user.is_admin():
                     chal_class.solve(
-                        user=user, team=team, challenge=challenge, request=request
+                        user=user, challenge=challenge, request=request
                     )
                     clear_standings()
 
@@ -593,7 +580,7 @@ class ChallengeAttempt(Resource):
             else:  # The challenge plugin says the input is wrong
                 if ctftime() or current_user.is_admin():
                     chal_class.fail(
-                        user=user, team=team, challenge=challenge, request=request
+                        user=user, challenge=challenge, request=request
                     )
                     clear_standings()
 

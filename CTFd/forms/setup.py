@@ -23,8 +23,8 @@ class SetupForm(BaseForm):
     )
     user_mode = RadioField(
         "User Mode",
-        choices=[("teams", "Team Mode"), ("users", "User Mode")],
-        default="teams",
+        choices=[("users", "User Mode")],
+        default="users",
         description="Controls whether users join together in teams to play (Team Mode) or play as themselves (User Mode)",
         validators=[InputRequired()],
     )

@@ -6,8 +6,7 @@ from CTFd.cache import cache
 from CTFd.utils import config, get_config
 from CTFd.utils import user as current_user
 from CTFd.utils.dates import ctf_ended, ctf_started, ctftime, view_after_ctf
-from CTFd.utils.modes import TEAMS_MODE
-from CTFd.utils.user import authed, get_current_team, is_admin
+from CTFd.utils.user import authed, is_admin
 
 
 def during_ctf_time_only(f):
@@ -115,21 +114,6 @@ def admins_only(f):
                 return redirect(url_for("auth.login", next=request.full_path))
 
     return admins_only_wrapper
-
-
-def require_team(f):
-    @functools.wraps(f)
-    def require_team_wrapper(*args, **kwargs):
-        if get_config("user_mode") == TEAMS_MODE:
-            team = get_current_team()
-            if team is None:
-                if request.content_type == "application/json":
-                    abort(403)
-                else:
-                    return redirect(url_for("teams.private", next=request.full_path))
-        return f(*args, **kwargs)
-
-    return require_team_wrapper
 
 
 def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):

@@ -10,7 +10,6 @@ from CTFd import create_app
 from CTFd.cache import clear_config, clear_standings, clear_pages
 from CTFd.models import (
     Users,
-    Teams,
     Challenges,
     Flags,
     Awards,
@@ -18,6 +17,7 @@ from CTFd.models import (
     Fails,
     Solves,
     Tracking,
+    Votes,
 )
 from faker import Faker
 
@@ -25,9 +25,8 @@ fake = Faker()
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--mode", help="Set user mode", default="teams")
+parser.add_argument("--mode", help="Set user mode", default="users")
 parser.add_argument("--users", help="Amount of users to generate", default=50, type=int)
-parser.add_argument("--teams", help="Amount of teams to generate", default=10, type=int)
 parser.add_argument(
     "--challenges", help="Amount of challenges to generate", default=20, type=int
 )
@@ -41,20 +40,9 @@ app = create_app()
 
 mode = args.mode
 USER_AMOUNT = args.users
-TEAM_AMOUNT = args.teams if args.mode == "teams" else 0
 CHAL_AMOUNT = args.challenges
 AWARDS_AMOUNT = args.awards
 
-categories = [
-    "Exploitation",
-    "Reversing",
-    "Web",
-    "Forensics",
-    "Scripting",
-    "Cryptography",
-    "Networking",
-]
-companies = ["Corp", "Inc.", "Squad", "Team"]
 icons = [
     None,
     "shield",
@@ -68,6 +56,46 @@ icons = [
     "angry",
 ]
 
+school = ["ISA", "ISEN", "HEI"]
+
+speciality_ISEN = [
+    "Big Data",
+    "Objets Connectés",
+    "Electronique Embarqué",
+    "Robotique mobile",
+    "Ingénierie d'affaires",
+    "Finance",
+    "Cybersécurité",
+    "Développement Logiciel",
+    "Nanosciences"
+]
+
+speciality_ISA = [
+    "Agriculture",
+    "Agroalimentaire",
+    "Environnement",
+    "Agroéconomie",
+    "Entrepreneuriat"
+]
+
+speciality_HEI = [
+    "TP",
+    "Architecture",
+    "Management d'entreprise",
+    "Conception Mécanique",
+    "Energies",
+    "Médicale et Santé",
+    "Informatique",
+    "Chimie",
+    "Smart Cities",
+    "Innovation et Management textile",
+    "Entrepreneuriat",
+    "Management opé industrielles et logostiques",
+    "Mécatronique et robotique"
+]
+
+companies = ["Corp", "Inc.", "Squad", "Team"]
+
 
 def gen_sentence():
     return fake.text()
@@ -77,20 +105,8 @@ def gen_name():
     return fake.first_name()
 
 
-def gen_team_name():
-    return fake.word().capitalize() + str(random.randint(1, 1000))
-
-
 def gen_email():
     return fake.email()
-
-
-def gen_category():
-    return random.choice(categories)
-
-
-def gen_affiliation():
-    return (fake.word() + " " + random.choice(companies)).title()
 
 
 def gen_value():
@@ -113,6 +129,10 @@ def gen_ip():
     return fake.ipv4()
 
 
+def gen_affiliation():
+    return (fake.word() + " " + random.choice(companies)).title()
+
+
 def random_date(start, end):
     return start + datetime.timedelta(
         seconds=random.randint(0, int((end - start).total_seconds()))
@@ -123,19 +143,77 @@ def random_chance():
     return random.random() > 0.5
 
 
+def gen_school():
+    return random.choice(school)
+
+
+def gen_speciality_ISEN():
+    return random.choice(speciality_ISEN)
+
+
+def gen_speciality_ISA():
+    return random.choice(speciality_ISA)
+
+
+def gen_speciality_HEI():
+    return random.choice(speciality_HEI)
+
+
 if __name__ == "__main__":
     with app.app_context():
         db = app.db
+
+        # Generating Users
+        print("GENERATING USERS")
+        used = []
+        used_oauth_ids = []
+        count = 0
+        while count < USER_AMOUNT:
+            name = gen_name()
+            if name not in used:
+                used.append(name)
+                try:
+                    user = Users(name=name, email=gen_email(), password="password")
+                    user.school = gen_school()
+                    user.promotion = random.randint(62,66)
+
+                    if user.school == "ISEN":
+                        user.speciality = gen_speciality_ISEN()
+                    if user.school == "ISA" : 
+                        user.speciality = gen_speciality_ISA()
+                    if user.school == "HEI":
+                        user.speciality = gen_speciality_HEI()
+
+                    user.verified = True
+                    if random_chance():
+                        user.affiliation = gen_affiliation()
+                    if random_chance():
+                        oauth_id = random.randint(1, 1000)
+                        while oauth_id in used_oauth_ids:
+                            oauth_id = random.randint(1, 1000)
+                        used_oauth_ids.append(oauth_id)
+                        user.oauth_id = oauth_id
+                    db.session.add(user)
+                    db.session.flush()
+
+                    track = Tracking(ip=gen_ip(), user_id=user.id)
+                    db.session.add(track)
+                    db.session.flush()
+                    count += 1
+                except Exception:
+                    pass
+
+        db.session.commit()
 
         # Generating Challenges
         print("GENERATING CHALLENGES")
         for x in range(CHAL_AMOUNT):
             word = gen_word()
+            user = random.randint(1,USER_AMOUNT)
             chal = Challenges(
                 name=word,
                 description=gen_sentence(),
-                value=gen_value(),
-                category=gen_category(),
+                author_id=user,
             )
             db.session.add(chal)
             db.session.commit()
@@ -156,78 +234,37 @@ if __name__ == "__main__":
             db.session.add(chal_file)
 
         db.session.commit()
+       
 
-        # Generating Teams
-        print("GENERATING TEAMS")
-        used = []
-        used_oauth_ids = []
-        count = 0
-        while count < TEAM_AMOUNT:
-            name = gen_team_name()
-            if name not in used:
-                used.append(name)
-                team = Teams(name=name, password="password")
-                if random_chance():
-                    team.affiliation = gen_affiliation()
-                if random_chance():
-                    oauth_id = random.randint(1, 1000)
-                    while oauth_id in used_oauth_ids:
-                        oauth_id = random.randint(1, 1000)
-                    used_oauth_ids.append(oauth_id)
-                    team.oauth_id = oauth_id
-                db.session.add(team)
-                count += 1
-
-        db.session.commit()
-
-        # Generating Users
-        print("GENERATING USERS")
-        used = []
-        used_oauth_ids = []
-        count = 0
-        while count < USER_AMOUNT:
-            name = gen_name()
-            if name not in used:
-                used.append(name)
-                try:
-                    user = Users(name=name, email=gen_email(), password="password")
-                    user.verified = True
-                    if random_chance():
-                        user.affiliation = gen_affiliation()
-                    if random_chance():
-                        oauth_id = random.randint(1, 1000)
-                        while oauth_id in used_oauth_ids:
-                            oauth_id = random.randint(1, 1000)
-                        used_oauth_ids.append(oauth_id)
-                        user.oauth_id = oauth_id
-                    if mode == "teams":
-                        user.team_id = random.randint(1, TEAM_AMOUNT)
-                    db.session.add(user)
-                    db.session.flush()
-
-                    track = Tracking(ip=gen_ip(), user_id=user.id)
-                    db.session.add(track)
-                    db.session.flush()
-                    count += 1
-                except Exception:
-                    pass
-
-        db.session.commit()
-
-        if mode == "teams":
-            # Assign Team Captains
-            print("GENERATING TEAM CAPTAINS")
-            teams = Teams.query.all()
-            for team in teams:
-                captain = (
-                    Users.query.filter_by(team_id=team.id)
-                    .order_by(Users.id)
-                    .limit(1)
-                    .first()
+        #Generating Votes
+        print("GENERATING VOTES")
+        if mode == "users":
+         for x in range(USER_AMOUNT):
+                used = []
+                base_time = datetime.datetime.utcnow() + datetime.timedelta(
+                    minutes=-10000
                 )
-                if captain:
-                    team.captain_id = captain.id
-            db.session.commit()
+                for y in range(random.randint(1, CHAL_AMOUNT)):
+                    chalid = random.randint(1, CHAL_AMOUNT)
+                    if chalid not in used:
+                        used.append(chalid)
+                        user = Users.query.filter_by(id=x + 1).first()
+                        vot = Votes(
+                            challenge_id=chalid,
+                            user_id=user.id,
+                            value=random.randint(0,1),
+                        )
+                        new_base = random_date(
+                            base_time,
+                            base_time
+                            + datetime.timedelta(minutes=random.randint(30, 60)),
+                        )
+                        vot.date = new_base
+                        base_time = new_base
+
+                        db.session.add(vot)
+                        db.session.commit()
+
 
         # Generating Solves
         print("GENERATING SOLVES")
@@ -244,7 +281,6 @@ if __name__ == "__main__":
                         user = Users.query.filter_by(id=x + 1).first()
                         solve = Solves(
                             user_id=user.id,
-                            team_id=user.team_id,
                             challenge_id=chalid,
                             ip="127.0.0.1",
                             provided=gen_word(),
@@ -260,40 +296,9 @@ if __name__ == "__main__":
 
                         db.session.add(solve)
                         db.session.commit()
-        elif mode == "teams":
-            for x in range(1, TEAM_AMOUNT):
-                used_teams = []
-                used_users = []
-                base_time = datetime.datetime.utcnow() + datetime.timedelta(
-                    minutes=-10000
-                )
-                team = Teams.query.filter_by(id=x).first()
-                members_ids = [member.id for member in team.members]
-                for y in range(random.randint(1, CHAL_AMOUNT)):
-                    chalid = random.randint(1, CHAL_AMOUNT)
-                    user_id = random.choice(members_ids)
-                    if (chalid, team.id) not in used_teams:
-                        if (chalid, user_id) not in used_users:
-                            solve = Solves(
-                                user_id=user_id,
-                                team_id=team.id,
-                                challenge_id=chalid,
-                                ip="127.0.0.1",
-                                provided=gen_word(),
-                            )
-                            new_base = random_date(
-                                base_time,
-                                base_time
-                                + datetime.timedelta(minutes=random.randint(30, 60)),
-                            )
-                            solve.date = new_base
-                            base_time = new_base
-                            db.session.add(solve)
-                            db.session.commit()
-                            used_teams.append((chalid, team.id))
-                            used_users.append((chalid, user_id))
-
+    
         db.session.commit()
+        
 
         # Generating Awards
         print("GENERATING AWARDS")
@@ -303,9 +308,7 @@ if __name__ == "__main__":
                 user = Users.query.filter_by(id=x + 1).first()
                 award = Awards(
                     user_id=user.id,
-                    team_id=user.team_id,
                     name=gen_word(),
-                    value=random.randint(-10, 10),
                     icon=gen_icon(),
                 )
                 new_base = random_date(
@@ -331,7 +334,6 @@ if __name__ == "__main__":
                     user = Users.query.filter_by(id=x + 1).first()
                     wrong = Fails(
                         user_id=user.id,
-                        team_id=user.team_id,
                         challenge_id=chalid,
                         ip="127.0.0.1",
                         provided=gen_word(),

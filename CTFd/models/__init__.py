@@ -24,6 +24,15 @@ def get_class_by_tablename(tablename):
             return c
     return None
 
+class Votes(db.Model):
+    __tablename__ = "votes"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
+    challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
+    value = db.Column(db.Integer)
+
+    user = db.relationship("Users", foreign_keys="Votes.user_id", lazy="select")
+
 
 class Notifications(db.Model):
     __tablename__ = "notifications"
@@ -32,10 +41,8 @@ class Notifications(db.Model):
     content = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.id"))
 
     user = db.relationship("Users", foreign_keys="Notifications.user_id", lazy="select")
-    team = db.relationship("Teams", foreign_keys="Notifications.team_id", lazy="select")
 
     def __init__(self, *args, **kwargs):
         super(Notifications, self).__init__(**kwargs)
@@ -67,17 +74,16 @@ class Challenges(db.Model):
     name = db.Column(db.String(80))
     description = db.Column(db.Text)
     max_attempts = db.Column(db.Integer, default=0)
-    value = db.Column(db.Integer)
-    category = db.Column(db.String(80))
     type = db.Column(db.String(80))
     state = db.Column(db.String(80), nullable=False, default="visible")
-    requirements = db.Column(db.JSON)
+    author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
 
     files = db.relationship("ChallengeFiles", backref="challenge")
     tags = db.relationship("Tags", backref="challenge")
     hints = db.relationship("Hints", backref="challenge")
     flags = db.relationship("Flags", backref="challenge")
     comments = db.relationship("ChallengeComments", backref="challenge")
+    author = db.relationship("Users", foreign_keys="Challenges.author_id", lazy="select")
 
     class alt_defaultdict(defaultdict):
         """
@@ -119,7 +125,6 @@ class Hints(db.Model):
     )
     content = db.Column(db.Text)
     cost = db.Column(db.Integer, default=0)
-    requirements = db.Column(db.JSON)
 
     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
@@ -153,29 +158,18 @@ class Awards(db.Model):
     __tablename__ = "awards"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
-    type = db.Column(db.String(80), default="standard")
     name = db.Column(db.String(80))
-    description = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    value = db.Column(db.Integer)
-    category = db.Column(db.String(80))
     icon = db.Column(db.Text)
-    requirements = db.Column(db.JSON)
 
     user = db.relationship("Users", foreign_keys="Awards.user_id", lazy="select")
-    team = db.relationship("Teams", foreign_keys="Awards.team_id", lazy="select")
-
-    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
     @hybrid_property
     def account_id(self):
         from CTFd.utils import get_config
 
         user_mode = get_config("user_mode")
-        if user_mode == "teams":
-            return self.team_id
-        elif user_mode == "users":
+        if user_mode == "users":
             return self.user_id
 
     def __init__(self, *args, **kwargs):
@@ -262,6 +256,9 @@ class Users(db.Model):
     password = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
     type = db.Column(db.String(80))
+    school = db.Column(db.String(128)) 
+    promotion = db.Column(db.Integer)
+    speciality = db.Column(db.String(128))
     secret = db.Column(db.String(128))
 
     # Supplementary attributes
@@ -272,9 +269,6 @@ class Users(db.Model):
     hidden = db.Column(db.Boolean, default=False)
     banned = db.Column(db.Boolean, default=False)
     verified = db.Column(db.Boolean, default=False)
-
-    # Relationship for Teams
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.id"))
 
     field_entries = db.relationship(
         "UserFieldEntries", foreign_keys="UserFieldEntries.user_id", lazy="joined"
@@ -298,9 +292,7 @@ class Users(db.Model):
         from CTFd.utils import get_config
 
         user_mode = get_config("user_mode")
-        if user_mode == "teams":
-            return self.team_id
-        elif user_mode == "users":
+        if user_mode == "users":
             return self.id
 
     @hybrid_property
@@ -308,9 +300,7 @@ class Users(db.Model):
         from CTFd.utils import get_config
 
         user_mode = get_config("user_mode")
-        if user_mode == "teams":
-            return self.team
-        elif user_mode == "users":
+        if user_mode == "users":
             return self
 
     @property
@@ -441,164 +431,6 @@ class Admins(Users):
     __mapper_args__ = {"polymorphic_identity": "admin"}
 
 
-class Teams(db.Model):
-    __tablename__ = "teams"
-    __table_args__ = (db.UniqueConstraint("id", "oauth_id"), {})
-    # Core attributes
-    id = db.Column(db.Integer, primary_key=True)
-    oauth_id = db.Column(db.Integer, unique=True)
-    # Team names are not constrained to be unique to allow for official/unofficial teams.
-    name = db.Column(db.String(128))
-    email = db.Column(db.String(128), unique=True)
-    password = db.Column(db.String(128))
-    secret = db.Column(db.String(128))
-
-    members = db.relationship(
-        "Users", backref="team", foreign_keys="Users.team_id", lazy="joined"
-    )
-
-    # Supplementary attributes
-    website = db.Column(db.String(128))
-    affiliation = db.Column(db.String(128))
-    country = db.Column(db.String(32))
-    bracket = db.Column(db.String(32))
-    hidden = db.Column(db.Boolean, default=False)
-    banned = db.Column(db.Boolean, default=False)
-
-    # Relationship for Users
-    captain_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
-    captain = db.relationship("Users", foreign_keys=[captain_id])
-
-    field_entries = db.relationship(
-        "TeamFieldEntries", foreign_keys="TeamFieldEntries.team_id", lazy="joined"
-    )
-
-    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
-    def __init__(self, **kwargs):
-        super(Teams, self).__init__(**kwargs)
-
-    @validates("password")
-    def validate_password(self, key, plaintext):
-        from CTFd.utils.crypto import hash_password
-
-        return hash_password(str(plaintext))
-
-    @property
-    def fields(self):
-        return self.get_fields(admin=False)
-
-    @property
-    def solves(self):
-        return self.get_solves(admin=False)
-
-    @property
-    def fails(self):
-        return self.get_fails(admin=False)
-
-    @property
-    def awards(self):
-        return self.get_awards(admin=False)
-
-    @property
-    def score(self):
-        return self.get_score(admin=False)
-
-    @property
-    def place(self):
-        from CTFd.utils.config.visibility import scores_visible
-
-        if scores_visible():
-            return self.get_place(admin=False)
-        else:
-            return None
-
-    def get_fields(self, admin=False):
-        if admin:
-            return self.field_entries
-
-        return [
-            entry for entry in self.field_entries if entry.field.public and entry.value
-        ]
-
-    def get_solves(self, admin=False):
-        from CTFd.utils import get_config
-
-        member_ids = [member.id for member in self.members]
-
-        solves = Solves.query.filter(Solves.user_id.in_(member_ids)).order_by(
-            Solves.date.asc()
-        )
-
-        freeze = get_config("freeze")
-        if freeze and admin is False:
-            dt = datetime.datetime.utcfromtimestamp(freeze)
-            solves = solves.filter(Solves.date < dt)
-
-        return solves.all()
-
-    def get_fails(self, admin=False):
-        from CTFd.utils import get_config
-
-        member_ids = [member.id for member in self.members]
-
-        fails = Fails.query.filter(Fails.user_id.in_(member_ids)).order_by(
-            Fails.date.asc()
-        )
-
-        freeze = get_config("freeze")
-        if freeze and admin is False:
-            dt = datetime.datetime.utcfromtimestamp(freeze)
-            fails = fails.filter(Fails.date < dt)
-
-        return fails.all()
-
-    def get_awards(self, admin=False):
-        from CTFd.utils import get_config
-
-        member_ids = [member.id for member in self.members]
-
-        awards = Awards.query.filter(Awards.user_id.in_(member_ids)).order_by(
-            Awards.date.asc()
-        )
-
-        freeze = get_config("freeze")
-        if freeze and admin is False:
-            dt = datetime.datetime.utcfromtimestamp(freeze)
-            awards = awards.filter(Awards.date < dt)
-
-        return awards.all()
-
-    @cache.memoize()
-    def get_score(self, admin=False):
-        score = 0
-        for member in self.members:
-            score += member.get_score(admin=admin)
-        return score
-
-    @cache.memoize()
-    def get_place(self, admin=False, numeric=False):
-        """
-        This method is generally a clone of CTFd.scoreboard.get_standings.
-        The point being that models.py must be self-reliant and have little
-        to no imports within the CTFd application as importing from the
-        application itself will result in a circular import.
-        """
-        from CTFd.utils.scores import get_team_standings
-        from CTFd.utils.humanize.numbers import ordinalize
-
-        standings = get_team_standings(admin=admin)
-
-        for i, team in enumerate(standings):
-            if team.team_id == self.id:
-                n = i + 1
-                if numeric:
-                    return n
-                return ordinalize(n)
-        else:
-            return None
-
-
 class Submissions(db.Model):
     __tablename__ = "submissions"
     id = db.Column(db.Integer, primary_key=True)
@@ -606,7 +438,6 @@ class Submissions(db.Model):
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
     )
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
     ip = db.Column(db.String(46))
     provided = db.Column(db.Text)
     type = db.Column(db.String(32))
@@ -614,7 +445,6 @@ class Submissions(db.Model):
 
     # Relationships
     user = db.relationship("Users", foreign_keys="Submissions.user_id", lazy="select")
-    team = db.relationship("Teams", foreign_keys="Submissions.team_id", lazy="select")
     challenge = db.relationship(
         "Challenges", foreign_keys="Submissions.challenge_id", lazy="select"
     )
@@ -626,9 +456,7 @@ class Submissions(db.Model):
         from CTFd.utils import get_config
 
         user_mode = get_config("user_mode")
-        if user_mode == "teams":
-            return self.team_id
-        elif user_mode == "users":
+        if user_mode == "users":
             return self.user_id
 
     @hybrid_property
@@ -636,9 +464,7 @@ class Submissions(db.Model):
         from CTFd.utils import get_config
 
         user_mode = get_config("user_mode")
-        if user_mode == "teams":
-            return self.team
-        elif user_mode == "users":
+        if user_mode == "users":
             return self.user
 
     @staticmethod
@@ -657,7 +483,6 @@ class Solves(Submissions):
     __tablename__ = "solves"
     __table_args__ = (
         db.UniqueConstraint("challenge_id", "user_id"),
-        db.UniqueConstraint("challenge_id", "team_id"),
         {},
     )
     id = db.Column(
@@ -671,13 +496,8 @@ class Solves(Submissions):
         db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE")),
         Submissions.user_id,
     )
-    team_id = column_property(
-        db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE")),
-        Submissions.team_id,
-    )
 
     user = db.relationship("Users", foreign_keys="Solves.user_id", lazy="select")
-    team = db.relationship("Teams", foreign_keys="Solves.team_id", lazy="select")
     challenge = db.relationship(
         "Challenges", foreign_keys="Solves.challenge_id", lazy="select"
     )
@@ -693,7 +513,6 @@ class Unlocks(db.Model):
     __tablename__ = "unlocks"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
     target = db.Column(db.Integer)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     type = db.Column(db.String(32))
@@ -705,9 +524,7 @@ class Unlocks(db.Model):
         from CTFd.utils import get_config
 
         user_mode = get_config("user_mode")
-        if user_mode == "teams":
-            return self.team_id
-        elif user_mode == "users":
+        if user_mode == "users":
             return self.user_id
 
     def __repr__(self):
@@ -721,14 +538,11 @@ class HintUnlocks(Unlocks):
 class Tracking(db.Model):
     __tablename__ = "tracking"
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(32))
     ip = db.Column(db.String(46))
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     user = db.relationship("Users", foreign_keys="Tracking.user_id", lazy="select")
-
-    __mapper_args__ = {"polymorphic_on": type}
 
     def __init__(self, *args, **kwargs):
         super(Tracking, self).__init__(**kwargs)
@@ -750,7 +564,6 @@ class Configs(db.Model):
 class Tokens(db.Model):
     __tablename__ = "tokens"
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(32))
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     expiration = db.Column(
@@ -761,7 +574,6 @@ class Tokens(db.Model):
 
     user = db.relationship("Users", foreign_keys="Tokens.user_id", lazy="select")
 
-    __mapper_args__ = {"polymorphic_on": type}
 
     def __init__(self, *args, **kwargs):
         super(Tokens, self).__init__(**kwargs)
@@ -777,7 +589,6 @@ class UserTokens(Tokens):
 class Comments(db.Model):
     __tablename__ = "comments"
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(80), default="standard")
     content = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
@@ -790,8 +601,6 @@ class Comments(db.Model):
 
         return markup(build_html(self.content, sanitize=True))
 
-    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
-
 
 class ChallengeComments(Comments):
     __mapper_args__ = {"polymorphic_identity": "challenge"}
@@ -803,11 +612,6 @@ class ChallengeComments(Comments):
 class UserComments(Comments):
     __mapper_args__ = {"polymorphic_identity": "user"}
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-
-
-class TeamComments(Comments):
-    __mapper_args__ = {"polymorphic_identity": "team"}
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
 
 
 class PageComments(Comments):
@@ -831,10 +635,6 @@ class Fields(db.Model):
 
 class UserFields(Fields):
     __mapper_args__ = {"polymorphic_identity": "user"}
-
-
-class TeamFields(Fields):
-    __mapper_args__ = {"polymorphic_identity": "team"}
 
 
 class FieldEntries(db.Model):
@@ -863,9 +663,3 @@ class UserFieldEntries(FieldEntries):
     __mapper_args__ = {"polymorphic_identity": "user"}
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     user = db.relationship("Users", foreign_keys="UserFieldEntries.user_id")
-
-
-class TeamFieldEntries(FieldEntries):
-    __mapper_args__ = {"polymorphic_identity": "team"}
-    team_id = db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE"))
-    team = db.relationship("Teams", foreign_keys="TeamFieldEntries.team_id")

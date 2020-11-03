@@ -45,7 +45,7 @@ def submissions_listing(submission_type):
         )
         .filter_by(**filters_by)
         .filter(*filters)
-        .join(Challenges)
+        .join(Challenges, Submissions.challenge_id == Challenges.id)
         .join(Model)
         .order_by(Submissions.date.desc())
         .paginate(page=page, per_page=50)

@@ -11,7 +11,6 @@ from CTFd.models import (
     ChallengeComments,
     Comments,
     PageComments,
-    TeamComments,
     UserComments,
     db,
 )
@@ -48,8 +47,6 @@ def get_comment_model(data):
         model = ChallengeComments
     elif "user_id" in data:
         model = UserComments
-    elif "team_id" in data:
-        model = TeamComments
     elif "page_id" in data:
         model = PageComments
     else:
@@ -74,7 +71,6 @@ class CommentList(Resource):
         {
             "challenge_id": (int, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "page_id": (int, None),
             "q": (str, None),
             "field": (RawEnum("CommentFields", {"content": "content"}), None),

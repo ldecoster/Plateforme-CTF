@@ -87,6 +87,7 @@ class ChallengeSolvePercentages(Resource):
 
         Model = get_model()
 
+        # TODO ISEN : remove this code
         teams_with_points = (
             db.session.query(Solves.account_id)
             .join(Model)
