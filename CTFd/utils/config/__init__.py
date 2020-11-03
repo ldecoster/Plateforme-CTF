@@ -20,10 +20,6 @@ def is_users_mode():
     return user_mode() == USERS_MODE
 
 
-#def is_teams_mode():
-#    return user_mode() == TEAMS_MODE
-
-
 def ctf_logo():
     return get_config("ctf_logo")
 

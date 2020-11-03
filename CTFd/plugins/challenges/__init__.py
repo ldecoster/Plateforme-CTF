@@ -140,7 +140,6 @@ class BaseChallenge(object):
         submission = data["submission"].strip()
         solve = Solves(
             user_id=user.id,
-            #team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(req=request),
             provided=submission,

@@ -241,16 +241,6 @@ def init_request_processors(app):
                     ),
                     403,
                 )
-            """
-            if team and team.banned:
-                return (
-                    render_template(
-                        "errors/403.html",
-                        error="Your team has been banned from this CTF",
-                    ),
-                    403,
-                )
-            """
 
     @app.before_request
     def tokens():

@@ -69,15 +69,6 @@ def upgrade():
         sa.UniqueConstraint("id", "oauth_id"),
         sa.UniqueConstraint("oauth_id"),
     )
-    """ op.create_table(
-        "dynamic_challenge",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("initial", sa.Integer(), nullable=True),
-        sa.Column("minimum", sa.Integer(), nullable=True),
-        sa.Column("decay", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["id"], ["challenges.id"]),
-        sa.PrimaryKeyConstraint("id"),
-    ) """
     op.create_table(
         "files",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -241,7 +232,6 @@ def downgrade():
     op.drop_table("hints")
     op.drop_table("flags")
     op.drop_table("files")
-    """ op.drop_table("dynamic_challenge") """
     op.drop_table("teams")
     op.drop_table("pages")
     op.drop_table("config")

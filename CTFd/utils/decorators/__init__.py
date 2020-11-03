@@ -115,21 +115,6 @@ def admins_only(f):
 
     return admins_only_wrapper
 
-"""
-def require_team(f):
-    @functools.wraps(f)
-    def require_team_wrapper(*args, **kwargs):
-        if get_config("user_mode") == TEAMS_MODE:
-            team = get_current_team()
-            if team is None:
-                if request.content_type == "application/json":
-                    abort(403)
-                else:
-                    return redirect(url_for("teams.private", next=request.full_path))
-        return f(*args, **kwargs)
-
-    return require_team_wrapper
-"""
 
 def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
     def ratelimit_decorator(f):

@@ -155,11 +155,6 @@ class ChallengeList(Resource):
                 # TODO: Convert this into a re-useable decorator
                 if is_admin():
                     pass
-                """
-                else:
-                    if config.is_teams_mode() and get_current_team() is None:
-                        abort(403)
-                """
             else:
                 solve_ids = set()
 
@@ -330,16 +325,10 @@ class Challenge(Resource):
         hints = []
         if authed():
             user = get_current_user()
-            #team = get_current_team()
 
             # TODO: Convert this into a re-useable decorator
             if is_admin():
                 pass
-            """
-            else:
-                if config.is_teams_mode() and team is None:
-                    abort(403)
-            """
 
             unlocked_hints = set(
                 [
@@ -353,7 +342,6 @@ class Challenge(Resource):
             for f in chal.files:
                 token = {
                     "user_id": user.id,
-                    #"team_id": team.id if team else None,
                     "file_id": f.id,
                 }
                 files.append(
@@ -494,11 +482,6 @@ class ChallengeAttempt(Resource):
             )
 
         user = get_current_user()
-        #team = get_current_team()
-
-        # TODO: Convert this into a re-useable decorator
-        #if config.is_teams_mode() and team is None:
-            #abort(403)
 
         fails = Fails.query.filter_by(
             account_id=user.account_id, challenge_id=challenge_id

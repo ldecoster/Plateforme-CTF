@@ -56,7 +56,7 @@ icons = [
     "angry",
 ]
 
-school = ["ISA","ISEN","HEI"]
+school = ["ISA", "ISEN", "HEI"]
 
 speciality_ISEN = [
     "Big Data",
@@ -70,14 +70,32 @@ speciality_ISEN = [
     "Nanosciences"
 ]
 
-speciality_ISA = ["Agriculture","Agroalimentaire",
-"Environnement","Agroéconomie","Entrepreneuriat"]
+speciality_ISA = [
+    "Agriculture",
+    "Agroalimentaire",
+    "Environnement",
+    "Agroéconomie",
+    "Entrepreneuriat"
+]
 
-speciality_HEI = ["TP","Architecture","Management d'entreprise","Conception Mécanique",
-"Energies","Médicale et Santé","Informatique","Chimie","Smart Cities","Innovation et Management textile",
-"Entrepreneuriat","Management opé industrielles et logostiques","Mécatronique et robotique"]
+speciality_HEI = [
+    "TP",
+    "Architecture",
+    "Management d'entreprise",
+    "Conception Mécanique",
+    "Energies",
+    "Médicale et Santé",
+    "Informatique",
+    "Chimie",
+    "Smart Cities",
+    "Innovation et Management textile",
+    "Entrepreneuriat",
+    "Management opé industrielles et logostiques",
+    "Mécatronique et robotique"
+]
 
 companies = ["Corp", "Inc.", "Squad", "Team"]
+
 
 def gen_sentence():
     return fake.text()
@@ -86,8 +104,10 @@ def gen_sentence():
 def gen_name():
     return fake.first_name()
 
+
 def gen_email():
     return fake.email()
+
 
 def gen_value():
     return random.choice(range(100, 500, 50))
@@ -108,6 +128,7 @@ def gen_file():
 def gen_ip():
     return fake.ipv4()
 
+
 def gen_affiliation():
     return (fake.word() + " " + random.choice(companies)).title()
 
@@ -121,14 +142,18 @@ def random_date(start, end):
 def random_chance():
     return random.random() > 0.5
 
+
 def gen_school():
     return random.choice(school)
+
 
 def gen_speciality_ISEN():
     return random.choice(speciality_ISEN)
 
+
 def gen_speciality_ISA():
     return random.choice(speciality_ISA)
+
 
 def gen_speciality_HEI():
     return random.choice(speciality_HEI)
@@ -137,7 +162,6 @@ def gen_speciality_HEI():
 if __name__ == "__main__":
     with app.app_context():
         db = app.db
-
 
         # Generating Users
         print("GENERATING USERS")
@@ -169,7 +193,6 @@ if __name__ == "__main__":
                             oauth_id = random.randint(1, 1000)
                         used_oauth_ids.append(oauth_id)
                         user.oauth_id = oauth_id
-                    
                     db.session.add(user)
                     db.session.flush()
 
@@ -177,7 +200,6 @@ if __name__ == "__main__":
                     db.session.add(track)
                     db.session.flush()
                     count += 1
-                    
                 except Exception:
                     pass
 

@@ -29,6 +29,8 @@ class ScoreboardList(Resource):
         response = []
         mode = get_config("user_mode")
         account_type = get_mode_as_word()
+
+        # TODO ISEN : remove this old code once the new scoreboard is ready
         """
         if mode == TEAMS_MODE:
             team_ids = []
@@ -50,7 +52,7 @@ class ScoreboardList(Resource):
             users = {}
             for u in user_standings:
                 users[u.user_id] = u
-        """
+
         for i, x in enumerate(standings):
             entry = {
                 "pos": i + 1,
@@ -61,7 +63,7 @@ class ScoreboardList(Resource):
                 "name": x.name,
                 "score": int(x.score),
             }
-            """
+
             if mode == TEAMS_MODE:
                 members = []
 
@@ -90,8 +92,9 @@ class ScoreboardList(Resource):
                             )
 
                 entry["members"] = members
-            """
+
             response.append(entry)
+        """
         return {"success": True, "data": response}
 
 
@@ -104,13 +107,14 @@ class ScoreboardDetail(Resource):
     def get(self, count):
         response = {}
 
-        standings = get_standings(count=count)
+        # TODO ISEN : remove this old code once the new scoreboard is ready
         """
+        standings = get_standings(count=count)
+
         team_ids = [team.account_id for team in standings]
 
         solves = Solves.query.filter(Solves.account_id.in_(team_ids))
         awards = Awards.query.filter(Awards.account_id.in_(team_ids))
-        """
         freeze = get_config("freeze")
 
         if freeze:
@@ -127,7 +131,7 @@ class ScoreboardDetail(Resource):
                 {
                     "challenge_id": solve.challenge_id,
                     "account_id": solve.account_id,
-                    #"team_id": solve.team_id,
+                    "team_id": solve.team_id,
                     "user_id": solve.user_id,
                     "value": solve.challenge.value,
                     "date": isoformat(solve.date),
@@ -139,7 +143,7 @@ class ScoreboardDetail(Resource):
                 {
                     "challenge_id": None,
                     "account_id": award.account_id,
-                    #"team_id": award.team_id,
+                    "team_id": award.team_id,
                     "user_id": award.user_id,
                     "value": award.value,
                     "date": isoformat(award.date),
@@ -147,7 +151,6 @@ class ScoreboardDetail(Resource):
             )
 
         # Sort all solves by date
-        """
         for team_id in solves_mapper:
             solves_mapper[team_id] = sorted(
                 solves_mapper[team_id], key=lambda k: k["date"]

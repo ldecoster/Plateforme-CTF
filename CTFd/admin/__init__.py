@@ -23,7 +23,6 @@ from CTFd.admin import pages  # noqa: F401
 from CTFd.admin import scoreboard  # noqa: F401
 from CTFd.admin import statistics  # noqa: F401
 from CTFd.admin import submissions  # noqa: F401
-#from CTFd.admin import teams  # noqa: F401
 from CTFd.admin import users  # noqa: F401
 from CTFd.cache import cache, clear_config, clear_pages, clear_standings
 from CTFd.models import (
@@ -34,7 +33,6 @@ from CTFd.models import (
     Pages,
     Solves,
     Submissions,
-    #Teams,
     Tracking,
     Unlocks,
     Users,
@@ -202,7 +200,6 @@ def reset():
 
         if data.get("accounts"):
             Users.query.delete()
-            #Teams.query.delete()
             require_setup = True
             logout = True
 

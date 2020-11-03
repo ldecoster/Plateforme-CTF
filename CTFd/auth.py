@@ -202,7 +202,6 @@ def register():
         pass_short = len(password) == 0
         pass_long = len(password) > 128
         valid_email = validators.validate_email(email_address)
-        #team_name_email_check = validators.validate_email(name)
 
         # Process additional user fields
         fields = {}
@@ -258,8 +257,6 @@ def register():
             )
         if names:
             errors.append("That user name is already taken")
-        #if team_name_email_check is True:
-        #    errors.append("Your user name cannot be an email address")
         if emails:
             errors.append("That email has already been used")
         if pass_short:
@@ -325,9 +322,6 @@ def register():
 
         log("registrations", "[{date}] {ip} - {name} registered with {email}")
         db.session.close()
-
-        #if is_teams_mode():
-        #    return redirect(url_for("teams.private"))
 
         return redirect(url_for("challenges.listing"))
     else:
@@ -472,30 +466,7 @@ def oauth_redirect():
                         message="Public registration is disabled. Please try again later.",
                     )
                     return redirect(url_for("auth.login"))
-            """
-            if get_config("user_mode") == TEAMS_MODE:
-                team_id = api_data["team"]["id"]
-                team_name = api_data["team"]["name"]
 
-                team = Teams.query.filter_by(oauth_id=team_id).first()
-                if team is None:
-                    team = Teams(name=team_name, oauth_id=team_id, captain_id=user.id)
-                    db.session.add(team)
-                    db.session.commit()
-                    clear_team_session(team_id=team.id)
-
-                team_size_limit = get_config("team_size", default=0)
-                if team_size_limit and len(team.members) >= team_size_limit:
-                    plural = "" if team_size_limit == 1 else "s"
-                    size_error = "Teams are limited to {limit} member{plural}.".format(
-                        limit=team_size_limit, plural=plural
-                    )
-                    error_for(endpoint="auth.login", message=size_error)
-                    return redirect(url_for("auth.login"))
-
-                team.members.append(user)
-                db.session.commit()
-            """
             if user.oauth_id is None:
                 user.oauth_id = user_id
                 user.verified = True

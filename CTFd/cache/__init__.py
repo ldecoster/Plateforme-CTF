@@ -34,26 +34,19 @@ def clear_standings():
     from CTFd.utils.user import (
         get_user_score,
         get_user_place,
-        #get_team_score,
-        #get_team_place,
     )
 
     # Clear out the bulk standings functions
     cache.delete_memoized(get_standings)
-    #cache.delete_memoized(get_team_standings)
     cache.delete_memoized(get_user_standings)
 
     # Clear out the individual helpers for accessing score via the model
     cache.delete_memoized(Users.get_score)
     cache.delete_memoized(Users.get_place)
-    #cache.delete_memoized(Teams.get_score)
-    #cache.delete_memoized(Teams.get_place)
 
     # Clear the Jinja Attrs constants
     cache.delete_memoized(get_user_score)
     cache.delete_memoized(get_user_place)
-    #cache.delete_memoized(get_team_score)
-    #cache.delete_memoized(get_team_place)
 
     # Clear out HTTP request responses
     cache.delete(make_cache_key(path=api.name + "." + ScoreboardList.endpoint))
@@ -87,16 +80,3 @@ def clear_all_user_sessions():
     from CTFd.utils.user import get_user_attrs
 
     cache.delete_memoized(get_user_attrs)
-
-"""
-def clear_team_session(team_id):
-    from CTFd.utils.user import get_team_attrs
-
-    cache.delete_memoized(get_team_attrs, team_id=team_id)
-
-
-def clear_all_team_sessions():
-    from CTFd.utils.user import get_team_attrs
-
-    cache.delete_memoized(get_team_attrs)
-"""

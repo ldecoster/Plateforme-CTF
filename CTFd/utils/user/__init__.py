@@ -66,49 +66,6 @@ def get_user_score(user_id):
         return user.account.score
     return None
 
-"""
-@cache.memoize(timeout=300)
-def get_team_place(team_id):
-    team = Teams.query.filter_by(id=team_id).first()
-    if team:
-        return team.place
-    return None
-"""
-"""
-@cache.memoize(timeout=300)
-def get_team_score(team_id):
-    team = Teams.query.filter_by(id=team_id).first()
-    if team:
-        return team.score
-    return None
-"""
-"""
-def get_current_team():
-    if authed():
-        user = get_current_user()
-        return user.team
-    else:
-        return None
-"""
-"""
-def get_current_team_attrs():
-    if authed():
-        user = get_user_attrs(user_id=session["id"])
-        if user.team_id:
-            return get_team_attrs(team_id=user.team_id)
-    return None
-"""
-"""
-@cache.memoize(timeout=300)
-def get_team_attrs(team_id):
-    team = Teams.query.filter_by(id=team_id).first()
-    if team:
-        d = {}
-        for field in TeamAttrs._fields:
-            d[field] = getattr(team, field)
-        return TeamAttrs(**d)
-    return None
-"""
 
 def get_current_user_type(fallback=None):
     if authed():

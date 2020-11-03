@@ -6,6 +6,7 @@ from CTFd.utils import get_config
 from CTFd.utils.dates import unix_time_to_utc
 from CTFd.utils.modes import get_model
 
+# TODO ISEN : remove this file or rewrite all the code (because Score is not suppose to exist at the end of the project)
 
 @cache.memoize(timeout=60)
 def get_standings(count=None, admin=False, fields=[]):
