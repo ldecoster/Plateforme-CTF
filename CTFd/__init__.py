@@ -164,11 +164,11 @@ def create_app(config="CTFd.config.Config"):
             Challenges,
             Fails,
             Flags,
+            TagChallenge,
             Tags,
             Files,
             Tracking,
         )
-
         url = create_database()
 
         # This allows any changes to the SQLALCHEMY_DATABASE_URI to get pushed back in

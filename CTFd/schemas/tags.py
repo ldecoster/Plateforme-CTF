@@ -1,7 +1,7 @@
 from CTFd.models import Tags, ma
 from CTFd.utils import string_types
 
-
+# //Todo Kylian : tag_challenges
 class TagSchema(ma.ModelSchema):
     class Meta:
         model = Tags

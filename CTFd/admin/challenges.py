@@ -5,7 +5,7 @@ from CTFd.models import Challenges, Flags, Solves, Tags
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import admins_only
 
-
+# //Todo Kylian : tag_challenges
 @admin.route("/admin/challenges")
 @admins_only
 def challenges_listing():

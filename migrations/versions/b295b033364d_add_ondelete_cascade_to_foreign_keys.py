@@ -56,7 +56,7 @@ def upgrade():
             ["id"],
             ondelete="CASCADE",
         )
-
+        #//Todo Kylian : tag_challenges
         op.drop_constraint("tags_ibfk_1", "tags", type_="foreignkey")
         op.create_foreign_key(
             "tags_ibfk_1",

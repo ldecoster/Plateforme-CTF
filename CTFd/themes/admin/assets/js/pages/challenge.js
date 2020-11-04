@@ -403,7 +403,7 @@ $(() => {
         }
       });
   });
-
+  //Todo Kylian : tag_challenges
   $("#challenge-create-options form").submit(handleChallengeOptions);
   $("#tags-add-input").keyup(setTagList);
   $(".delete-tag").click(deleteTag);

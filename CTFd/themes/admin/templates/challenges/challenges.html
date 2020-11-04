@@ -95,7 +95,7 @@
 							<td class="text-center">{{ challenge.id }}</td>
 							<td><a href="{{ url_for('admin.challenges_detail', challenge_id=challenge.id) }}">{{ challenge.name }}</a></td>
 							<td class="d-none d-md-table-cell d-lg-table-cell">
-								{% for tag in challenge.tags %}
+								{% for tag in challenge.tags %}<!--//Todo Kylian : tag_challenges-->
 									<span class='badge badge-primary mx-1 challenge-tag'>
 										<span>{{ tag.value }}</span>
 										<a tag-id="{{ tag.id }}" class='btn-fa delete-tag'> &#215;</a>

@@ -163,7 +163,7 @@ def bypass_csrf_protection(f):
 
 def get_plugin_names():
     modules = sorted(glob.glob(app.plugins_dir + "/*"))
-    blacklist = {"__pycache__"}
+    blacklist = {"__pycache__",""}
     plugins = []
     for module in modules:
         module_name = os.path.basename(module)

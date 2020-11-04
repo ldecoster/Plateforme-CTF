@@ -33,6 +33,7 @@ from CTFd.utils.config.visibility import (
     challenges_visible,
     scores_visible,
 )
+# //Todo Kylian : tag_challenges
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     admins_only,

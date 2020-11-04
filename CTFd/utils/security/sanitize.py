@@ -51,7 +51,7 @@ cleaner = Cleaner(
     annoying_tags=False,
 )
 
-
+#//Todo Kylian : tag_challenges
 def sanitize_html(html):
     html = html5parser.fragment_fromstring(html, create_parent="div")
     html = cleaner.clean_html(tostring(html)).decode()

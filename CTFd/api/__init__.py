@@ -22,7 +22,7 @@ from CTFd.api.v1.tags import tags_namespace
 from CTFd.api.v1.tokens import tokens_namespace
 from CTFd.api.v1.unlocks import unlocks_namespace
 from CTFd.api.v1.users import users_namespace
-
+# //Todo Kylian : tag_challenges
 api = Blueprint("api", __name__, url_prefix="/api/v1")
 CTFd_API_v1 = Api(api, version="v1", doc=current_app.config.get("SWAGGER_UI_ENDPOINT"))
 

@@ -78,9 +78,8 @@ class Challenges(db.Model):
     state = db.Column(db.String(80), nullable=False, default="visible")
     requirements = db.Column(db.JSON)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-
     files = db.relationship("ChallengeFiles", backref="challenge")
-    tags = db.relationship("Tags", backref="challenge")
+    tags = db.relationship("TagChallenge", backref="challenge")
     hints = db.relationship("Hints", backref="challenge")
     flags = db.relationship("Flags", backref="challenge")
     comments = db.relationship("ChallengeComments", backref="challenge")
@@ -183,14 +182,22 @@ class Awards(db.Model):
 class Tags(db.Model):
     __tablename__ = "tags"
     id = db.Column(db.Integer, primary_key=True)
-    challenge_id = db.Column(
-        db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
-    )
     value = db.Column(db.String(80))
+    challenges = db.relationship("TagChallenge", backref="tag")
 
     def __init__(self, *args, **kwargs):
         super(Tags, self).__init__(**kwargs)
 
+class TagChallenge(db.Model):
+    __tablename__ = "tagChallenge"
+    id = db.Column(db.Integer, primary_key=True)
+    challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
+    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"))
+
+
+    def __init__(self, *args, **kwargs):
+        super(TagChallenge, self).__init__(**kwargs)
+    
 
 class Files(db.Model):
     __tablename__ = "files"

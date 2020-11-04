@@ -101,7 +101,7 @@ class BaseChallenge(object):
         Challenges.query.filter_by(id=challenge.id).delete()
         cls.challenge_model.query.filter_by(id=challenge.id).delete()
         db.session.commit()
-
+        # //Todo Kylian : tag_challenges
     @classmethod
     def attempt(cls, challenge, request):
         """

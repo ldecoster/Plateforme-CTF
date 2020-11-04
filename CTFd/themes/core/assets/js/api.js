@@ -695,6 +695,7 @@ let API = (function() {
    * @param {string} parameters.id - A Challenge ID
    * @param {string} parameters.challengeId -
    */
+  //Todo Kylian : tag_challenges
   API.prototype.get_challenge_tags = function(parameters) {
     if (parameters === undefined) {
       parameters = {};

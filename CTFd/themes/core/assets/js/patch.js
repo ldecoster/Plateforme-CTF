@@ -253,6 +253,7 @@ API.prototype.patch_config_list = function(parameters, body) {
 
   return deferred.promise;
 };
+//Todo Kylian : tag_challenges
 API.prototype.post_tag_list = function(parameters, body) {
   if (parameters === undefined) {
     parameters = {};

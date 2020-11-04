@@ -12,7 +12,7 @@ export function deleteTag(_event) {
     }
   });
 }
-
+//Todo Kylian : tag_challenges
 export function setTagList(event) {
 
   CTFd.api.get_tag_list().then(response => {
@@ -24,16 +24,21 @@ export function setTagList(event) {
     //get match to the current input
     let matches = tagsList.filter(tag =>{
       const regex = new RegExp(`^${searchtag}`,'gi');
-      return tag.value.match(regex);
+      return tag.value.match(regex) && tag.challenge_id!=window.CHALLENGE_ID;
     });
-    /*if(searchtag.length === 0){
+
+    if(searchtag.length === 0){
       matches = [];
       $(".list-group").html('');
-    }*/
+    }
 
     outputHtml(matches);
 
-    if (event.keyCode != 13) {
+    let newMatches = tagsList.filter(tag =>{
+      const regex = new RegExp(`^${searchtag}`,'gi');
+      return tag.value.match(regex);
+    });
+    if (event.keyCode != 13 || newMatches.length!=0) {
       return;
     }
     
@@ -44,6 +49,7 @@ export function setTagList(event) {
     addTag(params);  
   });
 }
+
 function addTag(params){
 
   CTFd.api.post_tag_list({}, params).then(response => {
@@ -73,7 +79,6 @@ export function addClickedTag(_event){
 
 //show result in HTML format
 const outputHtml = matches =>{
-  console.log(matches);
   if (matches.length > 0){
     const html = matches
     .map(

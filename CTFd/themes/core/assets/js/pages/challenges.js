@@ -299,6 +299,7 @@ function loadChals() {
         $challenges_board.append(tagrow);
         console.log(tagList[i].value);
       }
+      //Todo Kylian : tag_challenges
       for (let i = 0; i <challenges.length; i++) {
         challenges[i].solves = 0;
         console.log("challenge length = "+challenges.length);
