@@ -20,6 +20,7 @@ from CTFd.models import (
     Solves,
     Submissions,
     Tags,
+    TagChallenge,
     db,
 )
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
@@ -33,7 +34,7 @@ from CTFd.utils.config.visibility import (
     challenges_visible,
     scores_visible,
 )
-# //Todo Kylian : tag_challenges
+
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     admins_only,
@@ -701,9 +702,13 @@ class ChallengeTags(Resource):
     @admins_only
     def get(self, challenge_id):
         response = []
+        tags = []
 
-        tags = Tags.query.filter_by(challenge_id=challenge_id).all()
-
+        TagChallenges = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
+        for TagChallenge in TagChallenges:
+            tags.append(
+                Tags.query.filter_by(id=TagChallenge.tag_id).all()
+            )
         for t in tags:
             response.append(
                 {"id": t.id, "challenge_id": t.challenge_id, "value": t.value}

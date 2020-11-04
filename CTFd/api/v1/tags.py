@@ -11,7 +11,6 @@ from CTFd.models import Tags, db
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
-# //Todo Kylian : tag_challenges
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
 TagModel = sqlalchemy_to_pydantic(Tags)
@@ -47,12 +46,11 @@ class TagList(Resource):
     )
     @validate_args(
         {
-            "challenge_id": (int, None),
             "value": (str, None),
             "q": (str, None),
             "field": (
                 RawEnum(
-                    "TagFields", {"challenge_id": "challenge_id", "value": "value"}
+                    "TagFields", {"value": "value"}
                 ),
                 None,
             ),

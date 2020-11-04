@@ -8,6 +8,7 @@ from CTFd.models import (
     Hints,
     Solves,
     Tags,
+    TagChallenge,
     db,
 )
 from CTFd.plugins import register_plugin_assets_directory
@@ -96,12 +97,11 @@ class BaseChallenge(object):
         for f in files:
             delete_file(f.id)
         ChallengeFiles.query.filter_by(challenge_id=challenge.id).delete()
-        Tags.query.filter_by(challenge_id=challenge.id).delete()
+        TagChallenge.query.filter_by(challenge_id=challenge.id).delete()
         Hints.query.filter_by(challenge_id=challenge.id).delete()
         Challenges.query.filter_by(id=challenge.id).delete()
         cls.challenge_model.query.filter_by(id=challenge.id).delete()
         db.session.commit()
-        # //Todo Kylian : tag_challenges
     @classmethod
     def attempt(cls, challenge, request):
         """

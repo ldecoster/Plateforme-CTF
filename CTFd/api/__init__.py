@@ -19,10 +19,11 @@ from CTFd.api.v1.scoreboard import scoreboard_namespace
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.api.v1.submissions import submissions_namespace
 from CTFd.api.v1.tags import tags_namespace
+from CTFd.api.v1.tagChallenge import tagChallenge_namespace
 from CTFd.api.v1.tokens import tokens_namespace
 from CTFd.api.v1.unlocks import unlocks_namespace
 from CTFd.api.v1.users import users_namespace
-# //Todo Kylian : tag_challenges
+
 api = Blueprint("api", __name__, url_prefix="/api/v1")
 CTFd_API_v1 = Api(api, version="v1", doc=current_app.config.get("SWAGGER_UI_ENDPOINT"))
 
@@ -34,6 +35,7 @@ CTFd_API_v1.schema_model("APISimpleSuccessResponse", APISimpleSuccessResponse.sc
 
 CTFd_API_v1.add_namespace(challenges_namespace, "/challenges")
 CTFd_API_v1.add_namespace(tags_namespace, "/tags")
+CTFd_API_v1.add_namespace(tagChallenge_namespace, "/tagChallenge")
 CTFd_API_v1.add_namespace(awards_namespace, "/awards")
 CTFd_API_v1.add_namespace(hints_namespace, "/hints")
 CTFd_API_v1.add_namespace(flags_namespace, "/flags")
