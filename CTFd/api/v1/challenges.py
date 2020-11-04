@@ -697,7 +697,6 @@ class ChallengeFiles(Resource):
     @contributors_contributors_plus_admins_only
     def get(self, challenge_id):
         response = []
-
         challenge_files = ChallengeFilesModel.query.filter_by(
             challenge_id=challenge_id
         ).all()
@@ -709,7 +708,7 @@ class ChallengeFiles(Resource):
 
 @challenges_namespace.route("/<challenge_id>/tags")
 class ChallengeTags(Resource):
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     def get(self, challenge_id):
         response = []
 
@@ -738,7 +737,7 @@ class ChallengeHints(Resource):
 
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     def get(self, challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)

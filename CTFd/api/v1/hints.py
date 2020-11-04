@@ -7,11 +7,12 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Hints, HintUnlocks, db
+from CTFd.models import Challenges, HintUnlocks, Hints, db
 from CTFd.schemas.hints import HintSchema
-from CTFd.utils.decorators import admins_only,contributors_plus_admins_only, authed_only, during_ctf_time_only
+from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only, authed_only, during_ctf_time_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import get_current_user, is_admin
+from CTFd.utils.user import get_current_user, is_admin, is_contributor, is_contributor_plus
+from flask import session
 
 hints_namespace = Namespace("hints", description="Endpoint to retrieve Hints")
 
@@ -37,7 +38,7 @@ hints_namespace.schema_model(
 
 @hints_namespace.route("")
 class HintList(Resource):
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to list Hint objects in bulk",
         responses={
@@ -75,7 +76,7 @@ class HintList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to create a Hint object",
         responses={
@@ -95,11 +96,13 @@ class HintList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        db.session.commit()
+        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id==session["id"]):
+            db.session.commit()
 
-        response = schema.dump(response.data)
+            response = schema.dump(response.data)
 
-        return {"success": True, "data": response.data}
+            return {"success": True, "data": response.data}
+        return {"success":False}
 
 
 @hints_namespace.route("/<hint_id>")
@@ -140,7 +143,7 @@ class Hint(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to edit a specific Hint object",
         responses={
@@ -153,30 +156,36 @@ class Hint(Resource):
     )
     def patch(self, hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
-        req = request.get_json()
+        challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
+        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+            req = request.get_json()
 
-        schema = HintSchema(view="admin")
-        response = schema.load(req, instance=hint, partial=True, session=db.session)
+            schema = HintSchema(view="admin")
+            response = schema.load(req, instance=hint, partial=True, session=db.session)
 
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
+            if response.errors:
+                return {"success": False, "errors": response.errors}, 400
 
-        db.session.add(response.data)
-        db.session.commit()
+            db.session.add(response.data)
+            db.session.commit()
 
-        response = schema.dump(response.data)
+            response = schema.dump(response.data)
 
-        return {"success": True, "data": response.data}
+            return {"success": True, "data": response.data}
+        return {"success":False}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @hints_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
-        db.session.delete(hint)
-        db.session.commit()
-        db.session.close()
+        challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
+        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+            db.session.delete(hint)
+            db.session.commit()
+            db.session.close()
 
-        return {"success": True}
+            return {"success": True}
+        return {"success": False}

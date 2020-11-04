@@ -7,11 +7,12 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Files, db
+from CTFd.models import Challenges, Files, db
 from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
-from CTFd.utils.decorators import admins_only,contributors_plus_admins_only
+from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
+from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
 
 files_namespace = Namespace("files", description="Endpoint to retrieve Files")
 
@@ -37,7 +38,7 @@ files_namespace.schema_model(
 
 @files_namespace.route("")
 class FilesList(Resource):
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @files_namespace.doc(
         description="Endpoint to get file objects in bulk",
         responses={
@@ -74,7 +75,7 @@ class FilesList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @files_namespace.doc(
         description="Endpoint to get file objects in bulk",
         responses={
@@ -107,7 +108,7 @@ class FilesList(Resource):
 
 @files_namespace.route("/<file_id>")
 class FilesDetail(Resource):
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @files_namespace.doc(
         description="Endpoint to get a specific file object",
         responses={
@@ -120,25 +121,30 @@ class FilesDetail(Resource):
     )
     def get(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
-        schema = FileSchema()
-        response = schema.dump(f)
+        challenge = Challenges.query.filter_by(id=f.challenge_id).first_or_404()
+        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+            schema = FileSchema()
+            response = schema.dump(f)
 
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
+            if response.errors:
+                return {"success": False, "errors": response.errors}, 400
 
-        return {"success": True, "data": response.data}
+            return {"success": True, "data": response.data}
+        return {"success":False}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @files_namespace.doc(
         description="Endpoint to delete a file object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
+        challenge = Challenges.query.filter_by(id=f.challenge_id).first_or_404()
+        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+            uploads.delete_file(file_id=f.id)
+            db.session.delete(f)
+            db.session.commit()
+            db.session.close()
 
-        uploads.delete_file(file_id=f.id)
-        db.session.delete(f)
-        db.session.commit()
-        db.session.close()
-
-        return {"success": True}
+            return {"success": True}
+        return {"success":False}

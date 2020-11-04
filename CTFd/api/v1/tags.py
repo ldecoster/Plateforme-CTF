@@ -9,8 +9,10 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Tags, db
 from CTFd.schemas.tags import TagSchema
-from CTFd.utils.decorators import admins_only,contributors_plus_admins_only
+from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
+from flask import session
+from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
 
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
@@ -34,7 +36,7 @@ tags_namespace.schema_model("TagListSuccessResponse", TagListSuccessResponse.api
 
 @tags_namespace.route("")
 class TagList(Resource):
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @tags_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
@@ -73,7 +75,7 @@ class TagList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @tags_namespace.doc(
         description="Endpoint to create a Tag object",
         responses={
@@ -93,18 +95,20 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        db.session.commit()
+        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id==session["id"]):
+            db.session.commit()
 
-        response = schema.dump(response.data)
-        db.session.close()
+            response = schema.dump(response.data)
+            db.session.close()
 
-        return {"success": True, "data": response.data}
+            return {"success": True, "data": response.data}
+        return {"success":False}
 
 
 @tags_namespace.route("/<tag_id>")
 @tags_namespace.param("tag_id", "A Tag ID")
 class Tag(Resource):
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @tags_namespace.doc(
         description="Endpoint to get a specific Tag object",
         responses={
@@ -125,7 +129,7 @@ class Tag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @tags_namespace.doc(
         description="Endpoint to edit a specific Tag object",
         responses={
@@ -152,15 +156,18 @@ class Tag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_plus_admins_only
+    @contributors_contributors_plus_admins_only
     @tags_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
-        db.session.delete(tag)
-        db.session.commit()
-        db.session.close()
+        challenge = Challenges.query.filter_by(id=tag.challenge_id).first_or_404()
+        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+            db.session.delete(tag)
+            db.session.commit()
+            db.session.close()
 
-        return {"success": True}
+            return {"success": True}
+        return {"success":False}
