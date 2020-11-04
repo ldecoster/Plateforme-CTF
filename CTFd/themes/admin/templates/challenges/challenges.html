@@ -77,8 +77,9 @@
 						</td>
 						<th class="sort-col text-center"><b>ID</b></th>
 						<th class="sort-col"><b>Name</b></th>
-						<th class="d-none d-md-table-cell d-lg-table-cell sort-col"><b>Category</b></th>
-						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Value</b></th>
+<!--<th class="d-none d-md-table-cell d-lg-table-cell sort-col"><b>Category</b></th>-->
+						<!-- <th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Value</b></th> -->
+						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Tags</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Type</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>State</b></th>
 					</tr>
@@ -101,7 +102,7 @@
 									</span>
 								{% endfor %}
 							</td>
-							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.value }}</td>
+							<!-- <td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.value }}</td> -->
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.type }}</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">
 								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-success' %}
