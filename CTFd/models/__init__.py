@@ -24,12 +24,13 @@ def get_class_by_tablename(tablename):
             return c
     return None
 
+
 class Votes(db.Model):
     __tablename__ = "votes"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
-    value = db.Column(db.Integer)
+    value = db.Column(db.Boolean, default=False)
 
     user = db.relationship("Users", foreign_keys="Votes.user_id", lazy="select")
 
