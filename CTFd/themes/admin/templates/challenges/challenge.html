@@ -48,11 +48,13 @@
 				<nav class="nav nav-tabs nav-fill" id="challenge-properties" role="tablist">
 					<a class="nav-item nav-link active" data-toggle="tab" href="#comments" role="tab" >Comments</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#votes" role="tab">Votes</a>
+					{%if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id == session["id"] ) %}
 					<a class="nav-item nav-link" data-toggle="tab" href="#flags" role="tab">Flags</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#files" role="tab">Files</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#tags" role="tab">Tags</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#hints" role="tab">Hints</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#requirements" role="tab">Requirements</a>
+					{% endif%}
 				</nav>
 
 				<div class="tab-content" id="nav-tabContent">

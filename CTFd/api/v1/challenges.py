@@ -27,7 +27,7 @@ from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config, get_config
-from CTFd.utils import user as current_user
+from CTFd.utils import sessions, user
 from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,
@@ -224,6 +224,7 @@ class ChallengeList(Resource):
     def post(self):
         data = request.form or request.get_json()
         challenge_type = data["type"]
+        data["author_id"] = session["id"]
         challenge_class = get_chal_class(challenge_type)
         challenge = challenge_class.create(request)
         response = challenge_class.read(challenge)
@@ -423,14 +424,14 @@ class Challenge(Resource):
     )
     def patch(self, challenge_id):
         author_id = session["id"]
-        if is_admin() or is_contributor_plus() or (is_contributor() and self.author_id==author_id):
-            challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==author_id):
             challenge_class = get_chal_class(challenge.type)
             challenge = challenge_class.update(challenge, request)
             response = challenge_class.read(challenge)
             return {"success": True, "data": response}
         else :
-            return {"success":False,"errors":response.errors}
+            return {"success": False}
 
     @contributors_contributors_plus_admins_only
     @challenges_namespace.doc(
@@ -439,8 +440,8 @@ class Challenge(Resource):
     )
     def delete(self, challenge_id):
         author_id = session["id"]
-        if is_admin() or is_contributor_plus() or (is_contributor() and self.author_id==author_id):
-            challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==author_id):
             chal_class = get_chal_class(challenge.type)
             chal_class.delete(challenge)
 
