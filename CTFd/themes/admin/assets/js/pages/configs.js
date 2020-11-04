@@ -383,13 +383,4 @@ $(() => {
       type: "user"
     }
   }).$mount(userVueContainer);
-
-  /* // Insert FieldList element for teams
-  let teamVueContainer = document.createElement("div");
-  document.querySelector("#team-field-list").appendChild(teamVueContainer);
-  new fieldList({
-    propsData: {
-      type: "team"
-    }
-  }).$mount(teamVueContainer); */
 });

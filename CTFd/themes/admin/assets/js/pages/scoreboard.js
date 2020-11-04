@@ -4,8 +4,7 @@ import $ from "jquery";
 import { ezAlert } from "core/ezq";
 
 const api_func = {
-  users: (x, y) => CTFd.api.patch_user_public({ userId: x }, y)/* ,
-  teams: (x, y) => CTFd.api.patch_team_public({ teamId: x }, y) */
+  users: (x, y) => CTFd.api.patch_user_public({ userId: x }, y)
 };
 
 function toggleAccount() {
