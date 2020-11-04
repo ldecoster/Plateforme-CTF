@@ -1,4 +1,4 @@
-import "./main";
+/* import "./main";
 import CTFd from "core/CTFd";
 import $ from "jquery";
 import { ezAlert, ezQuery } from "core/ezq";
@@ -78,3 +78,4 @@ $(() => {
   $("#teams-delete-button").click(deleteSelectedTeams);
   $("#teams-edit-button").click(bulkEditTeams);
 });
+ */

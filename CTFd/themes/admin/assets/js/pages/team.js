@@ -1,4 +1,4 @@
-import "./main";
+/* import "./main";
 import $ from "jquery";
 import CTFd from "core/CTFd";
 import { htmlEntities } from "core/utils";
@@ -538,3 +538,4 @@ $(() => {
     $("#team-statistics-modal").modal("toggle");
   });
 });
+ */
