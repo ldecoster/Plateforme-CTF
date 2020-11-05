@@ -146,7 +146,7 @@ class BaseChallenge(object):
         db.session.commit()
 
     @classmethod
-    def fail(cls, user, team, challenge, request):
+    def fail(cls, user, challenge, request):
         """
         This method is used to insert Fails into the database in order to mark an answer incorrect.
 
@@ -159,7 +159,6 @@ class BaseChallenge(object):
         submission = data["submission"].strip()
         wrong = Fails(
             user_id=user.id,
-            team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(request),
             provided=submission,

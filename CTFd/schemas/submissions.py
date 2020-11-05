@@ -6,7 +6,7 @@ from CTFd.utils import string_types
 
 
 class SubmissionSchema(ma.ModelSchema):
-    challenge = fields.Nested(ChallengeSchema, only=["name", "category", "value"])
+    challenge = fields.Nested(ChallengeSchema, only=["name"])
 
     class Meta:
         model = Submissions
@@ -20,12 +20,11 @@ class SubmissionSchema(ma.ModelSchema):
             "challenge_id",
             "challenge",
             "user",
-            "team",
             "date",
             "type",
             "id",
         ],
-        "user": ["challenge_id", "challenge", "user", "team", "date", "type", "id"],
+        "user": ["challenge_id", "challenge", "user", "date", "type", "id"],
     }
 
     def __init__(self, view=None, *args, **kwargs):
