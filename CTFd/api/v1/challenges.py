@@ -139,7 +139,7 @@ class ChallengeList(Resource):
         else:
             challenges = (
                 Challenges.query.filter(
-                    and_(Challenges.state != "hidden", Challenges.state != "locked")
+                    and_(Challenges.state != "hidden", Challenges.state != "locked", Challenges.state != "vote")
                 )
                 .filter_by(**query_args)
                 .filter(*filters)

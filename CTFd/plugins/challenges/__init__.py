@@ -125,7 +125,7 @@ class BaseChallenge(object):
         return False, "Incorrect"
 
     @classmethod
-    def solve(cls, user, team, challenge, request):
+    def solve(cls, user, challenge, request):
         """
         This method is used to insert Solves into the database in order to mark a challenge as solved.
 

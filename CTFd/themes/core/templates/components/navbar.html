@@ -47,7 +47,7 @@
                             {% elif is_contributor() or is_contributor_plus() %}
                             <a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">
                             {%endif %}
-                                <span class="d-block" data-toggle="tooltip" data-placement="bottom" title="Admin Panel">
+                                <span class="d-block" data-toggle="tooltip" data-placement="bottom" {% if is_admin() %} title="Admin Panel" {% else %} title="Contributor Panel" {% endif %}>
                                     <i class="fas fa-wrench d-none d-md-block d-lg-none"></i>
                                 </span>
                                 <span class="d-sm-block d-md-none d-lg-block">
