@@ -31,8 +31,7 @@ def challenges_listing():
 @admin.route("/admin/challenges/<int:challenge_id>")
 @admins_only
 def challenges_detail(challenge_id):
-    challengeTags = []
-    challengeTags_value=[]
+
     challenges = dict(
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
     )
@@ -44,13 +43,6 @@ def challenges_detail(challenge_id):
         .all()
     )
     flags = Flags.query.filter_by(challenge_id=challenge.id).all()
-    challengeTags = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
-    for r in challengeTags:
-        print("*"*64)
-        print(Tags.query.filter_by(id=r.tag_id).all())
-        print("*"*64)
-        challengeTags_value.append(Tags.query.filter_by(id=r.tag_id).all())
-   
     try:
         challenge_class = get_chal_class(challenge.type)
     except KeyError:
@@ -74,7 +66,6 @@ def challenges_detail(challenge_id):
         challenges=challenges,
         solves=solves,
         flags=flags,
-        tags=challengeTags_value,
     )
 
 
