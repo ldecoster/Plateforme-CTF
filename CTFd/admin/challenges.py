@@ -1,7 +1,7 @@
 from flask import abort, render_template, request, url_for
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Flags, Solves, Tags
+from CTFd.models import Challenges, Flags, Solves, Tags, TagChallenge
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import admins_only
 
@@ -18,7 +18,6 @@ def challenges_listing():
             filters.append(getattr(Challenges, field).like("%{}%".format(q)))
 
     query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
-    challenges = query.all()
     total = query.count()
     return render_template(
         "admin/challenges/challenges.html",
@@ -32,17 +31,26 @@ def challenges_listing():
 @admin.route("/admin/challenges/<int:challenge_id>")
 @admins_only
 def challenges_detail(challenge_id):
+    challengeTags = []
+    challengeTags_value=[]
     challenges = dict(
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
     )
     challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+    
     solves = (
         Solves.query.filter_by(challenge_id=challenge.id)
         .order_by(Solves.date.asc())
         .all()
     )
     flags = Flags.query.filter_by(challenge_id=challenge.id).all()
-    tags = Tags.query.all()
+    challengeTags = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
+    for r in challengeTags:
+        print("*"*64)
+        print(Tags.query.filter_by(id=r.tag_id).all())
+        print("*"*64)
+        challengeTags_value.append(Tags.query.filter_by(id=r.tag_id).all())
+   
     try:
         challenge_class = get_chal_class(challenge.type)
     except KeyError:
@@ -66,7 +74,7 @@ def challenges_detail(challenge_id):
         challenges=challenges,
         solves=solves,
         flags=flags,
-        tags=tags,
+        tags=challengeTags_value,
     )
 
 

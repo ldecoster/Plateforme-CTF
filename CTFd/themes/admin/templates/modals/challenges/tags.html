@@ -1,8 +1,9 @@
 <div class="col-md-12">
-	<div id="challenge-tags" class="my-3"><!--//Todo Kylian : tag_challenges-->
-		{% for tag in challenge.tags %}
+	<div id="challenge-tags" class="my-3">
+		{% for tag in tags %}
 		<span class='badge badge-primary mx-1 challenge-tag'>
-			<span>{{ tag.value }}</span>
+			<span>{{ tag.id }}</span>
+			<script>console.log(tag.id)</script>
 			<a tag-id="{{ tag.id }}" class='btn-fa delete-tag'> &#215;</a>
 		</span>
 		{% endfor %}
