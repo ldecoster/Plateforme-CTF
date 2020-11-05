@@ -18,6 +18,7 @@ def challenges_listing():
             filters.append(getattr(Challenges, field).like("%{}%".format(q)))
 
     query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
+    challenges = query.all()
     total = query.count()
     return render_template(
         "admin/challenges/challenges.html",

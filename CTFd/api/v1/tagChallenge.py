@@ -7,21 +7,21 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import TagChallenge, db
+from CTFd.models import db, TagChallenge
 from CTFd.schemas.tagChallenge import TagChallengeSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
-tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve Tags")
+tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve TagChallenge")
 
-TagChallenge = sqlalchemy_to_pydantic(TagChallenge)
+TagChallengeModel = sqlalchemy_to_pydantic(TagChallenge)
 
 
 class TagChallengeDetailedSuccessResponse(APIDetailedSuccessResponse):
-    data: TagChallenge
+    data: TagChallengeModel
 
 
 class TagChallengeListSuccessResponse(APIListSuccessResponse):
-    data: List[TagChallenge]
+    data: List[TagChallengeModel]
 
 
 tagChallenge_namespace.schema_model(
@@ -98,3 +98,22 @@ class TagChallengeList(Resource):
         db.session.close()
 
         return {"success": True, "data": response.data}
+
+
+@tagChallenge_namespace.route("/<tag_id>/<challenge_id>")
+@tagChallenge_namespace.param("tag_id", "A Tag ID")
+@tagChallenge_namespace.param("challenge_id", "A challenge ID")
+class TagChal(Resource):
+    @admins_only
+    @tagChallenge_namespace.doc(
+        description="Endpoint to delete a specific TagChallenge object",
+        responses={200: ("Success", "APISimpleSuccessResponse")},
+    )
+    def delete(self,tag_id,challenge_id):
+        print("****DELETE METHODE CALLED*****")
+        tagChallenge = TagChallenge.query.filter_by(tag_id=tag_id,challenge_id=challenge_id).first_or_404()
+        db.session.delete(tagChallenge)
+        db.session.commit()
+        db.session.close()
+
+        return {"success": True}

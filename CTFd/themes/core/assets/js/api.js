@@ -2785,7 +2785,8 @@ let API = (function () {
    * @method
    * @name API#delete_tagChallenge
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.tagChallengeId - A TagChallenge ID
+   * @param {string} parameters.tagId - A Tag ID
+   * @param {string} parameters.challengeId - A Challenge ID
    */
   API.prototype.delete_tagChallenge = function (parameters) {
     if (parameters === undefined) {
@@ -2793,7 +2794,7 @@ let API = (function () {
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/tagChallenge/{tagChallenge_id}";
+      path = "/tagChallenge/<tag_id>/<challenge_id>";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2802,14 +2803,19 @@ let API = (function () {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{tagChallenge_id}", parameters["tagId"]);
-
     if (parameters["tagId"] === undefined) {
       deferred.reject(new Error("Missing required  parameter: tagId"));
       return deferred.promise;
     }
-
+    if (parameters["challengeId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: tagId"));
+      return deferred.promise;
+    }
+    path = path.replace("<tag_id>", parameters["tagId"]);
+    path = path.replace("<challenge_id>", parameters["challengeId"]);
+    
     queryParameters = mergeQueryParams(parameters, queryParameters);
+    console.log(parameters);
 
     this.request(
       "DELETE",

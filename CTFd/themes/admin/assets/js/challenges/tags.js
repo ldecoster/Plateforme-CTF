@@ -5,8 +5,9 @@ import CTFd from "core/CTFd";
 export function deleteTag(_event) {
   const $elem = $(this);
   const tag_id = $elem.attr("tag-id");
-
-  CTFd.api.delete_tag({ tagId: tag_id }).then(response => {
+  const challenge_id = window.CHALLENGE_ID;
+  CTFd.api.delete_tagChallenge({ tagId: tag_id, challengeId: challenge_id })
+  .then(response => {
     if (response.success) {
       $elem.parent().remove();
     }
