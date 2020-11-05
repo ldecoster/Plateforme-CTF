@@ -2184,6 +2184,8 @@ let API = (function() {
 
     return deferred.promise;
   };
+
+
   /**
    *
    * @method

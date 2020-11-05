@@ -174,7 +174,7 @@ const graph_configs = {
     }
   },
 
-  "#categories-pie-graph": {
+  /* "#categories-pie-graph": {
     data: () => CTFd.api.get_challenge_property_counts({ column: "category" }),
     format: response => {
       const data = response.data;
@@ -270,6 +270,97 @@ const graph_configs = {
           itemStyle: { color: colorHash(category) }
         });
       });
+
+      return option;
+    }
+  },
+ */
+
+  "user-percentages-graph":{
+    data: () => CTFd.api.get_user_property_counts(),
+    format: response => {
+      const data = response.data;
+
+      const isa = data["ISA"];
+      const isen = data["ISEN"];
+      const hei = data["HEI"];
+
+      let option = {
+        title: {
+          left: "center",
+          text: "User per School"
+        },
+        tooltip: {
+          trigger:"item"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            dataView: { show: true, readOnly: false },
+            saveAsImage: {}
+          }
+        },
+        legend: {
+          orient: "horizontal",
+          bottom: 0,
+          data: ["ISA","ISEN","HEI"]
+        },
+        series: [
+          {
+            name: "Users Percentages",
+            type: "pie",
+            radius: ["30%", "50%"],
+            avoidLabelOverlap: false,
+            label: {
+              show: false,
+              position: "center"
+            },
+            itemStyle: {
+              normal: {
+                label: {
+                  show: true,
+                  formatter: function(data) {
+                    return `${data.name} - ${data.value} (${data.percent}%)`;
+                  }
+                },
+                labelLine: {
+                  show: true
+                }
+              },
+              emphasis: {
+                label: {
+                  show: true,
+                  position: "center",
+                  textStyle: {
+                    fontSize: "14",
+                    fontWeight: "normal"
+                  }
+                }
+              },
+              labelLine: {
+                show: false
+              },
+              data: [
+                {
+                  value: isa,
+                  name: "ISA",
+                  itemStyle: { color: "rgb(207, 38, 0)" }
+                },
+                {
+                  value: isen,
+                  name: "ISEN",
+                  itemStyle: { color: "rgb(0, 209, 64)" }
+                },
+                {
+                  value: hei,
+                  name: "HEI",
+                  itemStyle: {color: "rgb(0,33,208)"}
+                }
+              ]
+            }
+          }
+        ],
+      };
 
       return option;
     }
@@ -370,9 +461,9 @@ const graph_configs = {
 
       return option;
     }
-  },
+  }
 
-  "#score-distribution-graph": {
+  /* "#score-distribution-graph": {
     layout: annotations => ({
       title: "Score Distribution",
       xaxis: {
@@ -457,8 +548,8 @@ const graph_configs = {
 
       return option;
     }
-  }
-};
+  } */
+}; 
 
 const createGraphs = () => {
   for (let key in graph_configs) {
