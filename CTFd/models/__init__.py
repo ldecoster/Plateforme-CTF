@@ -566,6 +566,7 @@ class UserTokens(Tokens):
 class Comments(db.Model):
     __tablename__ = "comments"
     id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(80), default="standard")
     content = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
@@ -577,6 +578,8 @@ class Comments(db.Model):
         from CTFd.utils.helpers import markup
 
         return markup(build_html(self.content, sanitize=True))
+
+    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
 
 class ChallengeComments(Comments):
