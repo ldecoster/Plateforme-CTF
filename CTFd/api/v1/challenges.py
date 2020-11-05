@@ -27,7 +27,8 @@ from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config, get_config
-from CTFd.utils import sessions, user
+from CTFd.utils import sessions
+from CTFd.utils import user as current_user
 from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,

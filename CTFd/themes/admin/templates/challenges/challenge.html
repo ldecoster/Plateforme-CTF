@@ -30,6 +30,7 @@
 					<i class="btn-fa fas fa-file-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Preview Challenge"></i>
 				</a>
+				{% if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id == session["id"] )%}
 				<a class="no-decoration" href="{{ url_for('admin.submissions_listing', submission_type='correct', field='challenge_id', q=challenge.id) }}">
 					<i class="btn-fa fas fa-tasks fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Correct Submissions"></i>
@@ -38,6 +39,7 @@
 					<i class="btn-fa fas fa-trash-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Delete Challenge"></i>
 				</a>
+				{%endif%}
 			</div>
 		</div>
 	</div>

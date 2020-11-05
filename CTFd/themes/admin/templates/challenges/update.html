@@ -35,6 +35,7 @@
 	</div>
 	{% endblock %}
 
+	{%if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id == session["id"] )%}
 	{% block state %}
 	<div class="form-group">
 		<label>
@@ -60,6 +61,7 @@
 	</div>
 	{% endblock %}
 </form>
+{%endif%}
 
 {% block footer %}
 {% endblock %}
