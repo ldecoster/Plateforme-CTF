@@ -49,11 +49,11 @@ const loadHint = id => {
 };
 
 function renderSubmissionResponse(response, cb) {
-  var result = response.data;
+  const result = response.data;
 
-  var result_message = $("#result-message");
-  var result_notification = $("#result-notification");
-  var answer_input = $("#submission-input");
+  const result_message = $("#result-message");
+  const result_notification = $("#result-notification");
+  const answer_input = $("#submission-input");
   result_notification.removeClass();
   result_message.text(result.message);
 
@@ -249,7 +249,7 @@ $(() => {
       CTFd.config.urlRoot + "/api/v1/challenges/" + window.CHALLENGE_ID,
       function(response) {
         // Preview should not show any solves
-        var challenge_data = response.data;
+        const challenge_data = response.data;
         challenge_data["solves"] = null;
 
         $.getScript(
@@ -344,7 +344,7 @@ $(() => {
 
   $("#challenge-update-container > form").submit(function(e) {
     e.preventDefault();
-    var params = $(e.target).serializeJSON(true);
+    const params = $(e.target).serializeJSON(true);
 
     CTFd.fetch("/api/v1/challenges/" + window.CHALLENGE_ID + "/flags", {
       method: "GET",
@@ -398,7 +398,18 @@ $(() => {
                 }
                 ezToast({
                   title: "Success",
-                  body: "Your challenge has been updated!"
+                  body: "The challenge has been updated!"
+                });
+              } else {
+                let body_message = "";
+                if (response.errors === "votes") {
+                  body_message = "Not enough positive votes for this challenge!";
+                } else {
+                  body_message = "The challenge can't be updated!";
+                }
+                ezToast({
+                  title: "Error",
+                  body: body_message
                 });
               }
             });

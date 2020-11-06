@@ -10,7 +10,7 @@ from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
-from CTFd.models import ChallengeFiles as ChallengeFilesModel
+from CTFd.models import ChallengeFiles as ChallengeFilesModel, Votes
 from CTFd.models import (
     Challenges,
     Fails,
@@ -29,6 +29,7 @@ from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config, get_config
 from CTFd.utils import sessions
 from CTFd.utils import user as current_user
+from CTFd.utils.config import get_votes_number
 from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,
@@ -426,13 +427,29 @@ class Challenge(Resource):
     def patch(self, challenge_id):
         author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==author_id):
+        if is_admin() or is_contributor_plus():
             challenge_class = get_chal_class(challenge.type)
             challenge = challenge_class.update(challenge, request)
             response = challenge_class.read(challenge)
             return {"success": True, "data": response}
-        else :
-            return {"success": False}
+        elif is_contributor() and challenge.author_id == author_id:
+            challenge_class = get_chal_class(challenge.type)
+            data = request.form or request.get_json()
+            challenge_new_state = data['state']
+
+            # Check the number of votes before changing the state of the challenge
+            if challenge_new_state == "visible" and challenge.state == "vote":
+                positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count()
+                negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count()
+                votes_delta = get_votes_number()
+                # If positives votes minus the delta is not greater than or equal to the negative votes, abort
+                if (positive_votes - votes_delta) < negative_votes:
+                    return {"success": False, "errors": "votes"}
+
+            challenge = challenge_class.update(challenge, request)
+            response = challenge_class.read(challenge)
+            return {"success": True, "data": response}
+        return {"success": False}
 
     @contributors_contributors_plus_admins_only
     @challenges_namespace.doc(

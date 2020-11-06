@@ -5,6 +5,7 @@ from CTFd.admin import admin
 
 from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
+from CTFd.utils.config import get_votes_number
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
 from CTFd.utils.user import is_contributor_plus,is_contributor, is_admin
 from sqlalchemy.sql import and_, or_
@@ -55,6 +56,8 @@ def challenges_detail(challenge_id):
 
         votes = Votes.query.filter_by(challenge_id=challenge.id).all()
 
+        votes_delta = get_votes_number()
+
         try:
             challenge_class = get_chal_class(challenge.type)
         except KeyError:
@@ -64,7 +67,7 @@ def challenges_detail(challenge_id):
             )
 
         update_j2 = render_template(
-            challenge_class.templates["update"].lstrip("/"), challenge=challenge
+            challenge_class.templates["update"].lstrip("/"), challenge=challenge, votes_delta=votes_delta
         )
 
         update_script = url_for(
