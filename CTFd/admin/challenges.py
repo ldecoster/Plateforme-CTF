@@ -3,13 +3,9 @@ from flask import abort, render_template, request, url_for
 from CTFd.admin import admin
 
 
-from CTFd.models import Challenges, Flags, Solves
+from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
-from CTFd.utils.decorators import admins_only
-from CTFd.utils.decorators import contributors_only
-from CTFd.utils.decorators import contributors_plus_admins_only
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
-from CTFd.utils.decorators import contributors_admins_only
 
 
 @admin.route("/admin/challenges")
@@ -51,6 +47,8 @@ def challenges_detail(challenge_id):
     )
     flags = Flags.query.filter_by(challenge_id=challenge.id).all()
 
+    votes = Votes.query.filter_by(challenge_id=challenge.id).all()
+
     try:
         challenge_class = get_chal_class(challenge.type)
     except KeyError:
@@ -74,6 +72,7 @@ def challenges_detail(challenge_id):
         challenges=challenges,
         solves=solves,
         flags=flags,
+        votes=votes,
     )
 
 

@@ -8,6 +8,7 @@ from CTFd.models import (
     Hints,
     Solves,
     Tags,
+    Votes,
     db,
 )
 from CTFd.plugins import register_plugin_assets_directory
@@ -92,6 +93,7 @@ class BaseChallenge(object):
         Fails.query.filter_by(challenge_id=challenge.id).delete()
         Solves.query.filter_by(challenge_id=challenge.id).delete()
         Flags.query.filter_by(challenge_id=challenge.id).delete()
+        Votes.query.filter_by(challenge_id=challenge.id).delete()
         files = ChallengeFiles.query.filter_by(challenge_id=challenge.id).all()
         for f in files:
             delete_file(f.id)

@@ -1,1 +1,27 @@
-<bold>coucou</bold>
+<table id="votesboard" class="table table-striped">
+	<thead>
+	<tr>
+		<td class="text-center"><b>User</b></td>
+		<td class="text-center"><b>Vote</b></td>
+		<td class="text-center"><b>Settings</b></td>
+	</tr>
+	</thead>
+	<tbody>
+	{% for vote in votes %}
+		<tr name="{{ vote.id }}">
+			<td class="text-center">{{ vote.user.name }}</td>
+			<td class="text-center vote-value">{% if vote.value == 1 %}Positive{% else %}Negative{% endif %}</td>
+			<td class="text-center">
+                {% if session["id"] == vote.user.id %}
+				    <i role="button" class="btn-fa fas fa-edit edit-vote" vote-id="{{ vote.id }}"></i>
+				    <i role="button" class="btn-fa fas fa-times delete-vote" vote-id="{{ vote.id }}"></i>
+                {% endif %}
+			</td>
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
+
+<div class="col-md-12">
+	<button id="vote-add-button" class="btn btn-success d-inline-block float-right">Add Vote</button>
+</div>

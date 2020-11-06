@@ -24,6 +24,11 @@ import {
   deleteFlag,
   flagTypeSelect
 } from "../challenges/flags";
+import {
+  addVoteModal,
+  editVoteModal,
+  deleteVote,
+} from "../challenges/votes";
 
 const displayHint = data => {
   ezAlert({
@@ -424,6 +429,10 @@ $(() => {
   $(".delete-flag").click(deleteFlag);
   $("#flags-create-select").change(flagTypeSelect);
   $(".edit-flag").click(editFlagModal);
+
+  $("#vote-add-button").click(addVoteModal);
+  $(".delete-vote").click(deleteVote);
+  $(".edit-vote").click(editVoteModal);
 
   // Because this JS is shared by a few pages,
   // we should only insert the CommentBox if it's actually in use

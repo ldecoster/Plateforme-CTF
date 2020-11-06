@@ -10,7 +10,7 @@ from CTFd.constants import RawEnum
 from CTFd.models import Challenges, Flags, db
 from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
 from CTFd.schemas.flags import FlagSchema
-from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
 from flask import session
@@ -98,10 +98,9 @@ class FlagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        
-        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id==session["id"]):
+
+        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id == session["id"]):
             db.session.commit()
-            
 
             response = schema.dump(response.data)
             db.session.close()
@@ -169,7 +168,7 @@ class Flag(Resource):
             db.session.close()
 
             return {"success": True}
-        return{"sucess":False}
+        return{"success": False}
 
     @contributors_contributors_plus_admins_only
     @flags_namespace.doc(
