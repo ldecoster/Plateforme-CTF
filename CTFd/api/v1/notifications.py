@@ -11,6 +11,7 @@ from CTFd.models import Notifications, db
 from CTFd.schemas.notifications import NotificationSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
+from flask import session
 
 notifications_namespace = Namespace(
     "notifications", description="Endpoint to retrieve Notifications"
@@ -90,13 +91,12 @@ class NotificantionList(Resource):
     )
     def post(self):
         req = request.get_json()
-
+        req["user_id"]=session["id"]
         schema = NotificationSchema()
         result = schema.load(req)
 
         if result.errors:
             return {"success": False, "errors": result.errors}, 400
-
         db.session.add(result.data)
         db.session.commit()
 
