@@ -6,7 +6,8 @@ from CTFd.admin import admin
 from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
-
+from flask import session
+from sqlalchemy.sql import or_,and_
 
 @admin.route("/admin/challenges")
 @contributors_contributors_plus_admins_only
@@ -20,7 +21,7 @@ def challenges_listing():
         if Challenges.__mapper__.has_property(field):
             filters.append(getattr(Challenges, field).like("%{}%".format(q)))
 
-    query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
+    query = Challenges.query.filter(*filters, or_(and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="vote")).order_by(Challenges.id.asc())
     challenges = query.all()
     total = query.count()
 
