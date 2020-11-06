@@ -102,10 +102,10 @@
 								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-warning' if  challenge.state == 'vote' else 'badge-success'  %}
 								<span class="badge {{ badge_state }}">{{ challenge.state }}</span>
 							</td>
-							{%votePositiv = Votes.query.filter_by(and_(challenge_id==challenge.id,value==1).count()%}
-							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ votePositiv }}</td>
-							{%voteNegative = Votes.query.filter_by(and_(challenge_id==challenge.id,value==1).count()%}
-							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ voteNegativ }}</td>
+							{% set positive_vote = Votes.query.filter_by(challenge_id=challenge.id, value=1).count() %}
+							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ positive_vote }}</td>
+							{% set negative_vote = Votes.query.filter_by(challenge_id=challenge.id, value=0).count() %}
+							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ negative_vote }}</td>
 						</tr>
 					{% endfor %}
 					</tbody>

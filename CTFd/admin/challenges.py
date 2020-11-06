@@ -10,7 +10,6 @@ from CTFd.utils.user import is_contributor_plus,is_contributor, is_admin
 from sqlalchemy.sql import and_, or_
 
 
-
 @admin.route("/admin/challenges")
 @contributors_contributors_plus_admins_only
 def challenges_listing():
@@ -35,6 +34,7 @@ def challenges_listing():
         total=total,
         q=q,
         field=field,
+        Votes=Votes,
     )
 
 
