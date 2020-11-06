@@ -1,4 +1,4 @@
-from flask import abort, render_template, request, url_for
+from flask import abort, render_template, request, url_for, session
 
 from CTFd.admin import admin
 
@@ -6,8 +6,10 @@ from CTFd.admin import admin
 from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
-from flask import session
-from sqlalchemy.sql import or_,and_
+from CTFd.utils.user import is_contributor_plus, is_admin
+from sqlalchemy.sql import and_, or_
+
+
 
 @admin.route("/admin/challenges")
 @contributors_contributors_plus_admins_only
@@ -41,40 +43,43 @@ def challenges_detail(challenge_id):
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
     )
     challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-    solves = (
-        Solves.query.filter_by(challenge_id=challenge.id)
-        .order_by(Solves.date.asc())
-        .all()
-    )
-    flags = Flags.query.filter_by(challenge_id=challenge.id).all()
+    if is_admin() or is_contributor_plus() or challenge.author_id == session['id'] or challenge.state == "vote":
+        solves = (
+            Solves.query.filter_by(challenge_id=challenge.id)
+            .order_by(Solves.date.asc())
+            .all()
+        )
+        flags = Flags.query.filter_by(challenge_id=challenge.id).all()
 
-    votes = Votes.query.filter_by(challenge_id=challenge.id).all()
+        votes = Votes.query.filter_by(challenge_id=challenge.id).all()
 
-    try:
-        challenge_class = get_chal_class(challenge.type)
-    except KeyError:
-        abort(
-            500,
-            f"The underlying challenge type ({challenge.type}) is not installed. This challenge can not be loaded.",
+        try:
+            challenge_class = get_chal_class(challenge.type)
+        except KeyError:
+            abort(
+                500,
+                f"The underlying challenge type ({challenge.type}) is not installed. This challenge can not be loaded.",
+            )
+
+        update_j2 = render_template(
+            challenge_class.templates["update"].lstrip("/"), challenge=challenge
         )
 
-    update_j2 = render_template(
-        challenge_class.templates["update"].lstrip("/"), challenge=challenge
-    )
-
-    update_script = url_for(
-        "views.static_html", route=challenge_class.scripts["update"].lstrip("/")
-    )
-    return render_template(
-        "admin/challenges/challenge.html",
-        update_template=update_j2,
-        update_script=update_script,
-        challenge=challenge,
-        challenges=challenges,
-        solves=solves,
-        flags=flags,
-        votes=votes,
-    )
+        update_script = url_for(
+            "views.static_html", route=challenge_class.scripts["update"].lstrip("/")
+        )
+        return render_template(
+            "admin/challenges/challenge.html",
+            update_template=update_j2,
+            update_script=update_script,
+            challenge=challenge,
+            challenges=challenges,
+            solves=solves,
+            flags=flags,
+            votes=votes,
+        )
+    else:
+        abort(403)
 
 
 @admin.route("/admin/challenges/new")
