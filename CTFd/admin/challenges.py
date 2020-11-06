@@ -23,7 +23,7 @@ def challenges_listing():
         if Challenges.__mapper__.has_property(field):
             filters.append(getattr(Challenges, field).like("%{}%".format(q)))
     if is_contributor():
-        query = Challenges.query.filter(*filters, or_(and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="vote")).order_by(Challenges.id.asc())
+        query = Challenges.query.filter(*filters, or_(Challenges.author_id==session["id"],and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="vote")).order_by(Challenges.id.asc())
     else:
         query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
     challenges = query.all()

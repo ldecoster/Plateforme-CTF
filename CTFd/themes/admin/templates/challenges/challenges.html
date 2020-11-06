@@ -81,6 +81,8 @@
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Value</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Type</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>State</b></th>
+						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Vote +</b></th>
+						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Vote -</b></th>
 					</tr>
 					</thead>
 					<tbody>
@@ -100,6 +102,10 @@
 								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-warning' if  challenge.state == 'vote' else 'badge-success'  %}
 								<span class="badge {{ badge_state }}">{{ challenge.state }}</span>
 							</td>
+							{%votePositiv = Votes.query.filter_by(and_(challenge_id==challenge.id,value==1).count()%}
+							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ votePositiv }}</td>
+							{%voteNegative = Votes.query.filter_by(and_(challenge_id==challenge.id,value==1).count()%}
+							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ voteNegativ }}</td>
 						</tr>
 					{% endfor %}
 					</tbody>
