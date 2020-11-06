@@ -12,7 +12,7 @@ from CTFd.models import (
     Users,
     Challenges,
     Flags,
-    Awards,
+    BadgesEntries,
     ChallengeFiles,
     Fails,
     Solves,
@@ -31,7 +31,7 @@ parser.add_argument(
     "--challenges", help="Amount of challenges to generate", default=20, type=int
 )
 parser.add_argument(
-    "--awards", help="Amount of awards to generate", default=5, type=int
+    "--badgesentries", help="Amount of badgesentries to generate", default=5, type=int
 )
 
 args = parser.parse_args()
@@ -41,7 +41,7 @@ app = create_app()
 mode = args.mode
 USER_AMOUNT = args.users
 CHAL_AMOUNT = args.challenges
-AWARDS_AMOUNT = args.awards
+BADGESENTRIES_AMOUNT = args.badgesentries
 
 icons = [
     None,
@@ -301,12 +301,12 @@ if __name__ == "__main__":
         
 
         # Generating Awards
-        print("GENERATING AWARDS")
+        print("GENERATING BADGESENTRIES")
         for x in range(USER_AMOUNT):
             base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
-            for _ in range(random.randint(0, AWARDS_AMOUNT)):
+            for _ in range(random.randint(0, BADGESENTRIES_AMOUNT)):
                 user = Users.query.filter_by(id=x + 1).first()
-                award = Awards(
+                badgesentries = BadgesEntries(
                     user_id=user.id,
                     name=gen_word(),
                     icon=gen_icon(),
@@ -315,10 +315,10 @@ if __name__ == "__main__":
                     base_time,
                     base_time + datetime.timedelta(minutes=random.randint(30, 60)),
                 )
-                award.date = new_base
+                BadgesEntries.date = new_base
                 base_time = new_base
 
-                db.session.add(award)
+                db.session.add(badgesentries)
 
         db.session.commit()
 

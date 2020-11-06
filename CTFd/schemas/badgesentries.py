@@ -1,10 +1,10 @@
-from CTFd.models import Awards, ma
+from CTFd.models import BadgesEntries, ma
 from CTFd.utils import string_types
 
 
-class AwardSchema(ma.ModelSchema):
+class BadgesEntriesSchema(ma.ModelSchema):
     class Meta:
-        model = Awards
+        model = BadgesEntries
         include_fk = True
         dump_only = ("id", "date")
 
@@ -13,11 +13,11 @@ class AwardSchema(ma.ModelSchema):
             "user_id",
             "name",
             "description",
-            "value",
-            "team_id",
+            ##"value",
+            ##"team_id",
             "user",
-            "team",
-            "date",
+            ##"team",
+            ##"date",
             "requirements",
             "id",
             "icon",
@@ -26,11 +26,11 @@ class AwardSchema(ma.ModelSchema):
             "user_id",
             "name",
             "description",
-            "value",
-            "team_id",
+            ##"value",
+            ##"team_id",
             "user",
-            "team",
-            "date",
+            ##"team",
+            ##"date",
             "id",
             "icon",
         ],
@@ -43,4 +43,4 @@ class AwardSchema(ma.ModelSchema):
             elif isinstance(view, list):
                 kwargs["only"] = view
 
-        super(AwardSchema, self).__init__(*args, **kwargs)
+        super(BadgesEntriesSchema, self).__init__(*args, **kwargs)

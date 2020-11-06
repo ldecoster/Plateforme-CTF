@@ -5,7 +5,7 @@ from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 
 
-class AwardCreationForm(BaseForm):
+class BadgesCreationForm(BaseForm):
     name = StringField("Name")
     value = IntegerField("Value")
     description = TextAreaField("Description")

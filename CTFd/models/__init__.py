@@ -155,15 +155,17 @@ class Hints(db.Model):
         return "<Hint %r>" % self.content
 
 
-class Awards(db.Model):
-    __tablename__ = "awards"
+class BadgesEntries(db.Model):
+    __tablename__ = "badges_entries"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     name = db.Column(db.String(80))
-    date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    description = db.Column(db.Text)
     icon = db.Column(db.Text)
 
-    user = db.relationship("Users", foreign_keys="Awards.user_id", lazy="select")
+    user = db.relationship("Users", foreign_keys="BadgesEntries.user_id", lazy="select")
+
+    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
     @hybrid_property
     def account_id(self):
@@ -174,10 +176,10 @@ class Awards(db.Model):
             return self.user_id
 
     def __init__(self, *args, **kwargs):
-        super(Awards, self).__init__(**kwargs)
+        super(BadgesEntries, self).__init__(**kwargs)
 
     def __repr__(self):
-        return "<Award %r>" % self.name
+        return "<Badge %r>" % self.name
 
 
 class Tags(db.Model):
@@ -199,7 +201,7 @@ class TagChallenge(db.Model):
 
     def __init__(self, *args, **kwargs):
         super(TagChallenge, self).__init__(**kwargs)
-    
+
 
 class Files(db.Model):
     __tablename__ = "files"
@@ -326,8 +328,10 @@ class Users(db.Model):
         return self.get_fails(admin=False)
 
     @property
-    def awards(self):
-        return self.get_awards(admin=False)
+    def badgesentries(self):
+        return self.get_badgesentries(admin=False)
+
+
 
     @property
     def place(self):
@@ -366,15 +370,15 @@ class Users(db.Model):
             fails = fails.filter(Fails.date < dt)
         return fails.all()
 
-    def get_awards(self, admin=False):
+    def get_badgesentries(self, admin=False):
         from CTFd.utils import get_config
 
-        awards = Awards.query.filter_by(user_id=self.id)
+        badgesentries = BadgesEntries.query.filter_by(user_id=self.id)
         freeze = get_config("freeze")
         if freeze and admin is False:
             dt = datetime.datetime.utcfromtimestamp(freeze)
-            awards = awards.filter(Awards.date < dt)
-        return awards.all()
+            badgesentries = badgesentries.filter(BadgesEntries.date < dt)
+        return badgesentries.all()
 
     @cache.memoize()
     def get_place(self, admin=False, numeric=False):

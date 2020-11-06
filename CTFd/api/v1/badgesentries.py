@@ -8,40 +8,40 @@ from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
-from CTFd.models import Awards, Users, db
-from CTFd.schemas.awards import AwardSchema
+from CTFd.models import Users, db, BadgesEntries
+from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
 
-awards_namespace = Namespace("awards", description="Endpoint to retrieve Awards")
+badges_entries_namespace = Namespace("badges_entries", description="Endpoint to retrieve user's badges")
 
-AwardModel = sqlalchemy_to_pydantic(Awards)
-
-
-class AwardDetailedSuccessResponse(APIDetailedSuccessResponse):
-    data: AwardModel
+BadgeEntriesModel = sqlalchemy_to_pydantic(BadgesEntries)
 
 
-class AwardListSuccessResponse(APIListSuccessResponse):
-    data: List[AwardModel]
+class BadgesEntriesDetailedSuccessResponse(APIDetailedSuccessResponse):
+    data: BadgeEntriesModel
 
 
-awards_namespace.schema_model(
-    "AwardDetailedSuccessResponse", AwardDetailedSuccessResponse.apidoc()
+class BadgesEntriesListSuccessResponse(APIListSuccessResponse):
+    data: List[BadgeEntriesModel]
+
+
+badges_entries_namespace.schema_model(
+    "BadgesEntriesDetailedSuccessResponse", BadgesEntriesDetailedSuccessResponse.apidoc()
 )
 
-awards_namespace.schema_model(
-    "AwardListSuccessResponse", AwardListSuccessResponse.apidoc()
+badges_entries_namespace.schema_model(
+    "BadgesEntriesListSuccessResponse", BadgesEntriesListSuccessResponse.apidoc()
 )
 
 
-@awards_namespace.route("")
-class AwardList(Resource):
+@badges_entries_namespace.route("")
+class BadgesList(Resource):
     @admins_only
-    @awards_namespace.doc(
-        description="Endpoint to list Award objects in bulk",
+    @badges_entries_namespace.doc(
+        description="Endpoint to list BadgesEntries objects in bulk",
         responses={
-            200: ("Success", "AwardListSuccessResponse"),
+            200: ("Success", "BadgesEntriesListSuccessResponse"),
             400: (
                 "An error occured processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -57,7 +57,7 @@ class AwardList(Resource):
             "q": (str, None),
             "field": (
                 RawEnum(
-                    "AwardFields",
+                    "BadgesEntriesFields",
                     {
                         "name": "name",
                         "description": "description",
@@ -72,11 +72,11 @@ class AwardList(Resource):
     def get(self, query_args):
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
-        filters = build_model_filters(model=Awards, query=q, field=field)
+        filters = build_model_filters(model=BadgesEntries, query=q, field=field)
 
-        awards = Awards.query.filter_by(**query_args).filter(*filters).all()
-        schema = AwardSchema(many=True)
-        response = schema.dump(awards)
+        badgesEntries = BadgesEntries.query.filter_by(**query_args).filter(*filters).all()
+        schema = BadgesEntriesSchema(many=True)
+        response = schema.dump(badgesEntries)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -84,10 +84,10 @@ class AwardList(Resource):
         return {"success": True, "data": response.data}
 
     @admins_only
-    @awards_namespace.doc(
-        description="Endpoint to create an Award object",
+    @badges_entries_namespace.doc(
+        description="Endpoint to create an BadgesEntries object",
         responses={
-            200: ("Success", "AwardListSuccessResponse"),
+            200: ("Success", "BadgesEntriesListSuccessResponse"),
             400: (
                 "An error occured processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -96,7 +96,8 @@ class AwardList(Resource):
     )
     def post(self):
         req = request.get_json()
-        schema = AwardSchema()
+
+        schema = BadgesEntriesSchema()
 
         response = schema.load(req, session=db.session)
         if response.errors:
@@ -112,38 +113,38 @@ class AwardList(Resource):
         clear_standings()
 
         return {"success": True, "data": response.data}
-    
 
-@awards_namespace.route("/<award_id>")
-@awards_namespace.param("award_id", "An Award ID")
-class Award(Resource):
+
+@badges_entries_namespace.route("/<badges_entries_id>")
+@badges_entries_namespace.param("badges_entries_id", "An BadgesEntries ID")
+class BadgesEntries(Resource):
     @admins_only
-    @awards_namespace.doc(
-        description="Endpoint to get a specific Award object",
+    @badges_entries_namespace.doc(
+        description="Endpoint to get a specific BadgesEntries object",
         responses={
-            200: ("Success", "AwardDetailedSuccessResponse"),
+            200: ("Success", "BadgesEntriesDetailedSuccessResponse"),
             400: (
                 "An error occured processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
-    def get(self, award_id):
-        award = Awards.query.filter_by(id=award_id).first_or_404()
-        response = AwardSchema().dump(award)
+    def get(self, badges_entries_id):
+        badges_entries = BadgesEntries.query.filter_by(id=badges_entries_id).first_or_404()
+        response = BadgesEntriesSchema().dump(badges_entries)
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
         return {"success": True, "data": response.data}
 
     @admins_only
-    @awards_namespace.doc(
-        description="Endpoint to delete an Award object",
+    @badges_entries_namespace.doc(
+        description="Endpoint to delete an BadgesEntries object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
-    def delete(self, award_id):
-        award = Awards.query.filter_by(id=award_id).first_or_404()
-        db.session.delete(award)
+    def delete(self, badges_entries_id):
+        badgesentries = BadgesEntries.query.filter_by(id=badges_entries_id).first_or_404()
+        db.session.delete(badgesentries)
         db.session.commit()
         db.session.close()
 

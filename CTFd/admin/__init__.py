@@ -26,7 +26,7 @@ from CTFd.admin import submissions  # noqa: F401
 from CTFd.admin import users  # noqa: F401
 from CTFd.cache import cache, clear_config, clear_pages, clear_standings
 from CTFd.models import (
-    Awards,
+    BadgesEntries,
     Challenges,
     Configs,
     Notifications,
@@ -206,7 +206,7 @@ def reset():
         if data.get("submissions"):
             Solves.query.delete()
             Submissions.query.delete()
-            Awards.query.delete()
+            BadgesEntries.query.delete()
             Unlocks.query.delete()
             Tracking.query.delete()
 
