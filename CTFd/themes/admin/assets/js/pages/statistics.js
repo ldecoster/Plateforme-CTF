@@ -174,30 +174,31 @@ const graph_configs = {
     }
   },
 
-  /* "#categories-pie-graph": {
-    data: () => CTFd.api.get_challenge_property_counts({ column: "category" }),
+
+  "#school-pie-graph": {
+    data: () => CTFd.api.get_user_property_counts({ column: "school" }),
     format: response => {
       const data = response.data;
 
-      const categories = [];
+      const schools = [];
       const count = [];
 
-      for (let category in data) {
-        if (data.hasOwnProperty(category)) {
-          categories.push(category);
-          count.push(data[category]);
+      for (let school in data) {
+        if (data.hasOwnProperty(school)) {
+          schools.push(school);
+          count.push(data[school]);
         }
       }
 
       for (let i = 0; i < data.length; i++) {
-        categories.push(data[i].category);
+        schools.push(data[i].school);
         count.push(data[i].count);
       }
 
       let option = {
         title: {
           left: "center",
-          text: "Category Breakdown"
+          text: "School Breakdown"
         },
         tooltip: {
           trigger: "item"
@@ -216,7 +217,7 @@ const graph_configs = {
         },
         series: [
           {
-            name: "Category Breakdown",
+            name: "School Breakdown",
             type: "pie",
             radius: ["30%", "50%"],
             avoidLabelOverlap: false,
@@ -229,7 +230,7 @@ const graph_configs = {
                 label: {
                   show: true,
                   formatter: function(data) {
-                    return `${data.name} - ${data.value} (${data.percent}%)`;
+                    return `${data.name} : (${data.percent}%)`;
                   }
                 },
                 labelLine: {
@@ -262,109 +263,19 @@ const graph_configs = {
         ]
       };
 
-      categories.forEach((category, index) => {
-        option.legend.data.push(category);
+      schools.forEach((school, index) => {
+        option.legend.data.push(school);
         option.series[0].data.push({
           value: count[index],
-          name: category,
-          itemStyle: { color: colorHash(category) }
+          name: school,
+          itemStyle: { color: colorHash(school) }
         });
       });
 
       return option;
     }
   },
- */
 
-  "user-percentages-graph":{
-    data: () => CTFd.api.get_user_property_counts(),
-    format: response => {
-      const data = response.data;
-
-      const isa = data["ISA"];
-      const isen = data["ISEN"];
-      const hei = data["HEI"];
-
-      let option = {
-        title: {
-          left: "center",
-          text: "User per School"
-        },
-        tooltip: {
-          trigger:"item"
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            dataView: { show: true, readOnly: false },
-            saveAsImage: {}
-          }
-        },
-        legend: {
-          orient: "horizontal",
-          bottom: 0,
-          data: ["ISA","ISEN","HEI"]
-        },
-        series: [
-          {
-            name: "Users Percentages",
-            type: "pie",
-            radius: ["30%", "50%"],
-            avoidLabelOverlap: false,
-            label: {
-              show: false,
-              position: "center"
-            },
-            itemStyle: {
-              normal: {
-                label: {
-                  show: true,
-                  formatter: function(data) {
-                    return `${data.name} - ${data.value} (${data.percent}%)`;
-                  }
-                },
-                labelLine: {
-                  show: true
-                }
-              },
-              emphasis: {
-                label: {
-                  show: true,
-                  position: "center",
-                  textStyle: {
-                    fontSize: "14",
-                    fontWeight: "normal"
-                  }
-                }
-              },
-              labelLine: {
-                show: false
-              },
-              data: [
-                {
-                  value: isa,
-                  name: "ISA",
-                  itemStyle: { color: "rgb(207, 38, 0)" }
-                },
-                {
-                  value: isen,
-                  name: "ISEN",
-                  itemStyle: { color: "rgb(0, 209, 64)" }
-                },
-                {
-                  value: hei,
-                  name: "HEI",
-                  itemStyle: {color: "rgb(0,33,208)"}
-                }
-              ]
-            }
-          }
-        ],
-      };
-
-      return option;
-    }
-  },
 
   "#solve-percentages-graph": {
     layout: annotations => ({
@@ -462,93 +373,6 @@ const graph_configs = {
       return option;
     }
   }
-
-  /* "#score-distribution-graph": {
-    layout: annotations => ({
-      title: "Score Distribution",
-      xaxis: {
-        title: "Score Bracket",
-        showticklabels: true,
-        type: "category"
-      },
-      yaxis: {
-        title: "Number of {0}".format(
-          CTFd.config.userMode.charAt(0).toUpperCase() +
-            CTFd.config.userMode.slice(1)
-        )
-      },
-      annotations: annotations
-    }),
-    data: () =>
-      CTFd.fetch("/api/v1/statistics/scores/distribution").then(function(
-        response
-      ) {
-        return response.json();
-      }),
-    format: response => {
-      const data = response.data.brackets;
-      const keys = [];
-      const brackets = [];
-      const sizes = [];
-
-      for (let key in data) {
-        keys.push(parseInt(key));
-      }
-      keys.sort((a, b) => a - b);
-
-      let start = "<0";
-      keys.map(key => {
-        brackets.push("{0} - {1}".format(start, key));
-        sizes.push(data[key]);
-        start = key;
-      });
-
-      const option = {
-        title: {
-          left: "center",
-          text: "Score Distribution"
-        },
-        tooltip: {
-          trigger: "item"
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            mark: { show: true },
-            dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ["line", "bar"] },
-            restore: { show: true },
-            saveAsImage: { show: true }
-          }
-        },
-        xAxis: {
-          name: "Score Bracket",
-          nameGap: 40,
-          nameLocation: "middle",
-          type: "category",
-          data: brackets
-        },
-        yAxis: {
-          name: "Number of {0}".format(
-            CTFd.config.userMode.charAt(0).toUpperCase() +
-              CTFd.config.userMode.slice(1)
-          ),
-          nameGap: 50,
-          nameLocation: "middle",
-          type: "value"
-        },
-        series: [
-          {
-            itemStyle: { normal: { color: "#1f76b4" } },
-            data: sizes,
-            type: "bar"
-          }
-        ]
-      };
-
-      return option;
-    }
-  } */
 }; 
 
 const createGraphs = () => {
