@@ -41,8 +41,9 @@ function bulkEditChallenges(_event) {
         <label>State</label>
         <select name="state" data-initial="">
           <option value="">--</option>
-          <option value="visible">Visible</option>
           <option value="hidden">Hidden</option>
+          <option value="visible">Visible</option>
+          <option value="vote"><Vote</option>
         </select>
       </div>
     </form>
