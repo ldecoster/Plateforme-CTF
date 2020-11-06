@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Unlocks, db, get_class_by_tablename
-from CTFd.schemas.awards import AwardSchema
+from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.schemas.unlocks import UnlockSchema
 from CTFd.utils.decorators import (
     admins_only,
@@ -136,18 +136,18 @@ class UnlockList(Resource):
 
         db.session.add(response.data)
 
-        award_schema = AwardSchema()
-        award = {
+        badges_entries_schema = BadgesEntriesSchema()
+        badges_entries = {
             "user_id": user.id,
-            "team_id": user.team_id,
+            #"team_id": user.team_id,
             "name": target.name,
             "description": target.description,
             "value": (-target.cost),
             "category": target.category,
         }
 
-        award = award_schema.load(award)
-        db.session.add(award.data)
+        badges_entries = badges_entries_schema.load(badges_entries)
+        db.session.add(badges_entries.data)
         db.session.commit()
         clear_standings()
 

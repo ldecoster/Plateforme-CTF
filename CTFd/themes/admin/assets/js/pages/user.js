@@ -141,12 +141,12 @@ function deleteUser(event) {
   });
 }
 
-function awardUser(event) {
+function badgesUser(event) {
   event.preventDefault();
-  const params = $("#user-award-form").serializeJSON(true);
+  const params = $("#user-badgesentries-form").serializeJSON(true);
   params["user_id"] = window.USER_ID;
 
-  CTFd.fetch("/api/v1/awards", {
+  CTFd.fetch("/api/v1/badgesentries", {
     method: "POST",
     credentials: "same-origin",
     headers: {
@@ -159,18 +159,18 @@ function awardUser(event) {
       return response.json();
     })
     .then(function(response) {
-      if (response.success) {
+      if (response.ccsuess) {
         window.location.reload();
       } else {
-        $("#user-award-form > #results").empty();
+        $("#user-badgesentries-form > #results").empty();
         Object.keys(response.errors).forEach(function(key, _index) {
-          $("#user-award-form > #results").append(
+          $("#user-badgesentries-form > #results").append(
             ezBadge({
               type: "error",
               body: response.errors[key]
             })
           );
-          const i = $("#user-award-form").find("input[name={0}]".format(key));
+          const i = $("#user-badgesentries-form").find("input[name={0}]".format(key));
           const input = $(i);
           input.addClass("input-filled-invalid");
           input.removeClass("input-filled-valid");

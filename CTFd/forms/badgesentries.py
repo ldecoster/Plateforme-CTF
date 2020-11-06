@@ -5,12 +5,13 @@ from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 
 
-class AwardCreationForm(BaseForm):
+class BadgesCreationForm(BaseForm):
     name = StringField("Name")
-    value = IntegerField("Value")
-    category = StringField("Category")
+    ##value = IntegerField("Value")
+    ##category = StringField("Category")
     description = TextAreaField("Description")
     submit = SubmitField("Create")
+
     icon = RadioField(
         "Icon",
         choices=[
@@ -27,4 +28,6 @@ class AwardCreationForm(BaseForm):
             ("cowboy", "Cowboy"),
             ("angry", "Angry"),
         ],
+    
     )
+

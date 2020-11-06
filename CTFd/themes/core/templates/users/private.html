@@ -101,18 +101,17 @@
 
 			<div class="row">
 				<div class="col-md-12">
-					<h3>Awards</h3>
+					<h3>Badges</h3>
 				</div>
-				{% for award in user.awards %}
+				{% for badges in user.badgesentries %}
 					<div class="col-md-3 col-sm-6">
 						<p class="text-center">
 							<i class="award-icon award-{{ award.icon }} fa-2x"></i>
 							<br>
-							<strong>{{ award.name }}</strong>
+							<strong>{{ badgesentries.name }}</strong>
 						</p>
-						<p class="text-center">{{ award.category or ""}}</p>
-						<p class="text-center">{{ award.description or ""}}</p>
-						<p class="text-center">{{ award.value }}</p>
+						<p class="text-center">{{ badgesentries.description or ""}}</p>
+
 					</div>
 				{% endfor %}
 			</div>

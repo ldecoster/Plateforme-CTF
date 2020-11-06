@@ -2,7 +2,7 @@ from flask import render_template, request, url_for
 from sqlalchemy.sql import not_
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Tracking, Users
+from CTFd.models import Challenges, Tracking, Users,BadgesEntries
 from CTFd.utils import get_config
 from CTFd.utils.decorators import admins_only
 
@@ -78,7 +78,7 @@ def users_detail(user_id):
     fails = user.get_fails(admin=True)
 
     # Get Awards
-    awards = user.get_awards(admin=True)
+    badges = user.get_badgesentries(admin=True)
 
     # Get user properties
   
@@ -93,5 +93,5 @@ def users_detail(user_id):
         missing=missing,
         place=place,
         fails=fails,
-        awards=awards,
+        badges=badges,
     )

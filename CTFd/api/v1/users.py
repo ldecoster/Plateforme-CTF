@@ -12,7 +12,7 @@ from CTFd.api.v1.schemas import (
 from CTFd.cache import clear_standings, clear_user_session
 from CTFd.constants import RawEnum
 from CTFd.models import (
-    Awards,
+    BadgesEntries,
     Notifications,
     Solves,
     Submissions,
@@ -21,7 +21,7 @@ from CTFd.models import (
     Users,
     db,
 )
-from CTFd.schemas.awards import AwardSchema
+from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
@@ -251,7 +251,7 @@ class UserPublic(Resource):
     )
     def delete(self, user_id):
         Notifications.query.filter_by(user_id=user_id).delete()
-        Awards.query.filter_by(user_id=user_id).delete()
+        BadgesEntries.query.filter_by(user_id=user_id).delete()
         Unlocks.query.filter_by(user_id=user_id).delete()
         Submissions.query.filter_by(user_id=user_id).delete()
         Solves.query.filter_by(user_id=user_id).delete()
@@ -355,7 +355,7 @@ class UserPrivateFails(Resource):
         return {"success": True, "data": data, "meta": {"count": count}}
 
 
-@users_namespace.route("/me/awards")
+@users_namespace.route("/me/badgesentries")
 @users_namespace.param("user_id", "User ID")
 class UserPrivateAwards(Resource):
     @authed_only
@@ -364,7 +364,7 @@ class UserPrivateAwards(Resource):
         awards = user.get_awards(admin=True)
 
         view = "user" if not is_admin() else "admin"
-        response = AwardSchema(view=view, many=True).dump(awards)
+        response = BadgesEntriesSchema(view=view, many=True).dump(awards)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -420,7 +420,7 @@ class UserPublicFails(Resource):
         return {"success": True, "data": data, "meta": {"count": count}}
 
 
-@users_namespace.route("/<user_id>/awards")
+@users_namespace.route("/<user_id>/badgesentries")
 @users_namespace.param("user_id", "User ID or 'me'")
 class UserPublicAwards(Resource):
     @check_account_visibility
@@ -433,7 +433,7 @@ class UserPublicAwards(Resource):
         awards = user.get_awards(admin=is_admin())
 
         view = "user" if not is_admin() else "admin"
-        response = AwardSchema(view=view, many=True).dump(awards)
+        response = BadgesEntriesSchema(view=view, many=True).dump(awards)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
