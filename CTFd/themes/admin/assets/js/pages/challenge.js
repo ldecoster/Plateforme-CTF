@@ -378,11 +378,19 @@ $(() => {
                   case "visible":
                     $(".challenge-state")
                       .removeClass("badge-danger")
+                      .removeClass("badge-warning")
                       .addClass("badge-success");
+                    break;
+                  case "vote":
+                    $(".challenge-state")
+                      .removeClass("badge-success")
+                      .removeClass("badge-danger")
+                      .addClass("badge-warning");
                     break;
                   case "hidden":
                     $(".challenge-state")
                       .removeClass("badge-success")
+                      .removeClass("badge-warning")
                       .addClass("badge-danger");
                     break;
                   default:

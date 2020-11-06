@@ -7,7 +7,7 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Votes, db
+from CTFd.models import Votes, db, Challenges
 from CTFd.plugins.votes import get_vote_class, VOTE_CLASSES
 from CTFd.schemas.votes import VoteSchema
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
@@ -96,15 +96,18 @@ class VoteList(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
+        challenge = Challenges.query.filter_by(id=response.data.challenge_id).first_or_404()
+        already_voted = Votes.query.filter_by(challenge_id=challenge.id, user_id=session["id"]).first()
         db.session.add(response.data)
 
-        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id == session["id"]):
-            db.session.commit()
+        if is_admin() or is_contributor_plus() or is_contributor():
+            if challenge.state == "vote" and challenge.author_id != session["id"] and already_voted is None:
+                db.session.commit()
 
-            response = schema.dump(response.data)
-            db.session.close()
+                response = schema.dump(response.data)
+                db.session.close()
 
-            return {"success": True, "data": response.data}
+                return {"success": True, "data": response.data}
         return {"success": False}
 
 
@@ -152,7 +155,8 @@ class Vote(Resource):
     )
     def delete(self, vote_id):
         vote = Votes.query.filter_by(id=vote_id).first_or_404()
-        if is_admin() or (is_contributor() and vote.user_id == session["id"]):
+        challenge = Challenges.query.filter_by(id=vote.challenge_id).first_or_404()
+        if challenge.state == "vote" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
             db.session.delete(vote)
             db.session.commit()
             db.session.close()
@@ -173,7 +177,8 @@ class Vote(Resource):
     )
     def patch(self, vote_id):
         vote = Votes.query.filter_by(id=vote_id).first_or_404()
-        if is_admin() or (is_contributor() and vote.user_id == session["id"]):
+        challenge = Challenges.query.filter_by(id=vote.challenge_id).first_or_404()
+        if challenge.state == "vote" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
             schema = VoteSchema()
             req = request.get_json()
 

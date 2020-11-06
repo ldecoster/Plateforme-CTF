@@ -94,6 +94,7 @@ def is_contributor():
     else:
         return False
 
+
 def is_contributor_plus():
     if authed():
         user = get_current_user_attrs()
