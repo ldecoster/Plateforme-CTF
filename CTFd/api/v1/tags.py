@@ -86,7 +86,6 @@ class TagList(Resource):
         req = request.get_json()
         schema = TagSchema()
         response = schema.load(req, session=db.session)
-
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 

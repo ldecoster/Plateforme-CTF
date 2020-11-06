@@ -5,9 +5,9 @@ class TagChallengeSchema(ma.ModelSchema):
     class Meta:
         model = TagChallenge
         include_fk = True
-        dump_only = ("id",)
+        dump_only=("tagId")
 
-    views = {"admin": ["id", "challenge_id", "tag_id"]}
+    views = {"admin": ["tagId","challengeId"],"user":["tagId","challengeId"]}
 
     def __init__(self, view=None, *args, **kwargs):
         if view:

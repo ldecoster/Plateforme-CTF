@@ -51,7 +51,11 @@ class TagChallengeList(Resource):
             "q": (str, None),
             "field": (
                 RawEnum(
-                    "TagFields", {"challenge_id": "challenge_id", "tag_id": "tag_id"}
+                    "TagFields", 
+                    {
+                        "tag_id": "tagId",
+                        "challenge_id": "challengeId"
+                    }
                 ),
                 None,
             ),
@@ -74,7 +78,7 @@ class TagChallengeList(Resource):
 
     @admins_only
     @tagChallenge_namespace.doc(
-        description="Endpoint to create a Tag object",
+        description="Endpoint to create a TagChallenge object",
         responses={
             200: ("Success", "TagChallengeDetailedSuccessResponse"),
             400: (
@@ -86,7 +90,7 @@ class TagChallengeList(Resource):
     def post(self):
         req = request.get_json()
         schema = TagChallengeSchema()
-        response = schema.load(req, session=db.session)
+        response = schema.load(req, session=db.session) 
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

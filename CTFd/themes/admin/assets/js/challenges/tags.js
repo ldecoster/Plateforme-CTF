@@ -21,11 +21,13 @@ export function setTagList(event) {
     const tagsList = response.data;
     const $elem = $(this);
     const searchtag = $elem.val();
-
+    
     //get match to the current input
     let matches = tagsList.filter(tag =>{
       const regex = new RegExp(`^${searchtag}`,'gi');
-      return tag.value.match(regex) && tag.challenge_id!=window.CHALLENGE_ID;
+      console.log(tag.value);
+      console.log(tag.challenges.includes(window.CHALLENGE_ID));
+      return tag.value.match(regex) && ! tag.challenges.includes(window.CHALLENGE_ID);
     });
 
     if(searchtag.length === 0){
@@ -45,35 +47,52 @@ export function setTagList(event) {
     
     const params = {
       value: searchtag,
-      challenge: window.CHALLENGE_ID
     };  
-    addTag(params);  
+    addNewTag(params);  
+  });
+}
+function addNewTag(params){
+
+  CTFd.api.post_tag_list({},params).then(res => {
+    console.log(res);
+    CTFd.api.post_tagChallenge_list({},{ tag_id: res.data.id,challenge_id:window.CHALLENGE_ID }).then(response=>{
+      if (response.success) {
+        const tpl =
+          "<span class='badge badge-primary mx-1 challenge-tag'>" +
+          "<span>{0}</span>" +
+          "<a class='btn-fa delete-tag' tag-id='{1}'>&times;</a></span>";
+        const tag = $(tpl.format(params.value,res.data.id));
+        $("#challenge-tags").append(tag);
+        // TODO: tag deletion not working on freshly created tags
+        tag.click(deleteTag);
+      }
+    });
   });
 }
 
 function addTag(params){
 
-  CTFd.api.post_tag_list({}, params).then(response => {
-    if (response.success) {
-      const tpl =
-        "<span class='badge badge-primary mx-1 challenge-tag'>" +
-        "<span>{0}</span>" +
-        "<a class='btn-fa delete-tag' tag-id='{1}'>&times;</a></span>";
-      const tag = $(tpl.format(response.data.value, response.data.id));
-      $("#challenge-tags").append(tag);
-      // TODO: tag deletion not working on freshly created tags
-      tag.click(deleteTag);
-    }
+  CTFd.api.post_tagChallenge_list({},params).then(res => {
+    CTFd.api.get_tag({ tagId: res.data.tag_id, }).then(response=>{
+      if (response.success) {
+        const tpl =
+          "<span class='badge badge-primary mx-1 challenge-tag'>" +
+          "<span>{0}</span>" +
+          "<a class='btn-fa delete-tag' tag-id='{1}'>&times;</a></span>";
+        const tag = $(tpl.format(response.data.value, response.data.id));
+        $("#challenge-tags").append(tag);
+        // TODO: tag deletion not working on freshly created tags
+        tag.click(deleteTag);
+      }
+    });
   });
-
-  $elem.val("");
 }
+
 export function addClickedTag(_event){
   $elem = $(this);
     const params = {
-      id:$elem.attr("tag_id"),
-      value:$elem.text(),
-      challenge:window.CHALLENGE_ID
+      tag_id:$elem.attr("tag_id"),
+      challenge_id:window.CHALLENGE_ID
     }
   addTag(params);
 }

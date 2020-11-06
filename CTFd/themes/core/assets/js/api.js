@@ -2514,6 +2514,7 @@ let API = (function () {
     if (parameters === undefined) {
       parameters = {};
     }
+    
     let deferred = Q.defer();
     let domain = this.domain,
       path = "/tags";
@@ -2526,7 +2527,7 @@ let API = (function () {
     headers["Content-Type"] = ["application/json"];
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
-
+  
     this.request(
       "POST",
       domain + path,
@@ -2711,13 +2712,14 @@ let API = (function () {
   /**
    *
    * @method
-   * @name API#post_tag_list
+   * @name API#post_tagChallenge_list
    * @param {object} parameters - method options and parameters
    */
   API.prototype.post_tagChallenge_list = function (parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
+    
     let deferred = Q.defer();
     let domain = this.domain,
       path = "/tagChallenge";
@@ -2730,7 +2732,7 @@ let API = (function () {
     headers["Content-Type"] = ["application/json"];
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
-
+   
     this.request(
       "POST",
       domain + path,

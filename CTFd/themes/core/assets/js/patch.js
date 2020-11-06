@@ -253,7 +253,6 @@ API.prototype.patch_config_list = function(parameters, body) {
 
   return deferred.promise;
 };
-//Todo Kylian : tag_challenges
 API.prototype.post_tag_list = function(parameters, body) {
   if (parameters === undefined) {
     parameters = {};
@@ -261,6 +260,35 @@ API.prototype.post_tag_list = function(parameters, body) {
   let deferred = Q.defer();
   let domain = this.domain,
     path = "/tags";
+  let queryParameters = {},
+    headers = {},
+    form = {};
+
+  headers["Accept"] = ["application/json"];
+  headers["Content-Type"] = ["application/json"];
+
+  queryParameters = mergeQueryParams(parameters, queryParameters);
+
+  this.request(
+    "POST",
+    domain + path,
+    parameters,
+    body,
+    headers,
+    queryParameters,
+    form,
+    deferred
+  );
+
+  return deferred.promise;
+};
+API.prototype.post_tagChallenge_list = function(parameters, body) {
+  if (parameters === undefined) {
+    parameters = {};
+  }
+  let deferred = Q.defer();
+  let domain = this.domain,
+    path = "/tagChallenge";
   let queryParameters = {},
     headers = {},
     form = {};
