@@ -6,7 +6,7 @@ from CTFd.admin import admin
 from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
-from CTFd.utils.user import is_contributor_plus, is_admin
+from CTFd.utils.user import is_contributor_plus,is_contributor, is_admin
 from sqlalchemy.sql import and_, or_
 
 
@@ -22,8 +22,10 @@ def challenges_listing():
         # The field exists as an exposed column
         if Challenges.__mapper__.has_property(field):
             filters.append(getattr(Challenges, field).like("%{}%".format(q)))
-
-    query = Challenges.query.filter(*filters, or_(and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="vote")).order_by(Challenges.id.asc())
+    if is_contributor():
+        query = Challenges.query.filter(*filters, or_(and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="vote")).order_by(Challenges.id.asc())
+    else:
+        query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
     challenges = query.all()
     total = query.count()
 
