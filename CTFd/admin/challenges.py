@@ -15,9 +15,23 @@ def challenges_listing():
     if q:
         # The field exists as an exposed column
         if Challenges.__mapper__.has_property(field):
-            filters.append(getattr(Challenges, field).like("%{}%".format(q)))
+            if field == "tags":
+                queryTag=Tags.query.filter(Tags.value.ilike(q)).first()
+                print(queryTag)
+                if queryTag is not None:
+                    tagChallenges=TagChallenge.query.filter_by(tag_id=queryTag.id).all()
+                    for chal in tagChallenges:
+                        print(chal.challenge_id)
+                        filters.append(getattr(Challenges, "id").like("%{}%".format(chal.challenge_id)))
+                else:
+                    filters.append(None)
+            else:
+                filters.append(getattr(Challenges, field).like("%{}%".format(q)))
 
+    print('*'*64)
     query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
+    print(query)
+    print('*'*64)
     challenges = query.all()
     total = query.count()
     return render_template(

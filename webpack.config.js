@@ -180,7 +180,7 @@ function getJSConfig(root, type, entries, mode) {
       // Pretty nasty hack, would be a little better if this was purely JS
       new WebpackShellPlugin({
         onBuildEnd:[
-          mode == 'development' ? 'echo Skipping JS stub generation' : 'python3 -c \'exec(\"\"\"\nimport glob\nimport os\n\nstatic_js_dirs = [\n    "CTFd/themes/core/static/js/**/*.dev.js",\n    "CTFd/themes/admin/static/js/**/*.dev.js",\n]\n\nfor js_dir in static_js_dirs:\n    for path in glob.glob(js_dir, recursive=True):\n        if path.endswith(".dev.js"):\n            path = path.replace(".dev.js", ".min.js")\n            if os.path.isfile(path) is False:\n                open(path, "a").close()\n\"\"\")\''
+          mode == 'development' ? 'echo Skipping JS stub generation' : 'python -c \'exec(\"\"\"import glob import os static_js_dirs = [     "CTFd/themes/core/static/js/**/*.dev.js",     "CTFd/themes/admin/static/js/**/*.dev.js", ] for js_dir in static_js_dirs:     for path in glob.glob(js_dir, recursive=True):         if path.endswith(".dev.js"):             path = path.replace(".dev.js", ".min.js")             if os.path.isfile(path) is False:                 open(path, "a").close() \"\"\")\''
         ],
         safe: true,
       }),

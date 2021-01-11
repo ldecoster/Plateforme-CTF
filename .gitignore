@@ -66,6 +66,7 @@ CTFd/uploads
 .data/
 .ctfd_secret_key
 .*.swp
+.history/
 
 # Vagrant
 .vagrant
