@@ -159,12 +159,11 @@ class BadgesEntries(db.Model):
     __tablename__ = "badges_entries"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    type = db.Column(db.String(80), default="standard")
-    name = db.Column(db.String(80))
-    description = db.Column(db.Text)
-    icon = db.Column(db.Text)
+    badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
+    obtained_date=db.Column(db.DateTime,default=datetime.datetime.utcnow)
 
     user = db.relationship("Users", foreign_keys="BadgesEntries.user_id", lazy="select")
+    badge = db.relationship("Badges", foreign_keys="BadgesEntries.badge_id", lazy="select")
 
     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 

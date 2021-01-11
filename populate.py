@@ -308,8 +308,8 @@ if __name__ == "__main__":
                 user = Users.query.filter_by(id=x + 1).first()
                 badgesentries = BadgesEntries(
                     user_id=user.id,
-                    name=gen_word(),
-                    icon=gen_icon(),
+
+
                 )
                 new_base = random_date(
                     base_time,
