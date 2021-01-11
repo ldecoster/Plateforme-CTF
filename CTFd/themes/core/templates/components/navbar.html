@@ -40,11 +40,11 @@
 
             <ul class="navbar-nav ml-md-auto d-block d-sm-flex d-md-flex">
                 {% if authed() %}
-                    {% if is_admin() or is_contributor() or is_contributor_plus() %}
+                    {% if is_admin() or is_contributor() or is_teacher() %}
                         <li class="nav-item">
                             {% if is_admin() %}
                             <a class="nav-link" href="{{ url_for('admin.view') }}">
-                            {% elif is_contributor() or is_contributor_plus() %}
+                            {% elif is_contributor() or is_teacher() %}
                             <a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">
                             {%endif %}
                                 <span class="d-block" data-toggle="tooltip" data-placement="bottom" {% if is_admin() %} title="Admin Panel" {% else %} title="Contributor Panel" {% endif %}>
@@ -54,7 +54,7 @@
                                     <i class="fas fa-wrench pr-1"></i>
                                     {% if is_admin() %}
                                     Admin
-                                    {% elif is_contributor() or is_contributor_plus() %}
+                                    {% elif is_contributor() or is_teacher() %}
                                     Contributor
                                     {% endif %}
                                      Panel

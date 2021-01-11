@@ -405,7 +405,7 @@ class Contributors(Users):
 
 class Contributors_plus(Users):
     __tablename__ = "contributors_plus"
-    __mapper_args__ = {"polymorphic_identity": "contributor_plus"}
+    __mapper_args__ = {"polymorphic_identity": "teacher"}
 
 
 class Submissions(db.Model):

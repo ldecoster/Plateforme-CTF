@@ -12,7 +12,7 @@ from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
 from CTFd.schemas.flags import FlagSchema
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.user import is_admin, is_contributor, is_teacher
 from flask import session
 
 flags_namespace = Namespace("flags", description="Endpoint to retrieve Flags")
@@ -99,7 +99,7 @@ class FlagList(Resource):
 
         db.session.add(response.data)
 
-        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id == session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id == session["id"]):
             db.session.commit()
 
             response = schema.dump(response.data)
@@ -162,7 +162,7 @@ class Flag(Resource):
     def delete(self, flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
         challenge = Challenges.query.filter_by(id=flag.challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
             db.session.delete(flag)
             db.session.commit()
             db.session.close()
@@ -184,7 +184,7 @@ class Flag(Resource):
     def patch(self, flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
         challenge = Challenges.query.filter_by(id=flag.challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
             schema = FlagSchema()
             req = request.get_json()
 

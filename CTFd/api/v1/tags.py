@@ -12,7 +12,7 @@ from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from flask import session
-from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.user import is_admin, is_contributor, is_teacher
 
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
@@ -95,7 +95,7 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id==session["id"]):
             db.session.commit()
 
             response = schema.dump(response.data)
@@ -164,7 +164,7 @@ class Tag(Resource):
     def delete(self, tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
         challenge = Challenges.query.filter_by(id=tag.challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
             db.session.delete(tag)
             db.session.commit()
             db.session.close()

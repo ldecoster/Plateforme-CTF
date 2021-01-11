@@ -12,7 +12,7 @@ from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
 from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.user import is_admin, is_contributor, is_teacher
 
 files_namespace = Namespace("files", description="Endpoint to retrieve Files")
 
@@ -122,7 +122,7 @@ class FilesDetail(Resource):
     def get(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
         challenge = Challenges.query.filter_by(id=f.challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
             schema = FileSchema()
             response = schema.dump(f)
 
@@ -140,7 +140,7 @@ class FilesDetail(Resource):
     def delete(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
         challenge = Challenges.query.filter_by(id=f.challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
             uploads.delete_file(file_id=f.id)
             db.session.delete(f)
             db.session.commit()

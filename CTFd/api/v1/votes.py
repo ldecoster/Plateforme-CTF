@@ -12,7 +12,7 @@ from CTFd.plugins.votes import get_vote_class, VOTE_CLASSES
 from CTFd.schemas.votes import VoteSchema
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.user import is_admin, is_contributor, is_teacher
 from flask import session
 
 votes_namespace = Namespace("votes", description="Endpoint to retrieve Votes")
@@ -100,7 +100,7 @@ class VoteList(Resource):
         already_voted = Votes.query.filter_by(challenge_id=challenge.id, user_id=session["id"]).first()
         db.session.add(response.data)
 
-        if is_admin() or is_contributor_plus() or is_contributor():
+        if is_admin() or is_teacher() or is_contributor():
             if challenge.state == "vote" and challenge.author_id != session["id"] and already_voted is None:
                 db.session.commit()
 

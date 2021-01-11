@@ -7,7 +7,7 @@ from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.config import get_votes_number
 from CTFd.utils.decorators import contributors_contributors_plus_admins_only
-from CTFd.utils.user import is_contributor_plus,is_contributor, is_admin
+from CTFd.utils.user import is_teacher,is_contributor, is_admin
 from sqlalchemy.sql import and_, or_
 
 
@@ -36,6 +36,7 @@ def challenges_listing():
         q=q,
         field=field,
         Votes=Votes,
+        
     )
 
 
@@ -46,7 +47,8 @@ def challenges_detail(challenge_id):
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
     )
     challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-    if is_admin() or is_contributor_plus() or challenge.author_id == session['id'] or challenge.state == "vote":
+    #author = Users.query.filter_by(id=challenge.author_id).first_or_404()
+    if is_admin() or is_teacher() or challenge.author_id == session['id'] or challenge.state == "vote":
         solves = (
             Solves.query.filter_by(challenge_id=challenge.id)
             .order_by(Solves.date.asc())

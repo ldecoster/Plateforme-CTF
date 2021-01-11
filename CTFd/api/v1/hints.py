@@ -11,7 +11,7 @@ from CTFd.models import Challenges, HintUnlocks, Hints, db
 from CTFd.schemas.hints import HintSchema
 from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only, authed_only, during_ctf_time_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import get_current_user, is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.user import get_current_user, is_admin, is_contributor, is_teacher
 from flask import session
 
 hints_namespace = Namespace("hints", description="Endpoint to retrieve Hints")
@@ -96,7 +96,7 @@ class HintList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        if is_admin() or is_contributor_plus() or (is_contributor() and response.data.challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id==session["id"]):
             db.session.commit()
 
             response = schema.dump(response.data)
@@ -157,7 +157,7 @@ class Hint(Resource):
     def patch(self, hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
         challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
             req = request.get_json()
 
             schema = HintSchema(view="admin")
@@ -182,7 +182,7 @@ class Hint(Resource):
     def delete(self, hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
         challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
             db.session.delete(hint)
             db.session.commit()
             db.session.close()

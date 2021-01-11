@@ -51,7 +51,7 @@ from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_teacher
 from CTFd.utils.security.auth import login_user
 from flask import session
 
@@ -427,7 +427,7 @@ class Challenge(Resource):
     def patch(self, challenge_id):
         author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus():
+        if is_admin() or is_teacher():
             challenge_class = get_chal_class(challenge.type)
             challenge = challenge_class.update(challenge, request)
             response = challenge_class.read(challenge)
@@ -459,7 +459,7 @@ class Challenge(Resource):
     def delete(self, challenge_id):
         author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        if is_admin() or is_contributor_plus() or (is_contributor() and challenge.author_id==author_id):
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==author_id):
             chal_class = get_chal_class(challenge.type)
             chal_class.delete(challenge)
 

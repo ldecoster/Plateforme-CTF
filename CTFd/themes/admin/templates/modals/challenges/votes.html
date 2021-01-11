@@ -12,7 +12,7 @@
 			<td class="text-center">{{ vote.user.name }}</td>
 			<td class="text-center vote-value">{% if vote.value == 1 %}Positive{% else %}Negative{% endif %}</td>
 			<td class="text-center">
-                {% if (is_admin() or (session["id"] == vote.user.id)) and challenge.state == "vote" %}
+                {% if (is_admin() or (session["id"] == vote.user.id)) and challenge.state == "voting" %}
 				    <i role="button" class="btn-fa fas fa-edit edit-vote" vote-id="{{ vote.id }}"></i>
 				    <i role="button" class="btn-fa fas fa-times delete-vote" vote-id="{{ vote.id }}"></i>
                 {% endif %}

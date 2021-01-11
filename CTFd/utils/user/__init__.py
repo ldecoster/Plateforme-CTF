@@ -95,10 +95,10 @@ def is_contributor():
         return False
 
 
-def is_contributor_plus():
+def is_teacher():
     if authed():
         user = get_current_user_attrs()
-        return user.type == "contributor_plus"
+        return user.type == "teacher"
     else:
         return False
 

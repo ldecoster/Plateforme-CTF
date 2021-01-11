@@ -6,7 +6,7 @@ from CTFd.cache import cache
 from CTFd.utils import config, get_config
 from CTFd.utils import user as current_user
 from CTFd.utils.dates import ctf_ended, ctf_started, ctftime, view_after_ctf
-from CTFd.utils.user import authed, is_admin, is_contributor, is_contributor_plus
+from CTFd.utils.user import authed, is_admin, is_contributor, is_teacher
 
 
 def during_ctf_time_only(f):
@@ -158,14 +158,14 @@ def contributors_only(f):
 
 def contributors_plus_only(f):
     """
-    Decorator that requires the user to be authenticated and an contributor_plus
+    Decorator that requires the user to be authenticated and an teacher
     :param f:
     :return:
     """
 
     @functools.wraps(f)
     def contributors_plus_only_wrapper(*args, **kwargs):
-        if is_contributor_plus():
+        if is_teacher():
             return f(*args, **kwargs)
         else:
             if request.content_type == "application/json":
@@ -178,14 +178,14 @@ def contributors_plus_only(f):
 
 def contributors_plus_admins_only(f):
     """
-    Decorator that requires the user to be authenticated and an contributor_plus and admin
+    Decorator that requires the user to be authenticated and an teacher and admin
     :param f:
     :return:
     """
 
     @functools.wraps(f)
     def contributors_plus_admins_only_wrapper(*args, **kwargs):
-        if is_admin() or is_contributor_plus():
+        if is_admin() or is_teacher():
             return f(*args, **kwargs)
         else:
             if request.content_type == "application/json":
@@ -205,7 +205,7 @@ def contributors_contributors_plus_admins_only(f):
 
     @functools.wraps(f)
     def contributors_contributors_plus_admins_only_wrapper(*args, **kwargs):
-        if is_admin() or is_contributor() or is_contributor_plus():
+        if is_admin() or is_contributor() or is_teacher():
             return f(*args, **kwargs)
         else:
             if request.content_type == "application/json":
