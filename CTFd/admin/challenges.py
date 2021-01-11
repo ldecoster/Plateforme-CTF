@@ -14,9 +14,9 @@ def challenges_listing():
 
     if q:
         # The field exists as an exposed column
-        if Challenges.__mapper__.has_property(field): 
+        if Challenges.__mapper__.has_property(field):
             if field == "tags":
-                queryTag=Tags.query.filter(Tags.value.like(q)).first()
+                queryTag=Tags.query.filter(Tags.value.ilike(q)).first()
                 print(queryTag)
                 if queryTag is not None:
                     tagChallenges=TagChallenge.query.filter_by(tag_id=queryTag.id).all()
