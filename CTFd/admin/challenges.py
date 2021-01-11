@@ -17,21 +17,15 @@ def challenges_listing():
         if Challenges.__mapper__.has_property(field):
             if field == "tags":
                 queryTag=Tags.query.filter(Tags.value.ilike(q)).first()
-                print(queryTag)
                 if queryTag is not None:
-                    tagChallenges=TagChallenge.query.filter_by(tag_id=queryTag.id).all()
-                    for chal in tagChallenges:
-                        print(chal.challenge_id)
-                        filters.append(getattr(Challenges, "id").like("%{}%".format(chal.challenge_id)))
+                    tagChallenges=TagChallenge.query.filter_by(tag_id=queryTag.id).with_entities(TagChallenge.challenge_id)
+                    filters.append(Challenges.id.in_((tagChallenges)))
                 else:
                     filters.append(None)
             else:
                 filters.append(getattr(Challenges, field).like("%{}%".format(q)))
 
-    print('*'*64)
     query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
-    print(query)
-    print('*'*64)
     challenges = query.all()
     total = query.count()
     return render_template(
