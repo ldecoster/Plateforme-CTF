@@ -10,7 +10,7 @@ from CTFd.constants import RawEnum
 from CTFd.models import Challenges, Flags, db
 from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
 from CTFd.schemas.flags import FlagSchema
-from CTFd.utils.decorators import contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
 from flask import session
@@ -39,7 +39,7 @@ flags_namespace.schema_model(
 
 @flags_namespace.route("")
 class FlagList(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @flags_namespace.doc(
         description="Endpoint to list Flag objects in bulk",
         responses={
@@ -78,7 +78,7 @@ class FlagList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @flags_namespace.doc(
         description="Endpoint to create a Flag object",
         responses={
@@ -112,7 +112,7 @@ class FlagList(Resource):
 @flags_namespace.route("/types", defaults={"type_name": None})
 @flags_namespace.route("/types/<type_name>")
 class FlagTypes(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     def get(self, type_name):
         if type_name:
             flag_class = get_flag_class(type_name)
@@ -131,7 +131,7 @@ class FlagTypes(Resource):
 
 @flags_namespace.route("/<flag_id>")
 class Flag(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @flags_namespace.doc(
         description="Endpoint to get a specific Flag object",
         responses={
@@ -154,7 +154,7 @@ class Flag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @flags_namespace.doc(
         description="Endpoint to delete a specific Flag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -170,7 +170,7 @@ class Flag(Resource):
             return {"success": True}
         return{"success": False}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @flags_namespace.doc(
         description="Endpoint to edit a specific Flag object",
         responses={

@@ -381,7 +381,7 @@ $(() => {
                       .removeClass("badge-warning")
                       .addClass("badge-success");
                     break;
-                  case "vote":
+                  case "voting":
                     $(".challenge-state")
                       .removeClass("badge-success")
                       .removeClass("badge-danger")

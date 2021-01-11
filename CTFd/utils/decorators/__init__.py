@@ -138,7 +138,7 @@ def contributors_admins_only(f):
 
 def contributors_only(f):
     """
-    Decorator that requires the user to be authenticated and an contributor
+    Decorator that requires the user to be authenticated and a contributor
     :param f:
     :return:
     """
@@ -156,15 +156,15 @@ def contributors_only(f):
     return contributors_only_wrapper
 
 
-def contributors_plus_only(f):
+def teachers_only(f):
     """
-    Decorator that requires the user to be authenticated and an teacher
+    Decorator that requires the user to be authenticated and a teacher
     :param f:
     :return:
     """
 
     @functools.wraps(f)
-    def contributors_plus_only_wrapper(*args, **kwargs):
+    def teachers_wrapper(*args, **kwargs):
         if is_teacher():
             return f(*args, **kwargs)
         else:
@@ -173,18 +173,18 @@ def contributors_plus_only(f):
             else:
                 abort(403)
 
-    return contributors_plus_only_wrapper
+    return teachers_wrapper
 
 
-def contributors_plus_admins_only(f):
+def teachers_admins_only(f):
     """
-    Decorator that requires the user to be authenticated and an teacher and admin
+    Decorator that requires the user to be authenticated and a teacher or admin
     :param f:
     :return:
     """
 
     @functools.wraps(f)
-    def contributors_plus_admins_only_wrapper(*args, **kwargs):
+    def teachers_admins_only_wrapper(*args, **kwargs):
         if is_admin() or is_teacher():
             return f(*args, **kwargs)
         else:
@@ -193,18 +193,18 @@ def contributors_plus_admins_only(f):
             else:
                 abort(403)
 
-    return contributors_plus_admins_only_wrapper
+    return teachers_admins_only_wrapper
 
 
-def contributors_contributors_plus_admins_only(f):
+def contributors_teachers_admins_only(f):
     """
-    Decorator that requires the user to be authenticated and an admin or contributor or contributors plus
+    Decorator that requires the user to be authenticated and an admin or contributor or teachers
     :param f:
     :return:
     """
 
     @functools.wraps(f)
-    def contributors_contributors_plus_admins_only_wrapper(*args, **kwargs):
+    def contributors_teachers_admins_only_wrapper(*args, **kwargs):
         if is_admin() or is_contributor() or is_teacher():
             return f(*args, **kwargs)
         else:
@@ -213,7 +213,7 @@ def contributors_contributors_plus_admins_only(f):
             else:
                 abort(403)
 
-    return contributors_contributors_plus_admins_only_wrapper
+    return contributors_teachers_admins_only_wrapper
 
 
 def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):

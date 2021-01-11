@@ -38,8 +38,8 @@ from CTFd.utils.config.visibility import (
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     admins_only,
-    contributors_contributors_plus_admins_only,
-    contributors_plus_admins_only,
+    contributors_teachers_admins_only,
+    teachers_admins_only,
     during_ctf_time_only,
     require_verified_emails,
 )
@@ -140,7 +140,7 @@ class ChallengeList(Resource):
         else:
             challenges = (
                 Challenges.query.filter(
-                    and_(Challenges.state != "hidden", Challenges.state != "locked", Challenges.state != "vote")
+                    and_(Challenges.state != "hidden", Challenges.state != "locked", Challenges.state != "voting")
                 )
                 .filter_by(**query_args)
                 .filter(*filters)
@@ -212,7 +212,7 @@ class ChallengeList(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @challenges_namespace.doc(
         description="Endpoint to create a Challenge object",
         responses={
@@ -235,7 +235,7 @@ class ChallengeList(Resource):
 
 @challenges_namespace.route("/types")
 class ChallengeTypes(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     def get(self):
         response = {}
 
@@ -413,7 +413,7 @@ class Challenge(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @challenges_namespace.doc(
         description="Endpoint to edit a specific Challenge object",
         responses={
@@ -438,7 +438,7 @@ class Challenge(Resource):
             challenge_new_state = data['state']
 
             # Check the number of votes before changing the state of the challenge
-            if challenge_new_state == "visible" and challenge.state == "vote":
+            if challenge_new_state == "visible" and challenge.state == "voting":
                 positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count()
                 negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count()
                 votes_delta = get_votes_number()
@@ -451,7 +451,7 @@ class Challenge(Resource):
             return {"success": True, "data": response}
         return {"success": False}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @challenges_namespace.doc(
         description="Endpoint to delete a specific Challenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -712,7 +712,7 @@ class ChallengeSolves(Resource):
 
 @challenges_namespace.route("/<challenge_id>/files")
 class ChallengeFiles(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         response = []
         challenge_files = ChallengeFilesModel.query.filter_by(
@@ -726,7 +726,7 @@ class ChallengeFiles(Resource):
 
 @challenges_namespace.route("/<challenge_id>/tags")
 class ChallengeTags(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         response = []
 
@@ -741,7 +741,7 @@ class ChallengeTags(Resource):
 
 @challenges_namespace.route("/<challenge_id>/hints")
 class ChallengeHints(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         hints = Hints.query.filter_by(challenge_id=challenge_id).all()
         schema = HintSchema(many=True)
@@ -755,7 +755,7 @@ class ChallengeHints(Resource):
 
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)

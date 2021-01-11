@@ -6,13 +6,13 @@ from CTFd.admin import admin
 from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.config import get_votes_number
-from CTFd.utils.decorators import contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.user import is_teacher,is_contributor, is_admin
 from sqlalchemy.sql import and_, or_
 
 
 @admin.route("/admin/challenges")
-@contributors_contributors_plus_admins_only
+@contributors_teachers_admins_only
 def challenges_listing():
     q = request.args.get("q")
     field = request.args.get("field")
@@ -23,7 +23,7 @@ def challenges_listing():
         if Challenges.__mapper__.has_property(field):
             filters.append(getattr(Challenges, field).like("%{}%".format(q)))
     if is_contributor():
-        query = Challenges.query.filter(*filters, or_(Challenges.author_id==session["id"],and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="vote")).order_by(Challenges.id.asc())
+        query = Challenges.query.filter(*filters, or_(Challenges.author_id==session["id"],and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="voting")).order_by(Challenges.id.asc())
     else:
         query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
     challenges = query.all()
@@ -41,14 +41,14 @@ def challenges_listing():
 
 
 @admin.route("/admin/challenges/<int:challenge_id>")
-@contributors_contributors_plus_admins_only
+@contributors_teachers_admins_only
 def challenges_detail(challenge_id):
     challenges = dict(
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
     )
     challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
     #author = Users.query.filter_by(id=challenge.author_id).first_or_404()
-    if is_admin() or is_teacher() or challenge.author_id == session['id'] or challenge.state == "vote":
+    if is_admin() or is_teacher() or challenge.author_id == session['id'] or challenge.state == "voting":
         solves = (
             Solves.query.filter_by(challenge_id=challenge.id)
             .order_by(Solves.date.asc())
@@ -90,7 +90,7 @@ def challenges_detail(challenge_id):
 
 
 @admin.route("/admin/challenges/new")
-@contributors_contributors_plus_admins_only
+@contributors_teachers_admins_only
 def challenges_new():
     types = CHALLENGE_CLASSES.keys()
     return render_template("admin/challenges/new.html", types=types)

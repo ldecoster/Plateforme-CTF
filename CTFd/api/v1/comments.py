@@ -15,7 +15,7 @@ from CTFd.models import (
     db,
 )
 from CTFd.schemas.comments import CommentSchema
-from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import admins_only,contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
 
@@ -57,7 +57,7 @@ def get_comment_model(data):
 
 @comments_namespace.route("")
 class CommentList(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @comments_namespace.doc(
         description="Endpoint to list Comment objects in bulk",
         responses={
@@ -111,7 +111,7 @@ class CommentList(Resource):
             "data": response.data,
         }
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @comments_namespace.doc(
         description="Endpoint to create a Comment object",
         responses={
@@ -142,7 +142,7 @@ class CommentList(Resource):
 
 @comments_namespace.route("/<comment_id>")
 class Comment(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @comments_namespace.doc(
         description="Endpoint to delete a specific Comment object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

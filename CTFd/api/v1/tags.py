@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Tags, db
 from CTFd.schemas.tags import TagSchema
-from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import admins_only,contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from flask import session
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
@@ -36,7 +36,7 @@ tags_namespace.schema_model("TagListSuccessResponse", TagListSuccessResponse.api
 
 @tags_namespace.route("")
 class TagList(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @tags_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
@@ -75,7 +75,7 @@ class TagList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @tags_namespace.doc(
         description="Endpoint to create a Tag object",
         responses={
@@ -108,7 +108,7 @@ class TagList(Resource):
 @tags_namespace.route("/<tag_id>")
 @tags_namespace.param("tag_id", "A Tag ID")
 class Tag(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @tags_namespace.doc(
         description="Endpoint to get a specific Tag object",
         responses={
@@ -129,7 +129,7 @@ class Tag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @tags_namespace.doc(
         description="Endpoint to edit a specific Tag object",
         responses={
@@ -156,7 +156,7 @@ class Tag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @tags_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

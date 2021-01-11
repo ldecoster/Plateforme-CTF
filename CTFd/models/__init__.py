@@ -258,7 +258,7 @@ class Users(db.Model):
     password = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
     type = db.Column(db.String(80))
-    school = db.Column(db.String(128)) 
+    school = db.Column(db.String(128))
     promotion = db.Column(db.Integer)
     speciality = db.Column(db.String(128))
     secret = db.Column(db.String(128))
@@ -321,8 +321,6 @@ class Users(db.Model):
     def awards(self):
         return self.get_awards(admin=False)
 
-  
-
     @property
     def place(self):
         from CTFd.utils.config.visibility import scores_visible
@@ -370,8 +368,6 @@ class Users(db.Model):
             awards = awards.filter(Awards.date < dt)
         return awards.all()
 
-  
-
     @cache.memoize()
     def get_place(self, admin=False, numeric=False):
         """
@@ -399,12 +395,14 @@ class Admins(Users):
     __tablename__ = "admins"
     __mapper_args__ = {"polymorphic_identity": "admin"}
 
+
 class Contributors(Users):
     __tablename__ = "contributors"
     __mapper_args__ = {"polymorphic_identity": "contributor"}
 
-class Contributors_plus(Users):
-    __tablename__ = "contributors_plus"
+
+class Teachers(Users):
+    __tablename__ = "teachers"
     __mapper_args__ = {"polymorphic_identity": "teacher"}
 
 
@@ -550,7 +548,6 @@ class Tokens(db.Model):
     value = db.Column(db.String(128), unique=True)
 
     user = db.relationship("Users", foreign_keys="Tokens.user_id", lazy="select")
-
 
     def __init__(self, *args, **kwargs):
         super(Tokens, self).__init__(**kwargs)

@@ -10,7 +10,7 @@ from CTFd.constants import RawEnum
 from CTFd.models import Challenges, Files, db
 from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
-from CTFd.utils.decorators import admins_only,contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import admins_only,contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
 
@@ -38,7 +38,7 @@ files_namespace.schema_model(
 
 @files_namespace.route("")
 class FilesList(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @files_namespace.doc(
         description="Endpoint to get file objects in bulk",
         responses={
@@ -75,7 +75,7 @@ class FilesList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @files_namespace.doc(
         description="Endpoint to get file objects in bulk",
         responses={
@@ -108,7 +108,7 @@ class FilesList(Resource):
 
 @files_namespace.route("/<file_id>")
 class FilesDetail(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @files_namespace.doc(
         description="Endpoint to get a specific file object",
         responses={
@@ -132,7 +132,7 @@ class FilesDetail(Resource):
             return {"success": True, "data": response.data}
         return {"success":False}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @files_namespace.doc(
         description="Endpoint to delete a file object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

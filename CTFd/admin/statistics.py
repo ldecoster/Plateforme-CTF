@@ -2,13 +2,13 @@ from flask import render_template
 
 from CTFd.admin import admin
 from CTFd.models import Challenges, Fails, Solves, Tracking, Users, db
-from CTFd.utils.decorators import contributors_plus_admins_only
+from CTFd.utils.decorators import teachers_admins_only
 from CTFd.utils.modes import get_model
 from CTFd.utils.updates import update_check
 
 
 @admin.route("/admin/statistics", methods=["GET"])
-@contributors_plus_admins_only
+@teachers_admins_only
 def statistics():
     update_check()
 

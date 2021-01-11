@@ -10,7 +10,7 @@ from CTFd.constants import RawEnum
 from CTFd.models import Votes, db, Challenges
 from CTFd.plugins.votes import get_vote_class, VOTE_CLASSES
 from CTFd.schemas.votes import VoteSchema
-from CTFd.utils.decorators import contributors_contributors_plus_admins_only
+from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
 from flask import session
@@ -39,7 +39,7 @@ votes_namespace.schema_model(
 
 @votes_namespace.route("")
 class VoteList(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @votes_namespace.doc(
         description="Endpoint to list Vote objects in bulk",
         responses={
@@ -77,7 +77,7 @@ class VoteList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @votes_namespace.doc(
         description="Endpoint to create a Vote object",
         responses={
@@ -101,7 +101,7 @@ class VoteList(Resource):
         db.session.add(response.data)
 
         if is_admin() or is_teacher() or is_contributor():
-            if challenge.state == "vote" and challenge.author_id != session["id"] and already_voted is None:
+            if challenge.state == "voting" and challenge.author_id != session["id"] and already_voted is None:
                 db.session.commit()
 
                 response = schema.dump(response.data)
@@ -113,7 +113,7 @@ class VoteList(Resource):
 
 @votes_namespace.route("/types")
 class VoteTypes(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     def get(self):
         vote_class = VOTE_CLASSES.get("default")
         response = {
@@ -125,7 +125,7 @@ class VoteTypes(Resource):
 
 @votes_namespace.route("/<vote_id>")
 class Vote(Resource):
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @votes_namespace.doc(
         description="Endpoint to get a specific Vote object",
         responses={
@@ -148,7 +148,7 @@ class Vote(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @votes_namespace.doc(
         description="Endpoint to delete a specific Vote object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -156,7 +156,7 @@ class Vote(Resource):
     def delete(self, vote_id):
         vote = Votes.query.filter_by(id=vote_id).first_or_404()
         challenge = Challenges.query.filter_by(id=vote.challenge_id).first_or_404()
-        if challenge.state == "vote" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
+        if challenge.state == "voting" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
             db.session.delete(vote)
             db.session.commit()
             db.session.close()
@@ -164,7 +164,7 @@ class Vote(Resource):
             return {"success": True}
         return{"success": False}
 
-    @contributors_contributors_plus_admins_only
+    @contributors_teachers_admins_only
     @votes_namespace.doc(
         description="Endpoint to edit a specific Vote object",
         responses={
@@ -178,7 +178,7 @@ class Vote(Resource):
     def patch(self, vote_id):
         vote = Votes.query.filter_by(id=vote_id).first_or_404()
         challenge = Challenges.query.filter_by(id=vote.challenge_id).first_or_404()
-        if challenge.state == "vote" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
+        if challenge.state == "voting" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
             schema = VoteSchema()
             req = request.get_json()
 
