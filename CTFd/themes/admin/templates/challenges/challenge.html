@@ -8,8 +8,8 @@
 	{% include "admin/modals/hints/edit.html" %}
 	{% include "admin/modals/flags/create.html" %}
 	{% include "admin/modals/flags/edit.html" %}
-    {% include "admin/modals/votes/create.html" %}
-    {% include "admin/modals/votes/edit.html" %}
+	{% include "admin/modals/votes/create.html" %}
+	{% include "admin/modals/votes/edit.html" %}
 
 	<div class="modal fade" id="challenge-window" role="dialog">
 	</div>
@@ -33,7 +33,7 @@
 					<i class="btn-fa fas fa-file-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Preview Challenge"></i>
 				</a>
-				{% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"] )%}
+				{% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 				<a class="no-decoration" href="{{ url_for('admin.submissions_listing', submission_type='correct', field='challenge_id', q=challenge.id) }}">
 					<i class="btn-fa fas fa-tasks fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Correct Submissions"></i>
@@ -42,7 +42,7 @@
 					<i class="btn-fa fas fa-trash-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Delete Challenge"></i>
 				</a>
-				{%endif%}
+				{% endif %}
 			</div>
 		</div>
 	</div>
@@ -53,13 +53,13 @@
 				<nav class="nav nav-tabs nav-fill" id="challenge-properties" role="tablist">
 					<a class="nav-item nav-link active" data-toggle="tab" href="#comments" role="tab" >Comments</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#votes" role="tab">Votes</a>
-					{%if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"] ) %}
+					{% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<a class="nav-item nav-link" data-toggle="tab" href="#flags" role="tab">Flags</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#files" role="tab">Files</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#tags" role="tab">Tags</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#hints" role="tab">Hints</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#requirements" role="tab">Requirements</a>
-					{% endif%}
+					{% endif %}
 				</nav>
 
 				<div class="tab-content" id="nav-tabContent">
@@ -87,7 +87,7 @@
 						</div>
 					</div>
                     {% endif %}
-                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"] )%}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="flags" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -97,7 +97,7 @@
 						</div>
 					</div>
                     {% endif %}
-                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"] )%}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="files" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -107,7 +107,7 @@
 						</div>
 					</div>
                     {% endif %}
-                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"] )%}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="tags" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -117,7 +117,7 @@
 						</div>
 					</div>
                     {% endif %}
-                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"] )%}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="hints" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -127,7 +127,7 @@
 						</div>
 					</div>
                     {% endif %}
-                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"] )%}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
                     <div class="tab-pane fade" id="requirements" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
