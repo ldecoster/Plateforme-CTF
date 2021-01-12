@@ -36,7 +36,7 @@ class Votes(db.Model):
 
 
 class Badges(db.Model):
-    __tablename__ = "badge"
+    __tablename__ = "badges"
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text)
     name = db.Column(db.String(80))
@@ -129,6 +129,22 @@ class Challenges(db.Model):
     def __repr__(self):
         return "<Challenge %r>" % self.name
 
+class Exercices(db.Model):
+    __tablename__ = "exercices"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    description = db.Column(db.Text)
+    challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
+
+    #challenge = db.relationship("Challenges", foreign_keys="Challenges.challenge_id", lazy="select")
+
+    #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
+
+    def __init__(self, *args, **kwargs):
+        super(Exercices, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "<Exercices %r>" % self.id
 
 class Hints(db.Model):
     __tablename__ = "hints"
@@ -178,7 +194,7 @@ class BadgesEntries(db.Model):
     user = db.relationship("Users", foreign_keys="BadgesEntries.user_id", lazy="select")
     badge = db.relationship("Badges", foreign_keys="BadgesEntries.badge_id", lazy="select")
 
-    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
+    #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
     def __init__(self, *args, **kwargs):
         super(BadgesEntries, self).__init__(**kwargs)
@@ -195,7 +211,8 @@ class BadgesExercices(db.Model):
 
      badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
      exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
-     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
+     
+     #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
      def __init__(self, *args, **kwargs):
          super(BadgesExercices, self).__init__(**kwargs)
