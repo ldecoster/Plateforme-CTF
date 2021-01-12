@@ -1,8 +1,6 @@
 from flask import abort, render_template, request, url_for, session
 
 from CTFd.admin import admin
-
-
 from CTFd.models import Challenges, Flags, Solves, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.config import get_votes_number
