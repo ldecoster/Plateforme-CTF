@@ -17,8 +17,7 @@ let challenges = [];
 let solves = [];
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
-
-  if (chal.type === "hidden") {
+  if (chal.state === "hidden") {
     ezAlert({
       title: "Challenge Hidden!",
       body: "You haven't unlocked this challenge yet!",
@@ -237,7 +236,7 @@ function loadUserSolves() {
   }
 
   return api_func[CTFd.config.userMode]("me").then(function(response) {
-    const solves = response.data;
+    solves = response.data;
 
     for (let i = solves.length - 1; i >= 0; i--) {
       const chal_id = solves[i].challenge_id;
@@ -249,6 +248,7 @@ function loadUserSolves() {
 function getSolves(id) {
   return CTFd.api.get_challenge_solves({ challengeId: id }).then(response => {
     const data = response.data;
+    console.log("getSolves : "+data);
     $(".challenge-solves").text(parseInt(data.length) + " Solves");
     const box = $("#challenge-solves-names");
     box.empty();
@@ -278,76 +278,77 @@ $('select').on('change',function() {
 function loadChals(orderValue) {
   return CTFd.api.get_challenge_list().then(function(resChall) {
     CTFd.api.get_tag_list().then(function(restagList){
-      const $challenges_board = $("#challenges-board");
-      tagList = restagList.data;
-      tagNames=[];
-      const challenges = resChall.data
-      $challenges_board.empty();
-      console.log("loadChal");
-      console.log(orderValue);
-      for (let i = tagList.length - 1; i >= 0; i--) {
-        const ID = tagList[i].value.replace(/ /g, "-").hashCode();
-        const tagrow = $(
-          "" +
-            '<div id="{0}-row" class="pt-5">'.format(ID) +
-            '<div class="tag-header col-md-12 mb-3">' +
-            "</div>" +
-            '<div class="tag-challenge col-md-12">' +
-            '<div class="challenges-row col-md-12"></div>' +
-            "</div>" +
-            "</div>"
-        );
-        tagrow
-          .find(".tag-header")
-          .append($("<h3>" + tagList[i].value + "</h3>"));
+      loadUserSolves().then(function(solvedChallenges){
 
-        $challenges_board.append(tagrow);
-      }
-      //Todo Kylian : tag_challenges
-      for (let i = 0; i <challenges.length; i++) {
-        challenges[i].solves = 0;
-        for(let j = 0; j < challenges[i].tags.length ; j++){
-          const chalinfo = challenges[i];
-          const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
-          const tagID = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
-          const chalwrap = $(
-            "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid)
+        const $challenges_board = $("#challenges-board");
+        tagList = restagList.data;
+        tagNames=[];
+        challenges = resChall.data
+        $challenges_board.empty();
+  
+        for (let i = tagList.length - 1; i >= 0; i--) {
+          const ID = tagList[i].value.replace(/ /g, "-").hashCode();
+          const tagrow = $(
+            "" +
+              '<div id="{0}-row" class="pt-5">'.format(ID) +
+              '<div class="tag-header col-md-12 mb-3">' +
+              "</div>" +
+              '<div class="tag-challenge col-md-12">' +
+              '<div class="challenges-row col-md-12"></div>' +
+              "</div>" +
+              "</div>"
           );
-          let chalbutton;
+          tagrow
+            .find(".tag-header")
+            .append($("<h3>" + tagList[i].value + "</h3>"));
   
-        if (solves.indexOf(chalinfo.id) == -1) {
-          chalbutton = $(
-            "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
-              chalinfo.id
-            )
-          );
-        } else {
-          chalbutton = $(
-            "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
-              chalinfo.id
-            )
-          );
+          $challenges_board.append(tagrow);
         }
-  
-        const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-        const chalscore = $("<span>{0}</span>".format(chalinfo.value));
-        for (let j = 0; j < chalinfo.tags.length; j++) {
-          const tag = "tag-" + chalinfo.tags[j].value.replace(/ /g, "-");
-          chalwrap.addClass(tag);
-        }
-  
-        chalbutton.append(chalheader);
-        chalbutton.append(chalscore);
-        chalwrap.append(chalbutton);
-  
-        $("#" + tagID + "-row")
-          .find(".tag-challenge > .challenges-row")
-          .append(chalwrap);
-        }
-        }
-      $(".challenge-button").click(function(_event) {
-        loadChal(this.value);
-        getSolves(this.value);
+        //Todo Kylian : tag_challenges
+        for (let i = 0; i <challenges.length; i++) {
+          for(let j = 0; j < challenges[i].tags.length ; j++){
+            const chalinfo = challenges[i];
+            const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
+            const tagID = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
+            const chalwrap = $(
+              "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid)
+            );
+            let chalbutton;
+    
+          if (solves.indexOf(chalinfo.id) == -1) {
+            chalbutton = $(
+              "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
+                chalinfo.id
+              )
+            );
+          } else {
+            chalbutton = $(
+              "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
+                chalinfo.id
+              )
+            );
+          }
+    
+          const chalheader = $("<p>{0}</p>".format(chalinfo.name));
+          const chalscore = $("<span>{0}</span>".format(chalinfo.value));
+          for (let j = 0; j < chalinfo.tags.length; j++) {
+            const tag = "tag-" + chalinfo.tags[j].value.replace(/ /g, "-");
+            chalwrap.addClass(tag);
+          }
+    
+          chalbutton.append(chalheader);
+          chalbutton.append(chalscore);
+          chalwrap.append(chalbutton);
+    
+          $("#" + tagID + "-row")
+            .find(".tag-challenge > .challenges-row")
+            .append(chalwrap);
+          }
+          }
+        $(".challenge-button").click(function(_event) {
+          loadChal(this.value);
+          getSolves(this.value);
+        });
       });
     });
   });
