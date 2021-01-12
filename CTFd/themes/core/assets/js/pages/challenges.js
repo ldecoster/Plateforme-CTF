@@ -271,7 +271,11 @@ function getSolves(id) {
   });
 }
 
-function loadChals() {
+$('select').on('change',function() {
+  loadChals(this.value);
+});
+
+function loadChals(orderValue) {
   return CTFd.api.get_challenge_list().then(function(resChall) {
     CTFd.api.get_tag_list().then(function(restagList){
       const $challenges_board = $("#challenges-board");
@@ -279,7 +283,8 @@ function loadChals() {
       tagNames=[];
       const challenges = resChall.data
       $challenges_board.empty();
-      console.log(challenges);
+      console.log("loadChal");
+      console.log(orderValue);
       for (let i = tagList.length - 1; i >= 0; i--) {
         const ID = tagList[i].value.replace(/ /g, "-").hashCode();
         const tagrow = $(
@@ -297,14 +302,11 @@ function loadChals() {
           .append($("<h3>" + tagList[i].value + "</h3>"));
 
         $challenges_board.append(tagrow);
-        console.log(tagList[i].value);
       }
       //Todo Kylian : tag_challenges
       for (let i = 0; i <challenges.length; i++) {
         challenges[i].solves = 0;
-        console.log("challenge length = "+challenges.length);
         for(let j = 0; j < challenges[i].tags.length ; j++){
-          console.log(challenges[i]);
           const chalinfo = challenges[i];
           const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
           const tagID = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();

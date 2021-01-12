@@ -11,18 +11,14 @@
 	</div>
 </div>
 
-<div class="container">
-	<div class="row">
-		<select class = "col-md-2" id = "myList" onchange = "loadChal()" >  
-			<option> Sort challenges </option>  
-			<option> Name </option>  
-			<option> Author </option>  
-			<option> Tag </option>  
-			<option> Successful </option>  
-			</select>  
-		</div>
-	</div>
 
+<select name="choice">
+	<option value="tag" selected>Tag</option>
+	<option value="author">Author</option>
+	<option value="solved">Solved</option>
+</select>
+
+</div>
 <div class="modal fade" id="challenge-window" tabindex="-1" role="dialog">
 </div>
 
