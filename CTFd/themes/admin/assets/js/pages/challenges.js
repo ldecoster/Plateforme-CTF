@@ -43,7 +43,7 @@ function bulkEditChallenges(_event) {
           <option value="">--</option>
           <option value="hidden">Hidden</option>
           <option value="visible">Visible</option>
-          <option value="voting"><Vote</option>
+          <option value="voting">Voting</option>
         </select>
       </div>
     </form>
