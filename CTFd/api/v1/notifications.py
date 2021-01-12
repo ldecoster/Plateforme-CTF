@@ -91,7 +91,7 @@ class NotificantionList(Resource):
     )
     def post(self):
         req = request.get_json()
-        req["user_id"]=session["id"]
+        
         schema = NotificationSchema()
         result = schema.load(req)
 
