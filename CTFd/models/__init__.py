@@ -179,39 +179,28 @@ class BadgesEntries(db.Model):
 
     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
-    @hybrid_property
-    def account_id(self):
-        from CTFd.utils import get_config
-
-        user_mode = get_config("user_mode")
-        if user_mode == "users":
-            return self.user_id
-
     def __init__(self, *args, **kwargs):
         super(BadgesEntries, self).__init__(**kwargs)
 
     def __repr__(self):
-        return "<Badge %r>" % self.name
+        return "<BadgeEntries %r>" % self.id
 
-# class BadgesExercices(db.Model):
-#     __tablename__ = "badges_exercices"
-#     id = db.Column(db.Integer, primary_key=True)
-#     exercice_id = db.Column(db.Integer, db.ForeignKey("exercices.id", ondelete="CASCADE"))
-#     badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
 
-#     badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
-#     exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
-#     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
+class BadgesExercices(db.Model):
+     __tablename__ = "badges_exercices"
+     id = db.Column(db.Integer, primary_key=True)
+     exercice_id = db.Column(db.Integer, db.ForeignKey("exercices.id", ondelete="CASCADE"))
+     badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
 
-    @hybrid_property
-    def account_id(self):
-        from CTFd.utils import get_config
+     badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
+     exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
+     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
-#     def __init__(self, *args, **kwargs):
-#         super(BadgesExercices, self).__init__(**kwargs)
+     def __init__(self, *args, **kwargs):
+         super(BadgesExercices, self).__init__(**kwargs)
 
-#     def __repr__(self):
-#         return "<BadgesExercices %r>" % self.id
+     def __repr__(self):
+        return "<BadgesExercices %r>" % self.id
 
 
 class Tags(db.Model):
