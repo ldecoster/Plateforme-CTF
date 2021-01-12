@@ -57,6 +57,7 @@ def challenges_detail(challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge.id).all()
 
         votes = Votes.query.filter_by(challenge_id=challenge.id).all()
+        user_has_voted = Votes.query.filter_by(challenge_id=challenge.id, user_id=session["id"]).first()
 
         votes_delta = get_votes_number()
 
@@ -84,6 +85,7 @@ def challenges_detail(challenge_id):
             solves=solves,
             flags=flags,
             votes=votes,
+            user_has_voted=user_has_voted,
         )
     else:
         abort(403)
