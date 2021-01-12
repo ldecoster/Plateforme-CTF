@@ -18,6 +18,7 @@ from CTFd.models import (
     Solves,
     Tracking,
     Votes,
+    Badges
 )
 from faker import Faker
 
@@ -30,8 +31,12 @@ parser.add_argument("--users", help="Amount of users to generate", default=50, t
 parser.add_argument(
     "--challenges", help="Amount of challenges to generate", default=20, type=int
 )
+# parser.add_argument(
+#     "--badgesentries", help="Amount of badgesentries to generate", default=5, type=int
+# )
+
 parser.add_argument(
-    "--badgesentries", help="Amount of badgesentries to generate", default=5, type=int
+    "--badges", help="Amount of badges to generate", default=5, type=int
 )
 
 args = parser.parse_args()
@@ -41,7 +46,8 @@ app = create_app()
 mode = args.mode
 USER_AMOUNT = args.users
 CHAL_AMOUNT = args.challenges
-BADGESENTRIES_AMOUNT = args.badgesentries
+BADGE_AMOUNT = args.badges
+
 
 icons = [
     None,
@@ -96,6 +102,8 @@ speciality_HEI = [
 
 companies = ["Corp", "Inc.", "Squad", "Team"]
 
+badges = ["Forensic I", "Forensic II", "Forensic III", "Badge I", "Badge II", "Badge 3", "Badge 4"]
+
 
 def gen_sentence():
     return fake.text()
@@ -116,6 +124,8 @@ def gen_value():
 def gen_word():
     return fake.word()
 
+def gen_badge():
+    random.choice(badges)
 
 def gen_icon():
     return random.choice(icons)
@@ -236,6 +246,35 @@ if __name__ == "__main__":
         db.session.commit()
        
 
+        #Generating Badges
+        print("GENERATING BADGES")
+        if mode == "users":
+         for x in range(BADGE_AMOUNT):
+                used = []
+                base_time = datetime.datetime.utcnow() + datetime.timedelta(
+                    minutes=-10000
+                )
+                for y in range(random.randint(1, BADGE_AMOUNT)):
+                    id = random.randint(0,100)
+                    if id not in used:
+                        used.append(id)
+                        # user = Users.query.filter_by(id=x + 1).first()
+                        badges = Badges(
+                            badge_id = id,
+                            description = "test desc",
+                            name= gen_badge(),
+                        )
+                        new_base = random_date(
+                            base_time,
+                            base_time
+                            + datetime.timedelta(minutes=random.randint(30, 60)),
+                        )
+                        vot.date = new_base
+                        base_time = new_base
+
+                        db.session.add(vot)
+                        db.session.commit()
+
         #Generating Votes
         print("GENERATING VOTES")
         if mode == "users":
@@ -317,11 +356,31 @@ if __name__ == "__main__":
                 )
                 BadgesEntries.date = new_base
                 base_time = new_base
-
                 db.session.add(badgesentries)
-
         db.session.commit()
 
+
+         Generating BADGESEXERCICES
+         print("GENERATING BADGESEXERCICES")
+         for x in range(BADGE_AMOUNT):
+             base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
+             for _ in range(random.randint(0, BADGE_AMOUNT)):
+                 user = Users.query.filter_by(id=x + 1).first()
+                 badgesexercice = BadgesExercices(
+                     id = random.randint(0,60),
+                     exercice_id = random.randint(0,60),
+                     badge_id = random.randint(0,60),
+                 )
+                 new_base = random_date(
+                     base_time,
+                     base_time + datetime.timedelta(minutes=random.randint(30, 60)),
+                 )
+                 BadgesExercices.date = new_base
+                 base_time = new_base
+
+
+        db.session.add(badgesexercice)
+        db.session.commit()
         # Generating Wrong Flags
         print("GENERATING WRONG FLAGS")
         for x in range(USER_AMOUNT):
