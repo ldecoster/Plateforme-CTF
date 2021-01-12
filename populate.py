@@ -12,7 +12,8 @@ from CTFd.models import (
     Users,
     Challenges,
     Flags,
-    # BadgesExercices,
+    BadgesEntries,
+    BadgesExercices,
     ChallengeFiles,
     Fails,
     Solves,
@@ -31,15 +32,16 @@ parser.add_argument("--users", help="Amount of users to generate", default=50, t
 parser.add_argument(
     "--challenges", help="Amount of challenges to generate", default=20, type=int
 )
-# parser.add_argument(
-#     "--badgesentries", help="Amount of badgesentries to generate", default=5, type=int
-# )
+
+parser.add_argument(
+    "--badgesentries", help="Amount of badgesentries to generate", default=5, type=int
+)
 
 parser.add_argument(
     "--badges", help="Amount of badges to generate", default=5, type=int
 )
 
-# args = parser.parse_args()
+args = parser.parse_args()
 
 app = create_app()
 
@@ -259,7 +261,7 @@ if __name__ == "__main__":
                     if id not in used:
                         used.append(id)
                         # user = Users.query.filter_by(id=x + 1).first()
-                        badges = Badges(
+                        badge = Badges(
                             badge_id = id,
                             description = "test desc",
                             name= gen_badge(),
@@ -269,10 +271,10 @@ if __name__ == "__main__":
                             base_time
                             + datetime.timedelta(minutes=random.randint(30, 60)),
                         )
-                        vot.date = new_base
+
                         base_time = new_base
 
-                        db.session.add(vot)
+                        db.session.add(badge)
                         db.session.commit()
 
         #Generating Votes
@@ -339,28 +341,49 @@ if __name__ == "__main__":
         db.session.commit()
         
 
-        # Generating BADGESEXERCICES
-        # print("GENERATING BADGESEXERCICES")
-        # for x in range(BADGE_AMOUNT):
-        #     base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
-        #     for _ in range(random.randint(0, BADGE_AMOUNT)):
-        #         user = Users.query.filter_by(id=x + 1).first()
-        #         badgesexercice = BadgesExercices(
-        #             id = random.randint(0,60),
-        #             exercice_id = random.randint(0,60),
-        #             badge_id = random.randint(0,60),
-        #         )
-        #         new_base = random_date(
-        #             base_time,
-        #             base_time + datetime.timedelta(minutes=random.randint(30, 60)),
-        #         )
-        #         BadgesExercices.date = new_base
-        #         base_time = new_base
+        # Generating Awards
+        print("GENERATING BADGESENTRIES")
+        for x in range(USER_AMOUNT):
+            base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
+            for _ in range(random.randint(0, BADGE_AMOUNT)):
+                user = Users.query.filter_by(id=x + 1).first()
+                badgesentries = BadgesEntries(
+                    user_id=user.id,
+                    badge_id=badge.id,
 
-        #         db.session.add(badgesexercice)
 
-        # db.session.commit()
 
+                )
+                new_base = random_date(
+                    base_time,
+                    base_time + datetime.timedelta(minutes=random.randint(30, 60)),
+                )
+                BadgesEntries.date = new_base
+                base_time = new_base
+                db.session.add(badgesentries)
+                db.session.commit()
+
+
+        #Generating BADGESEXERCICES
+        print("GENERATING BADGESEXERCICES")
+        for x in range(BADGE_AMOUNT):
+             base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
+             for _ in range(random.randint(0, BADGE_AMOUNT)):
+                 user = Users.query.filter_by(id=x + 1).first()
+                 badgesexercice = BadgesExercices(
+                     id = random.randint(0,60),
+                     exercice_id = random.randint(0,60),
+                     badge_id = random.randint(0,60),
+                 )
+                 new_base = random_date(
+                     base_time,
+                     base_time + datetime.timedelta(minutes=random.randint(30, 60)),
+                 )
+                 BadgesExercices.date = new_base
+                 base_time = new_base
+
+                 db.session.add(badgesexercice)
+                 db.session.commit()
         # Generating Wrong Flags
         print("GENERATING WRONG FLAGS")
         for x in range(USER_AMOUNT):
