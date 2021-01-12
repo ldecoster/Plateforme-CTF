@@ -13,14 +13,13 @@
 
 <div class="container">
 	<div class="row">
-		<div class="col-md-12">
-			{% with form = Forms.challenges.ChallengesFilterForm(field=field, q=q) %}
-			<form method="GET" class="form-inline">
-				<div class="form-group col-md-2">
-					{{ form.field(class="form-control custom-select w-100") }}
-				</div>
-			</form>
-			{% endwith %}
+		<select class = "col-md-2" id = "myList" onchange = "loadChal()" >  
+			<option> Sort challenges </option>  
+			<option> Name </option>  
+			<option> Author </option>  
+			<option> Tag </option>  
+			<option> Successful </option>  
+			</select>  
 		</div>
 	</div>
 
