@@ -35,6 +35,19 @@ class Votes(db.Model):
     user = db.relationship("Users", foreign_keys="Votes.user_id", lazy="select")
 
 
+class Badges(db.Model):
+    __tablename__ = "badge"
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.Text)
+    name = db.Column(db.String(80))
+
+    def __init__(self, *args, **kwargs):
+        super(Badges, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "<Badges %r>" % self.name
+
+
 class Notifications(db.Model):
     __tablename__ = "notifications"
     id = db.Column(db.Integer, primary_key=True)
@@ -155,31 +168,22 @@ class Hints(db.Model):
         return "<Hint %r>" % self.content
 
 
-class BadgesEntries(db.Model):
-    __tablename__ = "badges_entries"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
-    obtained_date=db.Column(db.DateTime,default=datetime.datetime.utcnow)
+# class BadgesExercices(db.Model):
+#     __tablename__ = "badges_exercices"
+#     id = db.Column(db.Integer, primary_key=True)
+#     exercice_id = db.Column(db.Integer, db.ForeignKey("exercices.id", ondelete="CASCADE"))
+#     badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
 
-    user = db.relationship("Users", foreign_keys="BadgesEntries.user_id", lazy="select")
-    badge = db.relationship("Badges", foreign_keys="BadgesEntries.badge_id", lazy="select")
+#     badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
+#     exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
+#     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
-    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
-    @hybrid_property
-    def account_id(self):
-        from CTFd.utils import get_config
+#     def __init__(self, *args, **kwargs):
+#         super(BadgesExercices, self).__init__(**kwargs)
 
-        user_mode = get_config("user_mode")
-        if user_mode == "users":
-            return self.user_id
-
-    def __init__(self, *args, **kwargs):
-        super(BadgesEntries, self).__init__(**kwargs)
-
-    def __repr__(self):
-        return "<Badge %r>" % self.name
+#     def __repr__(self):
+#         return "<BadgesExercices %r>" % self.id
 
 
 class Tags(db.Model):
@@ -327,9 +331,9 @@ class Users(db.Model):
     def fails(self):
         return self.get_fails(admin=False)
 
-    @property
-    def badgesentries(self):
-        return self.get_badgesentries(admin=False)
+    # @property
+    # def badgesentries(self):
+    #     return self.get_badgesentries(admin=False)
 
 
 
@@ -370,15 +374,15 @@ class Users(db.Model):
             fails = fails.filter(Fails.date < dt)
         return fails.all()
 
-    def get_badgesentries(self, admin=False):
-        from CTFd.utils import get_config
+    # def get_badgesentries(self, admin=False):
+    #     from CTFd.utils import get_config
 
-        badgesentries = BadgesEntries.query.filter_by(user_id=self.id)
-        freeze = get_config("freeze")
-        if freeze and admin is False:
-            dt = datetime.datetime.utcfromtimestamp(freeze)
-            badgesentries = badgesentries.filter(BadgesEntries.date < dt)
-        return badgesentries.all()
+    #     badgesentries = BadgesEntries.query.filter_by(user_id=self.id)
+    #     freeze = get_config("freeze")
+    #     if freeze and admin is False:
+    #         dt = datetime.datetime.utcfromtimestamp(freeze)
+    #         badgesentries = badgesentries.filter(BadgesEntries.date < dt)
+    #     return badgesentries.all()
 
     @cache.memoize()
     def get_place(self, admin=False, numeric=False):
