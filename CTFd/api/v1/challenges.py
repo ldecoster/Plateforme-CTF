@@ -427,29 +427,34 @@ class Challenge(Resource):
     def patch(self, challenge_id):
         author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        if is_admin() or is_teacher():
-            challenge_class = get_chal_class(challenge.type)
-            challenge = challenge_class.update(challenge, request)
-            response = challenge_class.read(challenge)
-            return {"success": True, "data": response}
-        elif is_contributor() and challenge.author_id == author_id:
-            challenge_class = get_chal_class(challenge.type)
-            data = request.form or request.get_json()
-            challenge_new_state = data['state']
+        data = request.form or request.get_json()
+        challenge_new_state = data['state']
 
-            # Check the number of votes before changing the state of the challenge
-            if challenge_new_state == "visible" and challenge.state == "voting":
-                positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count()
-                negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count()
-                votes_delta = get_votes_number()
-                # If positives votes minus the delta is not greater than or equal to the negative votes, abort
-                if (positive_votes - votes_delta) < negative_votes:
-                    return {"success": False, "errors": "votes"}
+        if challenge_new_state == "visible" or challenge_new_state == "voting" or challenge_new_state == "hidden":
 
-            challenge = challenge_class.update(challenge, request)
-            response = challenge_class.read(challenge)
-            return {"success": True, "data": response}
-        return {"success": False}
+            if is_admin() or is_teacher():
+                challenge_class = get_chal_class(challenge.type)
+                challenge = challenge_class.update(challenge, request)
+                response = challenge_class.read(challenge)
+                return {"success": True, "data": response}
+            elif is_contributor() and challenge.author_id == author_id:
+                challenge_class = get_chal_class(challenge.type)
+
+                # Check the number of votes before changing the state of the challenge
+                if challenge_new_state == "visible" and challenge.state == "voting":
+                    positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count()
+                    negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count()
+                    votes_delta = get_votes_number()
+                    # If positives votes minus the delta is not greater than or equal to the negative votes, abort
+                    if (positive_votes - votes_delta) < negative_votes:
+                        return {"success": False, "errors": "votes"}
+
+                challenge = challenge_class.update(challenge, request)
+                response = challenge_class.read(challenge)
+                return {"success": True, "data": response}
+            return {"success": False}
+        else:
+            return {"success": False}
 
     @contributors_teachers_admins_only
     @challenges_namespace.doc(

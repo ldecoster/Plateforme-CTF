@@ -76,7 +76,7 @@
 					</div>
                     {% if is_admin() or is_teacher() or
                     (is_contributor() and challenge.author_id == session["id"] ) or
-                    (is_contributor() and challenge.state == "vote")
+                    (is_contributor() and challenge.state == "voting")
                     %}
                     <div class="tab-pane fade" id="votes" role="tabpanel">
 						<div class="row">
