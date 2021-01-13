@@ -256,13 +256,17 @@ if __name__ == "__main__":
         # Generating Exercices 
         print("GENERATING EXERCICES")
         for x in range (EXER_AMOUNT):
-            word = gen_word()
-            exer = Exercices(
-                name = word,
-                description = gen_sentence()
-            )
-            db.session.add(exer)
-            db.session.commit()
+            id = random.randint(0,10000)
+            if id not in used:
+                used.append(id)
+                word = gen_word()
+                exer = Exercices(
+                    id = id,
+                    name = word,
+                    description = gen_sentence()
+                )
+                db.session.add(exer)
+                db.session.commit()
 
         #Generating Badges
         print("GENERATING BADGES")
@@ -387,8 +391,7 @@ if __name__ == "__main__":
              for _ in range(random.randint(0, BADGE_AMOUNT)):
                  user = Users.query.filter_by(id=x + 1).first()
                  badgesexercice = BadgesExercices(
-                     id = id,
-                     exercice_id = exercice.id,
+                     exercice_id = exer.id,
                      badge_id = badge.id,
                  )
                  new_base = random_date(
