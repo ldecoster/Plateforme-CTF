@@ -18,7 +18,7 @@ let solves = [];
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
 
-  if (chal.type === "hidden") {
+  if (chal.state === "hidden") {
     ezAlert({
       title: "Challenge Hidden!",
       body: "You haven't unlocked this challenge yet!",
@@ -30,14 +30,6 @@ const loadChal = id => {
   displayChal(chal);
 };
 
-const loadChalByName = name => {
-  let idx = name.lastIndexOf("-");
-  let pieces = [name.slice(0, idx), name.slice(idx + 1)];
-  let id = pieces[1];
-
-  const chal = $.grep(challenges, chal => chal.id == id)[0];
-  displayChal(chal);
-};
 
 const displayChal = chal => {
   return Promise.all([
@@ -318,9 +310,7 @@ function loadChals(orderValue) {
 
       //Display tag/challenge sorted by values
       else if (orderValue == "tag") {
-        console.log(tagList);
         tagList.sort((a, b) => a.value.localeCompare(b.value))
-        console.log(tagList);
         tagList.reverse();
         for (let i = tagList.length - 1; i >= 0; i--) {
           //for (let i = 0; i <=tagList.length ; i++) {
@@ -344,13 +334,16 @@ function loadChals(orderValue) {
 
       //Display challenges sorted by name
       else if (orderValue == "name") {
+        challenges.sort((a, b) => a.name.localeCompare(b.name))
         challenges.reverse();
         for (let i = challenges.length - 1; i >= 0; i--) {
-      
+          const chalinfo = challenges[i];
           const chalrow = $(
             "" +
-            '<div class="challenges-row col-md-3"></div>' +
-           '<button class="btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2" value="{0}"></button>'+ 
+           
+           '<button class="btn btn-dark challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
+            chalinfo.id
+          )+ 
             "</div>"
           );
 
@@ -361,7 +354,6 @@ function loadChals(orderValue) {
         }
       }
 
- //Todo Kylian : tag_challenges
       for (let i = 0; i < challenges.length; i++) {
         for (let j = 0; j < challenges[i].tags.length; j++) {
           const chalinfo = challenges[i];
@@ -397,6 +389,7 @@ function loadChals(orderValue) {
           chalbutton.append(chalscore);
           chalwrap.append(chalbutton);
 
+          
           $("#" + tagID + "-row")
             .find(".tag-challenge > .challenges-row")
             .append(chalwrap);
