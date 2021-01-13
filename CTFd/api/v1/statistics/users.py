@@ -3,6 +3,7 @@ from sqlalchemy import func
 
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.models import Users
+from CTFd.utils.modes import get_model
 from CTFd.utils.decorators import admins_only
 
 
@@ -28,3 +29,44 @@ class UserPropertyCounts(Resource):
             return {"success": True, "data": dict(data)}
         else:
             return {"success": False, "message": "That could not be found"}, 404
+
+""" @statistics_namespace.route("/users/percentages")
+class UserPercentages(Resource):
+    @admins_only
+    def get(self):
+        users = (
+            Users.query.add_columns("id","school")
+            .all()
+        )
+
+        Model = get_model()
+
+        total_users = (
+            db.session.query(Users.account_id)
+            .join(Model)
+            .filter(Model.banned == False, Model.hidden == False)
+            .group_by(Users.account_id)
+            .count()
+        )
+
+        percentage_data = []
+        for user in users:
+            user_count = (
+                Users.query.join(Model, Users.account_id == Model.id)
+                .filter(
+                    Users.school == user.school,
+                    Model.banned == False,
+                    Model.hidden == False,
+                )
+                .count()
+            )
+
+            percentage = float(user_count) / float(total_users)
+
+            percentage_data.append(
+                {"school": user.school, "percentage":percentage}
+            )
+
+        response = sorted(percentage_data, key=lambda x: x["percentage"], reverse=True)
+        return {"success": True, "data": response}
+ """
