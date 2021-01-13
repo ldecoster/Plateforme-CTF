@@ -34,7 +34,7 @@
     {% elif challenge.state == 'voting' %}
         {% if challenge.author_id == session["id"] %}
             <button id="vote-add-button" class="btn btn-secondary d-inline-block float-right" disabled>
-                Cannot vote for your own challenge
+                You can't vote for your own challenge
             </button>
         {% elif user_has_voted is not none %}
             <button id="vote-add-button" class="btn btn-secondary d-inline-block float-right" disabled>
