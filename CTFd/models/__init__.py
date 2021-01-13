@@ -211,8 +211,6 @@ class BadgesExercices(db.Model):
 
      badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
      exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
-     
-     #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
      def __init__(self, *args, **kwargs):
          super(BadgesExercices, self).__init__(**kwargs)
