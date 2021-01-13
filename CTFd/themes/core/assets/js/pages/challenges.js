@@ -229,7 +229,7 @@ function loadUserSolves() {
   }
 
   return api_func[CTFd.config.userMode]("me").then(function (response) {
-    const solves = response.data;
+    solves = response.data;
 
     for (let i = solves.length - 1; i >= 0; i--) {
       const chal_id = solves[i].challenge_id;
@@ -353,39 +353,61 @@ function loadChals(orderValue) {
           }
         }
 
-       //Display challenges sorted by solved or not
-       else if (orderValue == "solved") {
-        challenges.sort((a, b) => a.name.localeCompare(b.name))
-        challenges.reverse();
-        for (let i = challenges.length - 1; i >= 0; i--) {
-          const chalinfo = challenges[i];
-          console.log(challenges[i]);
-          console.log(solves.indexOf(chalinfo.id));
-          if ("chalinfo.id", solves.indexOf(chalinfo.id) == -1) {
-            const chalrow = $(
-              "" +
-              '<button class="btn btn-dark challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
-                chalinfo.id
-              )
-              +"</div>"     
-            );
-          }
-          // else if (solves.indexOf(chalinfo.id) !== -1) {
-          //   const chalrow = $(
-          //     "" +
-          //     '<button class="btn challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
-          //       chalinfo.id
-          //     )
-          //   );
-          // }
-          chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
-          console.log("chalrow", chalrow);
+        //Display challenges sorted by solved or not
+        else if (orderValue == "solved") {
+          challenges.sort((a, b) => a.name.localeCompare(b.name))
+          challenges.reverse();
+          const chalrow = $(
+            "" +
+            '<div class="solved-header col-md-12 mb-3">' +
+            "<h3> Solved </h3>" +
+            '<div class="challenges-row col-md-12"></div>' +
+            "</div>" +
+            '<div class="unsolved-header col-md-12 mb-3">' +
+            "<h3> Unsolved </h3>" +
+            '<div class="challenges-row col-md-12"></div>' +
+            "</div>"
+          );
           $challenges_board.append(chalrow);
-          console.log("chall-board", $challenges_board);
+          for (let i = challenges.length - 1; i >= 0; i--) {
+            const chalinfo = challenges[i];
+            const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
+            const chalwrap = $(
+              "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid)
+            );
+            let chalbutton;
+
+            if (solves.indexOf(chalinfo.id) == -1) {
+              chalbutton = $(
+                "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
+                  chalinfo.id
+                )
+              );
+              const chalheader = $("<p>{0}</p>".format(chalinfo.name));
+              const chalscore = $("<span>{0}</span>".format(chalinfo.value));
+              chalbutton.append(chalheader);
+              chalbutton.append(chalscore);
+              chalwrap.append(chalbutton);
+              $(".unsolved-header")
+              .find(".challenges-row")
+              .append(chalwrap);
+            } else {
+              chalbutton = $(
+                "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
+                  chalinfo.id
+                )
+              );
+              const chalheader = $("<p>{0}</p>".format(chalinfo.name));
+              const chalscore = $("<span>{0}</span>".format(chalinfo.value));
+              chalbutton.append(chalheader);
+              chalbutton.append(chalscore);
+              chalwrap.append(chalbutton);
+              $(".solved-header")
+              .find(".challenges-row")
+              .append(chalwrap);
+            }
+          }
         }
-      }
-
-
 
         for (let i = 0; i < challenges.length; i++) {
           for (let j = 0; j < challenges[i].tags.length; j++) {
