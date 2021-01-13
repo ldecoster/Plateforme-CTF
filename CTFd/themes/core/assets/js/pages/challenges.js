@@ -17,8 +17,7 @@ let challenges = [];
 let solves = [];
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
-
-  if (chal.type === "hidden") {
+  if (chal.state === "hidden") {
     ezAlert({
       title: "Challenge Hidden!",
       body: "You haven't unlocked this challenge yet!",
@@ -236,8 +235,8 @@ function loadUserSolves() {
     return Promise.resolve();
   }
 
-  return api_func[CTFd.config.userMode]("me").then(function (response) {
-    const solves = response.data;
+  return api_func[CTFd.config.userMode]("me").then(function(response) {
+    solves = response.data;
 
     for (let i = solves.length - 1; i >= 0; i--) {
       const chal_id = solves[i].challenge_id;
@@ -249,6 +248,7 @@ function loadUserSolves() {
 function getSolves(id) {
   return CTFd.api.get_challenge_solves({ challengeId: id }).then(response => {
     const data = response.data;
+    console.log("getSolves : "+data);
     $(".challenge-solves").text(parseInt(data.length) + " Solves");
     const box = $("#challenge-solves-names");
     box.empty();
@@ -281,10 +281,13 @@ $('select').on('change', function () {
 function loadChals(orderValue) {
   return CTFd.api.get_challenge_list().then(function (resChall) {
     CTFd.api.get_tag_list().then(function (restagList) {
+
+  loadUserSolves().then(function(solvedChallenges){
+
       const $challenges_board = $("#challenges-board");
       tagList = restagList.data;
       tagNames = [];
-      const challenges = resChall.data
+      challenges = resChall.data
       $challenges_board.empty();
 
       //Set up default tag/challenge values.
@@ -358,12 +361,8 @@ function loadChals(orderValue) {
         }
       }
 
-
-
-
-      //Todo Kylian : tag_challenges
+ //Todo Kylian : tag_challenges
       for (let i = 0; i < challenges.length; i++) {
-        challenges[i].solves = 0;
         for (let j = 0; j < challenges[i].tags.length; j++) {
           const chalinfo = challenges[i];
           const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
@@ -409,7 +408,9 @@ function loadChals(orderValue) {
       });
     });
   });
+});
 }
+
 
 
 function update() {

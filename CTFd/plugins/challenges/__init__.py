@@ -125,11 +125,10 @@ class BaseChallenge(object):
         return False, "Incorrect"
 
     @classmethod
-    def solve(cls, user, team, challenge, request):
+    def solve(cls, user, challenge, request):
         """
         This method is used to insert Solves into the database in order to mark a challenge as solved.
 
-        :param team: The Team object from the database
         :param chal: The Challenge object from the database
         :param request: The request the user submitted
         :return:
@@ -146,11 +145,10 @@ class BaseChallenge(object):
         db.session.commit()
 
     @classmethod
-    def fail(cls, user, team, challenge, request):
+    def fail(cls, user, challenge, request):
         """
         This method is used to insert Fails into the database in order to mark an answer incorrect.
 
-        :param team: The Team object from the database
         :param chal: The Challenge object from the database
         :param request: The request the user submitted
         :return:
@@ -159,7 +157,6 @@ class BaseChallenge(object):
         submission = data["submission"].strip()
         wrong = Fails(
             user_id=user.id,
-            team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(request),
             provided=submission,

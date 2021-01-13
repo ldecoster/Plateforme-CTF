@@ -53,7 +53,6 @@ class AwardList(Resource):
             "user_id": (int, None),
             "type": (str, None),
             "value": (int, None),
-            "category": (int, None),
             "icon": (int, None),
             "q": (str, None),
             "field": (
@@ -62,7 +61,6 @@ class AwardList(Resource):
                     {
                         "name": "name",
                         "description": "description",
-                        "category": "category",
                         "icon": "icon",
                     },
                 ),
