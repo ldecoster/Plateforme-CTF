@@ -54,8 +54,8 @@ from CTFd.utils.user import is_admin, is_contributor, is_teacher
 def view():
     if is_admin() or is_contributor() or is_teacher():
         return redirect(url_for("admin.statistics"))
-    return redirect(url_for("auth.login"))
-
+    abort(403)
+    
 
 @admin.route("/admin/plugins/<plugin>", methods=["GET", "POST"])
 @admins_only
