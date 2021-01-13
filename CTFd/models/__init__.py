@@ -24,12 +24,13 @@ def get_class_by_tablename(tablename):
             return c
     return None
 
+
 class Votes(db.Model):
     __tablename__ = "votes"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
-    value = db.Column(db.Integer)
+    value = db.Column(db.Boolean, default=False)
 
     user = db.relationship("Users", foreign_keys="Votes.user_id", lazy="select")
 
@@ -257,7 +258,7 @@ class Users(db.Model):
     password = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
     type = db.Column(db.String(80))
-    school = db.Column(db.String(128)) 
+    school = db.Column(db.String(128))
     promotion = db.Column(db.Integer)
     speciality = db.Column(db.String(128))
     secret = db.Column(db.String(128))
@@ -320,8 +321,6 @@ class Users(db.Model):
     def awards(self):
         return self.get_awards(admin=False)
 
-  
-
     @property
     def place(self):
         from CTFd.utils.config.visibility import scores_visible
@@ -369,8 +368,6 @@ class Users(db.Model):
             awards = awards.filter(Awards.date < dt)
         return awards.all()
 
-  
-
     @cache.memoize()
     def get_place(self, admin=False, numeric=False):
         """
@@ -397,6 +394,16 @@ class Users(db.Model):
 class Admins(Users):
     __tablename__ = "admins"
     __mapper_args__ = {"polymorphic_identity": "admin"}
+
+
+class Contributors(Users):
+    __tablename__ = "contributors"
+    __mapper_args__ = {"polymorphic_identity": "contributor"}
+
+
+class Teachers(Users):
+    __tablename__ = "teachers"
+    __mapper_args__ = {"polymorphic_identity": "teacher"}
 
 
 class Submissions(db.Model):
@@ -542,7 +549,6 @@ class Tokens(db.Model):
 
     user = db.relationship("Users", foreign_keys="Tokens.user_id", lazy="select")
 
-
     def __init__(self, *args, **kwargs):
         super(Tokens, self).__init__(**kwargs)
 
@@ -557,6 +563,7 @@ class UserTokens(Tokens):
 class Comments(db.Model):
     __tablename__ = "comments"
     id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(80), default="standard")
     content = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
@@ -568,6 +575,8 @@ class Comments(db.Model):
         from CTFd.utils.helpers import markup
 
         return markup(build_html(self.content, sanitize=True))
+
+    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
 
 class ChallengeComments(Comments):

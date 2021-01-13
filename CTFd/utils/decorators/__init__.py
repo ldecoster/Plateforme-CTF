@@ -6,7 +6,7 @@ from CTFd.cache import cache
 from CTFd.utils import config, get_config
 from CTFd.utils import user as current_user
 from CTFd.utils.dates import ctf_ended, ctf_started, ctftime, view_after_ctf
-from CTFd.utils.user import authed, is_admin
+from CTFd.utils.user import authed, is_admin, is_contributor, is_teacher
 
 
 def during_ctf_time_only(f):
@@ -40,7 +40,7 @@ def require_authentication_if_config(config_key):
         def __require_authentication_if_config(*args, **kwargs):
             value = get_config(config_key)
             if value and current_user.authed():
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
             else:
                 return f(*args, **kwargs)
 
@@ -91,7 +91,7 @@ def authed_only(f):
             ):
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return authed_only_wrapper
 
@@ -111,9 +111,109 @@ def admins_only(f):
             if request.content_type == "application/json":
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return admins_only_wrapper
+
+
+def contributors_admins_only(f):
+    """
+    Decorator that requires the user to be authenticated and an admin or contributor
+    :param f:
+    :return:
+    """
+
+    @functools.wraps(f)
+    def contributors_admins_only_wrapper(*args, **kwargs):
+        if is_admin() or is_contributor():
+            return f(*args, **kwargs)
+        else:
+            if request.content_type == "application/json":
+                abort(403)
+            else:
+                abort(403)
+
+    return contributors_admins_only_wrapper
+
+
+def contributors_only(f):
+    """
+    Decorator that requires the user to be authenticated and a contributor
+    :param f:
+    :return:
+    """
+
+    @functools.wraps(f)
+    def contributors_only_wrapper(*args, **kwargs):
+        if is_contributor():
+            return f(*args, **kwargs)
+        else:
+            if request.content_type == "application/json":
+                abort(403)
+            else:
+                abort(403)
+
+    return contributors_only_wrapper
+
+
+def teachers_only(f):
+    """
+    Decorator that requires the user to be authenticated and a teacher
+    :param f:
+    :return:
+    """
+
+    @functools.wraps(f)
+    def teachers_wrapper(*args, **kwargs):
+        if is_teacher():
+            return f(*args, **kwargs)
+        else:
+            if request.content_type == "application/json":
+                abort(403)
+            else:
+                abort(403)
+
+    return teachers_wrapper
+
+
+def teachers_admins_only(f):
+    """
+    Decorator that requires the user to be authenticated and a teacher or admin
+    :param f:
+    :return:
+    """
+
+    @functools.wraps(f)
+    def teachers_admins_only_wrapper(*args, **kwargs):
+        if is_admin() or is_teacher():
+            return f(*args, **kwargs)
+        else:
+            if request.content_type == "application/json":
+                abort(403)
+            else:
+                abort(403)
+
+    return teachers_admins_only_wrapper
+
+
+def contributors_teachers_admins_only(f):
+    """
+    Decorator that requires the user to be authenticated and an admin or contributor or teachers
+    :param f:
+    :return:
+    """
+
+    @functools.wraps(f)
+    def contributors_teachers_admins_only_wrapper(*args, **kwargs):
+        if is_admin() or is_contributor() or is_teacher():
+            return f(*args, **kwargs)
+        else:
+            if request.content_type == "application/json":
+                abort(403)
+            else:
+                abort(403)
+
+    return contributors_teachers_admins_only_wrapper
 
 
 def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):

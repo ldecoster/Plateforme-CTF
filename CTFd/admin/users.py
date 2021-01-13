@@ -4,11 +4,11 @@ from sqlalchemy.sql import not_
 from CTFd.admin import admin
 from CTFd.models import Challenges, Tracking, Users
 from CTFd.utils import get_config
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import admins_only,teachers_admins_only
 
 
 @admin.route("/admin/users")
-@admins_only
+@teachers_admins_only
 def users_listing():
     q = request.args.get("q")
     field = request.args.get("field")
@@ -49,13 +49,13 @@ def users_listing():
 
 
 @admin.route("/admin/users/new")
-@admins_only
+@teachers_admins_only
 def users_new():
     return render_template("admin/users/new.html")
 
 
 @admin.route("/admin/users/<int:user_id>")
-@admins_only
+@teachers_admins_only
 def users_detail(user_id):
     # Get user object
     user = Users.query.filter_by(id=user_id).first_or_404()

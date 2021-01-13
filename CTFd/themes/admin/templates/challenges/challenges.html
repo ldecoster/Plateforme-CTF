@@ -77,10 +77,11 @@
 						</td>
 						<th class="sort-col text-center"><b>ID</b></th>
 						<th class="sort-col"><b>Name</b></th>
-						<th class="d-none d-md-table-cell d-lg-table-cell sort-col"><b>Category</b></th>
-						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Value</b></th>
+						<th class="sort-col"><b>Author</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Type</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>State</b></th>
+						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Vote +</b></th>
+						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Vote -</b></th>
 					</tr>
 					</thead>
 					<tbody>
@@ -93,13 +94,16 @@
 							</td>
 							<td class="text-center">{{ challenge.id }}</td>
 							<td><a href="{{ url_for('admin.challenges_detail', challenge_id=challenge.id) }}">{{ challenge.name }}</a></td>
-							<td class="d-none d-md-table-cell d-lg-table-cell">{{ challenge.category }}</td>
-							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.value }}</td>
+							<td class="text-center">{{ challenge.author.name }}</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.type }}</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">
-								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-success' %}
+								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-warning' if  challenge.state == 'voting' else 'badge-success'  %}
 								<span class="badge {{ badge_state }}">{{ challenge.state }}</span>
 							</td>
+							{% set positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count() %}
+							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ positive_votes }}</td>
+							{% set negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count() %}
+							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ negative_votes }}</td>
 						</tr>
 					{% endfor %}
 					</tbody>

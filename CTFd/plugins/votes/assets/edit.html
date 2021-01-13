@@ -1,0 +1,14 @@
+<label>
+	Select your vote
+</label>
+<div class="form-group">
+	<select class="form-control custom-select" name="value">
+		<option value="1" {% if value == 1 %}selected{% endif %}>Positive</option>
+		<option value="0" {% if value == 0 %}selected{% endif %}>Negative</option>
+	</select>
+</div>
+<input type="hidden" name="id" value="{{ id }}">
+<hr>
+<div class="form-group">
+	<button class="btn btn-success float-right">Update</button>
+</div>
