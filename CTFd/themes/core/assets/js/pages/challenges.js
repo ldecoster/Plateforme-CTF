@@ -337,19 +337,35 @@ function loadChals(orderValue) {
           challenges.reverse();
           for (let i = challenges.length - 1; i >= 0; i--) {
             const chalinfo = challenges[i];
-            const chalrow = $(
-              "" +
+            console.log(challenges[i]);
+            console.log(solves.indexOf(chalinfo.id));
+            if (solves.indexOf(chalinfo.id) == -1) {
+              const chalrow = $(
+                "" +
+                '<button class="btn btn-dark challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
+                  chalinfo.id
+                )
+                + "</div>"
+              );
 
-              '<button class="btn btn-dark challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
-                chalinfo.id
-              ) +
-              "</div>"
-            );
+              chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
+              console.log("chalrow", chalrow);
+              $challenges_board.append(chalrow);
+              console.log("chall-board", $challenges_board);
+            }
+            else if (solves.indexOf(chalinfo.id) !== -1) {
+              const chalrow = $(
+                "" +
+                '<button class="btn btn-dark challenge-button w-100 solved-challenge text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
+                  chalinfo.id
+                )
+              );
 
-            chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
-            console.log("chalrow", chalrow);
-            $challenges_board.append(chalrow);
-            console.log("chall-board", $challenges_board);
+              chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
+              console.log("chalrow", chalrow);
+              $challenges_board.append(chalrow);
+              console.log("chall-board", $challenges_board);
+            }
           }
         }
 
