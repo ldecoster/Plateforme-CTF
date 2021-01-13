@@ -98,8 +98,14 @@ class FlagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
+        if response.data.challenge==None:
+            db.session.commit()
 
-        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id == session["id"]):
+            response = schema.dump(response.data)
+            db.session.close()
+
+            return {"success": True, "data": response.data}
+        elif is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id == session["id"]):
             db.session.commit()
 
             response = schema.dump(response.data)
