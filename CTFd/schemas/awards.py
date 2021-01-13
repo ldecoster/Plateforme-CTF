@@ -10,6 +10,7 @@ class AwardSchema(ma.ModelSchema):
 
     views = {
         "admin": [
+            "category",
             "user_id",
             "name",
             "description",
@@ -23,6 +24,7 @@ class AwardSchema(ma.ModelSchema):
             "icon",
         ],
         "user": [
+            "category",
             "user_id",
             "name",
             "description",
