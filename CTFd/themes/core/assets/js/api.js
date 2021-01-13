@@ -2817,7 +2817,6 @@ let API = (function () {
     path = path.replace("<challenge_id>", parameters["challengeId"]);
     
     queryParameters = mergeQueryParams(parameters, queryParameters);
-    console.log(parameters);
 
     this.request(
       "DELETE",

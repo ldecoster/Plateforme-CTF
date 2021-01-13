@@ -33,7 +33,7 @@ tags_namespace.schema_model("TagListSuccessResponse", TagListSuccessResponse.api
 
 @tags_namespace.route("")
 class TagList(Resource):
-    @admins_only
+    # @admins_only
     @tags_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
