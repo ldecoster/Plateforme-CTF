@@ -281,10 +281,13 @@ $('select').on('change', function () {
 function loadChals(orderValue) {
   return CTFd.api.get_challenge_list().then(function (resChall) {
     CTFd.api.get_tag_list().then(function (restagList) {
+
+  loadUserSolves().then(function(solvedChallenges){
+
       const $challenges_board = $("#challenges-board");
       tagList = restagList.data;
       tagNames = [];
-      const challenges = resChall.data
+      challenges = resChall.data
       $challenges_board.empty();
 
       //Set up default tag/challenge values.
@@ -358,12 +361,8 @@ function loadChals(orderValue) {
         }
       }
 
-
-
-
-      //Todo Kylian : tag_challenges
+ //Todo Kylian : tag_challenges
       for (let i = 0; i < challenges.length; i++) {
-        challenges[i].solves = 0;
         for (let j = 0; j < challenges[i].tags.length; j++) {
           const chalinfo = challenges[i];
           const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
@@ -409,7 +408,9 @@ function loadChals(orderValue) {
       });
     });
   });
+});
 }
+
 
 
 function update() {
