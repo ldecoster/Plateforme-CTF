@@ -44,7 +44,6 @@ def challenges_listing():
         q=q,
         field=field,
         Votes=Votes,
-
     )
 
 
