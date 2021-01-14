@@ -17,6 +17,7 @@ CTFd._internal.challenge = {};
 let challenges = [];
 let solves = [];
 let tagList = [];
+let getuserList = [];
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
 
@@ -276,6 +277,9 @@ async function loadChals() {
   if (tagList.length === 0) {
     tagList = (await CTFd.api.get_tag_list()).data;
   }
+  if (getuserList.length === 0) {
+    getuserList = (await CTFd.api.get_user_list()).data;
+  }
 
   loadUserSolves().then(function (solvedChallenges) {
 
@@ -420,6 +424,41 @@ async function loadChals() {
         }
       }
     }
+
+    else if (orderValue == "author") {
+      // userListChoice.sort((a, b) => a.name.localeCompare(b.name))
+      // console.log("user list", userListChoice);
+
+      const listuser = [];
+      const listauthor = challenges.filter(challenge => challenge.author_id);
+      console.log(listauthor);
+      for (i = 0; i < userListChoice.length; i++) {
+        for (j = 0; j < listauthor.length; j++) {
+          if (userListChoice[i].id == listauthor[j])
+            listuser.append(userListChoice[i]);
+        }
+      }
+      console.log(listuser);
+
+      // for (let i = userListChoice.length - 1; i >= 0; i--) {
+      //   const ID = userListChoice[i].name.replace(/ /g, "-").hashCode();
+      //   const tagrow = $(
+      //     "" +
+      //     '<div id="{0}-row" class="pt-5">'.format(ID) +
+      //     '<div class="user-header col-md-12 mb-3">' +
+      //     "</div>" +
+      //     '<div class="username-header col-md-12">' +
+      //     '<div class="challenges-row col-md-12"></div>' +
+      //     "</div>" +
+      //     "</div>"
+      //   );
+      //   tagrow
+      //     .find(".username-header")
+      //     .append($("<h3>" + userListChoice[i].name + "</h3>"));
+      //   $challenges_board.append(tagrow);
+      // }
+
+   }
 
     for (let i = 0; i < challenges.length; i++) {
       for (let j = 0; j < challenges[i].tags.length; j++) {
