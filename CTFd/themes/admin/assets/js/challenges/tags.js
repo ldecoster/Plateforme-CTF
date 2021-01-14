@@ -71,7 +71,7 @@ function addNewTag(params) {
 export function addClickedTag(_event) {
   let $elem = $(this);
   const params = {
-    tag_id: $elem.attr("id"),
+    tag_id: parseInt($elem.attr("id")),
     challenge_id: window.CHALLENGE_ID
   }
   matches = matches.filter(function (match) {
@@ -84,7 +84,7 @@ export function addClickedTag(_event) {
 
 function addTag(params) {
   CTFd.api.post_tagChallenge_list({}, params).then(res => {
-    CTFd.api.get_tag({ tagId: res.data.id, }).then(response => {
+    CTFd.api.get_tag({ tagId: res.data.tag_id, }).then(response => {
       if (response.success) {
         const tpl =
           "<span class='badge badge-primary mx-1 challenge-tag'>" +
