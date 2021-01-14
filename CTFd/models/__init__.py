@@ -133,7 +133,7 @@ class Exercices(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     description = db.Column(db.Text)
-    challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
+
 
     #challenge = db.relationship("Challenges", foreign_keys="Challenges.challenge_id", lazy="select")
 
@@ -142,8 +142,8 @@ class Exercices(db.Model):
     def __init__(self, *args, **kwargs):
         super(Exercices, self).__init__(**kwargs)
 
-    #def __repr__(self):
-        #return "<Exercices %r>" % self.id
+    def __repr__(self):
+        return "<Exercices %r>" % self.id
 
 class Hints(db.Model):
     __tablename__ = "hints"

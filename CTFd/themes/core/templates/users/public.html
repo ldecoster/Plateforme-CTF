@@ -102,19 +102,33 @@
 			<div class="row">
 				<div class="col-md-12">
 					<h3>Badges</h3>
+					<table class="table table-striped">
+						<thead>
+						<tr>
+							<td><b>Name</b></td>
+							<td class="d-none d-md-block d-lg-block"><b>Descripton</b></td>
+							<td><b>Date</b></td>
+
+						</tr>
+						</thead>
+						<tbody>
+						{% for badges in user.badgesentries %}
+
+								<tr>
+									<td>
+										<i class="awards-icon awards-{{ badges.icon }} fa-2x"></i>
+										<br>
+										<strong>{{ badges.id}}</strong>
+									</td>
+									<td class="d-none d-md-block d-lg-block">{{ badges.descritpion }}</td>
+									<td class="solve-time">{{ badges.obtained_date }}</td>
+
+								</tr>
+
+						{% endfor %}
+						</tbody>
+					</table>
 				</div>
-				{% for badges in user.badgesentries %}
-					<div class="col-md-3 col-sm-6">
-						<p class="text-center">
-							<i class="badges-icon badges-{{ badges.icon }} fa-2x"></i>
-							<br>
-							<strong>{{ badges.name}}</strong>
-						</p>
-
-						<p class="text-center">{{ badges.description or "" }}</p>
-
-					</div>
-				{% endfor %}
 			</div>
 
 			<br>
@@ -139,7 +153,7 @@
 										{{ solve.challenge.name }}
 									</a>
 								</td>
-								<td class="d-none d-md-block d-lg-block">{{ solve.challenge.category }}</td>
+								<td class="d-none d-md-block d-lg-block">{{ solve.challenge.description }}</td>
 								<td>{{ solve.challenge.value }}</td>
 								<td class="solve-time">
 									<span data-time="{{ solve.date | isoformat }}"></span>
