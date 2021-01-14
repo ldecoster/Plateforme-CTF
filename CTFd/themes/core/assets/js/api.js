@@ -2833,7 +2833,7 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_tagChallenge
+   * @name API#delete_tagChallenge
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.tagId - A Tag ID
    * @param {string} parameters.challengeId - A Challenge ID
