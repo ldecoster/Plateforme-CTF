@@ -56,7 +56,7 @@ def upgrade():
             ["id"],
             ondelete="CASCADE",
         )
-        #//Todo Kylian : tag_challenges
+
         op.drop_constraint("tags_ibfk_1", "tags", type_="foreignkey")
         op.create_foreign_key(
             "tags_ibfk_1",
@@ -247,7 +247,7 @@ def downgrade():
         op.drop_constraint("awards_ibfk_1", "awards", type_="foreignkey")
         op.drop_constraint("awards_ibfk_2", "awards", type_="foreignkey")
         op.create_foreign_key("awards_ibfk_1", "awards", "teams", ["team_id"], ["id"])
-        op.create_foreign_key("awards_ibfk_2", "awards", "users", ["user_id"], ["id"])
+        op.creat#//Todo Kylian : tag_challengese_foreign_key("awards_ibfk_2", "awards", "users", ["user_id"], ["id"])
     elif url.startswith("postgres"):
         op.drop_constraint("unlocks_team_id_fkey", "unlocks", type_="foreignkey")
         op.drop_constraint("unlocks_user_id_fkey", "unlocks", type_="foreignkey")

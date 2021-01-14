@@ -156,7 +156,6 @@ def import_ctf(backup, erase=True):
     except Exception:
         print("Failed to disable foreign key checks. Continuing.")
 
-    #//Todo Kylian : tag_challenges
     first = [
         "db/teams.json",
         "db/users.json",

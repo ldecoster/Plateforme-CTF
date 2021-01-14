@@ -101,7 +101,7 @@ if __name__ == "__main__":
         tag["value"] = tag.pop("tag")
         new_conn["tags"].insert(dict(tag))
     del old_data["tags"]
-    #//Todo Kylian : tag_challenges
+
     print("MIGRATING Files")
     for f in old_data["files"]:
         challenge_id = f.pop("chal")
