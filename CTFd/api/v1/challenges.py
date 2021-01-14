@@ -34,7 +34,6 @@ from CTFd.utils.config.visibility import (
     challenges_visible,
     scores_visible,
 )
-
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     admins_only,
@@ -699,10 +698,10 @@ class ChallengeTags(Resource):
         response = []
         tags = []
 
-        TagChallenges = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
-        for TagChallenge in TagChallenges:
+        tag_challenges = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
+        for tag_challenge in tag_challenges:
             tags.append(
-                Tags.query.filter_by(id=TagChallenge.tag_id).all()
+                Tags.query.filter_by(id=tag_challenge.tag_id).all()
             )
         for t in tags:
             response.append(

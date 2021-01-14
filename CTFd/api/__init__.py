@@ -18,8 +18,8 @@ from CTFd.api.v1.schemas import (
 from CTFd.api.v1.scoreboard import scoreboard_namespace
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.api.v1.submissions import submissions_namespace
-from CTFd.api.v1.tags import tags_namespace
 from CTFd.api.v1.tagChallenge import tagChallenge_namespace
+from CTFd.api.v1.tags import tags_namespace
 from CTFd.api.v1.tokens import tokens_namespace
 from CTFd.api.v1.unlocks import unlocks_namespace
 from CTFd.api.v1.users import users_namespace

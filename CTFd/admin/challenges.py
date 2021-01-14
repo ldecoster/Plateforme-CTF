@@ -5,6 +5,7 @@ from CTFd.models import Challenges, Flags, Solves, Tags, TagChallenge
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.decorators import admins_only
 
+
 @admin.route("/admin/challenges")
 @admins_only
 def challenges_listing():
@@ -16,10 +17,10 @@ def challenges_listing():
         # The field exists as an exposed column
         if Challenges.__mapper__.has_property(field):
             if field == "tags":
-                queryTag=Tags.query.filter(Tags.value.ilike(q)).first()
-                if queryTag is not None:
-                    tagChallenges=TagChallenge.query.filter_by(tag_id=queryTag.id).with_entities(TagChallenge.challenge_id)
-                    filters.append(Challenges.id.in_((tagChallenges)))
+                query_tag = Tags.query.filter(Tags.value.ilike(q)).first()
+                if query_tag is not None:
+                    tag_challenges = TagChallenge.query.filter_by(tag_id=query_tag.id).with_entities(TagChallenge.challenge_id)
+                    filters.append(Challenges.id.in_(tag_challenges))
                 else:
                     filters.append(None)
             else:
@@ -28,6 +29,7 @@ def challenges_listing():
     query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
     challenges = query.all()
     total = query.count()
+
     return render_template(
         "admin/challenges/challenges.html",
         challenges=challenges,
@@ -40,18 +42,17 @@ def challenges_listing():
 @admin.route("/admin/challenges/<int:challenge_id>")
 @admins_only
 def challenges_detail(challenge_id):
-
     challenges = dict(
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
     )
     challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-    
     solves = (
         Solves.query.filter_by(challenge_id=challenge.id)
         .order_by(Solves.date.asc())
         .all()
     )
     flags = Flags.query.filter_by(challenge_id=challenge.id).all()
+
     try:
         challenge_class = get_chal_class(challenge.type)
     except KeyError:

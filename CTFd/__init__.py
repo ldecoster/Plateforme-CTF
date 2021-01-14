@@ -169,6 +169,7 @@ def create_app(config="CTFd.config.Config"):
             Files,
             Tracking,
         )
+
         url = create_database()
 
         # This allows any changes to the SQLALCHEMY_DATABASE_URI to get pushed back in

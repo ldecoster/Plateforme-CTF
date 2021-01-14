@@ -11,6 +11,7 @@ from CTFd.models import db, TagChallenge
 from CTFd.schemas.tagChallenge import TagChallengeSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
+
 tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve TagChallenge")
 
 TagChallengeModel = sqlalchemy_to_pydantic(TagChallenge)
@@ -90,8 +91,7 @@ class TagChallengeList(Resource):
     def post(self):
         req = request.get_json()
         schema = TagChallengeSchema()
-        response = schema.load(req, session=db.session) 
-
+        response = schema.load(req, session=db.session)
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
