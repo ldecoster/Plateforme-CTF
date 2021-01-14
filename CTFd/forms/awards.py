@@ -8,7 +8,6 @@ from CTFd.forms.fields import SubmitField
 class AwardCreationForm(BaseForm):
     name = StringField("Name")
     value = IntegerField("Value")
-    category = StringField("Category")
     description = TextAreaField("Description")
     submit = SubmitField("Create")
     icon = RadioField(

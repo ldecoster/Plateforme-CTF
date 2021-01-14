@@ -3,7 +3,7 @@
 		{% for tag in challenge.tags %}
 		<span class='badge badge-primary mx-1 challenge-tag'>
 			<span>{{ tag.value }}</span>
-			<a tag-id="{{ tag.id }}" class='btn-fa delete-tag'> &#215;</a>
+			<a id="{{ tag.id }}" class='btn-fa delete-tag'> &#215;</a>
 		</span>
 		{% endfor %}
 	</div>
@@ -14,5 +14,6 @@
 			<small class="text-muted">Type tag and press Enter</small>
 		</label>
 		<input id="tags-add-input" maxlength="80" type="text" class="form-control">
+			<div class="list-group overflow-auto"></div>
 	</div>
 </div>

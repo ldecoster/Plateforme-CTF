@@ -1,7 +1,7 @@
 from flask import abort, render_template, request, url_for, session
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Flags, Solves, Votes
+from CTFd.models import Challenges, Flags, Solves, Tags, TagChallenge, Votes
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.utils.config import get_votes_number
 from CTFd.utils.decorators import contributors_teachers_admins_only
@@ -19,11 +19,21 @@ def challenges_listing():
     if q:
         # The field exists as an exposed column
         if Challenges.__mapper__.has_property(field):
-            filters.append(getattr(Challenges, field).like("%{}%".format(q)))
+            if field == "tags":
+                query_tag = Tags.query.filter(Tags.value.ilike(q)).first()
+                if query_tag is not None:
+                    tag_challenges = TagChallenge.query.filter_by(tag_id=query_tag.id).with_entities(TagChallenge.challenge_id)
+                    filters.append(Challenges.id.in_(tag_challenges))
+                else:
+                    filters.append(None)
+            else:
+                filters.append(getattr(Challenges, field).like("%{}%".format(q)))
+
     if is_contributor():
         query = Challenges.query.filter(*filters, or_(Challenges.author_id==session["id"],and_(Challenges.author_id==session["id"], Challenges.state=="hidden"),Challenges.state=="voting")).order_by(Challenges.id.asc())
     else:
         query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
+
     challenges = query.all()
     total = query.count()
 
@@ -34,7 +44,6 @@ def challenges_listing():
         q=q,
         field=field,
         Votes=Votes,
-        
     )
 
 
@@ -45,7 +54,6 @@ def challenges_detail(challenge_id):
         Challenges.query.with_entities(Challenges.id, Challenges.name).all()
     )
     challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-    #author = Users.query.filter_by(id=challenge.author_id).first_or_404()
     if is_admin() or is_teacher() or challenge.author_id == session['id'] or challenge.state == "voting":
         solves = (
             Solves.query.filter_by(challenge_id=challenge.id)

@@ -7,7 +7,7 @@ import { htmlEntities } from "core/utils";
 import { ezQuery, ezAlert, ezToast } from "core/ezq";
 import { default as helpers } from "core/helpers";
 import { addFile, deleteFile } from "../challenges/files";
-import { addTag, deleteTag } from "../challenges/tags";
+import { setTagList, deleteTag, addClickedTag } from "../challenges/tags";
 import { addRequirement, deleteRequirement } from "../challenges/requirements";
 import { bindMarkdownEditors } from "../styles";
 import Vue from "vue/dist/vue.esm.browser";
@@ -429,9 +429,9 @@ $(() => {
   });
 
   $("#challenge-create-options form").submit(handleChallengeOptions);
-
-  $("#tags-add-input").keyup(addTag);
+  $("#tags-add-input").keyup(setTagList);
   $(".delete-tag").click(deleteTag);
+  $('.list-group').on('click', 'a', addClickedTag);
 
   $("#prerequisite-add-form").submit(addRequirement);
   $(".delete-requirement").click(deleteRequirement);

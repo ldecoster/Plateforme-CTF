@@ -20,6 +20,7 @@ from CTFd.models import (
     Solves,
     Submissions,
     Tags,
+    TagChallenge,
     db,
 )
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
@@ -100,7 +101,6 @@ class ChallengeList(Resource):
             "name": (str, None),
             "max_attempts": (int, None),
             "value": (int, None),
-            "category": (str, None),
             "type": (str, None),
             "state": (str, None),
             "q": (str, None),
@@ -110,7 +110,6 @@ class ChallengeList(Resource):
                     {
                         "name": "name",
                         "description": "description",
-                        "category": "category",
                         "type": "type",
                         "state": "state",
                     },
@@ -179,7 +178,6 @@ class ChallengeList(Resource):
                                 "type": "hidden",
                                 "name": "???",
                                 "value": 0,
-                                "category": "???",
                                 "tags": [],
                                 "template": "",
                                 "script": "",
@@ -202,7 +200,6 @@ class ChallengeList(Resource):
                     "type": challenge_type.name,
                     "name": challenge.name,
                     "value": 0,
-                    "category": "",
                     "tags": tag_schema.dump(challenge.tags).data,
                     "template": challenge_type.templates["view"],
                     "script": challenge_type.scripts["view"],
@@ -313,7 +310,6 @@ class Challenge(Resource):
                                 "type": "hidden",
                                 "name": "???",
                                 "value": 0,
-                                "category": "???",
                                 "tags": [],
                                 "template": "",
                                 "script": "",
@@ -736,9 +732,13 @@ class ChallengeTags(Resource):
     @contributors_teachers_admins_only
     def get(self, challenge_id):
         response = []
+        tags = []
 
-        tags = Tags.query.filter_by(challenge_id=challenge_id).all()
-
+        tag_challenges = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
+        for tag_challenge in tag_challenges:
+            tags.append(
+                Tags.query.filter_by(id=tag_challenge.tag_id).all()
+            )
         for t in tags:
             response.append(
                 {"id": t.id, "challenge_id": t.challenge_id, "value": t.value}

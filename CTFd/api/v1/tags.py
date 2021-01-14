@@ -9,10 +9,10 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Tags, db
 from CTFd.schemas.tags import TagSchema
-from CTFd.utils.decorators import admins_only,contributors_teachers_admins_only
+from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
-from flask import session
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
+from flask import session
 
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
@@ -36,7 +36,6 @@ tags_namespace.schema_model("TagListSuccessResponse", TagListSuccessResponse.api
 
 @tags_namespace.route("")
 class TagList(Resource):
-    @contributors_teachers_admins_only
     @tags_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
@@ -49,12 +48,11 @@ class TagList(Resource):
     )
     @validate_args(
         {
-            "challenge_id": (int, None),
             "value": (str, None),
             "q": (str, None),
             "field": (
                 RawEnum(
-                    "TagFields", {"challenge_id": "challenge_id", "value": "value"}
+                    "TagFields", {"value": "value"}
                 ),
                 None,
             ),

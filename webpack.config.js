@@ -46,8 +46,6 @@ const roots = {
       'pages/scoreboard': 'assets/js/pages/scoreboard.js',
       'pages/statistics': 'assets/js/pages/statistics.js',
       'pages/submissions': 'assets/js/pages/submissions.js',
-      'pages/team': 'assets/js/pages/team.js',
-      'pages/teams': 'assets/js/pages/teams.js',
       'pages/user': 'assets/js/pages/user.js',
       'pages/users': 'assets/js/pages/users.js',
     }

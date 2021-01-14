@@ -57,7 +57,6 @@ class SubmissionsList(Resource):
         {
             "challenge_id": (int, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "ip": (str, None),
             "provided": (str, None),
             "type": (str, None),
@@ -68,7 +67,6 @@ class SubmissionsList(Resource):
                     {
                         "challenge_id": "challenge_id",
                         "user_id": "user_id",
-                        "team_id": "team_id",
                         "ip": "ip",
                         "provided": "provided",
                         "type": "type",
