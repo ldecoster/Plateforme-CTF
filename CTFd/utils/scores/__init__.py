@@ -37,7 +37,7 @@ def get_standings(count=None, admin=False, fields=[], badges_entries=None):
             BadgesEntries.user_id.label("user_id"),
             ##db.func.sum(BadgesEntries.value).label("score"),
             db.func.max(BadgesEntries.id).label("id"),
-            db.func.max(BadgesEntries.date).label("date"),
+            db.func.max(BadgesEntries.obtained_date).label("obtained_date"),
             db.func.max(BadgesEntries.badge_id).label("badge_id"),
         )
 
@@ -158,7 +158,7 @@ def get_user_standings(count=None, admin=False, fields=[]):
             BadgesEntries.user_id.label("user_id"),
             #db.func.sum(BadgesEntries.value).label("score"),
             db.func.max(BadgesEntries.id).label("id"),
-            #db.func.max(BadgesEntries.date).label("date"),
+            db.func.max(BadgesEntries.obtained_date).label("obtained_date"),
         )
         #.filter(BadgesEntries.value != 0)
         .group_by(BadgesEntries.user_id)
