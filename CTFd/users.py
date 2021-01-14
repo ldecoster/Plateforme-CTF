@@ -7,6 +7,8 @@ from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.user import get_current_user
 from flask import jsonify
 import json 
+import sqlite3
+import select
 
 users = Blueprint("users", __name__)
 
@@ -29,11 +31,28 @@ def listing():
         .order_by(Users.id.asc())
         .paginate(per_page=50)
     )
-    print("\n\n\n 22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222")
-    data=dict(users)
-    print(json.dumps(data))
+    
     args = dict(request.args)
     args.pop("page", 1)
+    
+    #Convert database result in json
+    DB = "C:/Users/Solène/Documents/GitKraken/Plateforme-CTF/CTFd/ctfd.db"
+    def get_all_users(json_str = False):
+        conn = sqlite3.connect( DB )
+        conn.row_factory = sqlite3.Row
+        db = conn.cursor()
+
+        rows = db.execute('''SELECT * from Users''').fetchall()
+
+        conn.commit
+        conn.close()
+
+        if json_str:
+            return json.dumps([dict(ix) for ix in rows])
+        
+        return rows
+    
+    print(get_all_users(json_str=True))
 
     return render_template(
         "users/users.html",
