@@ -102,18 +102,33 @@
 			<div class="row">
 				<div class="col-md-12">
 					<h3>Badges</h3>
-				</div>
-				{% for badges in user.badgesentries %}
-					<div class="col-md-3 col-sm-6">
-						<p class="text-center">
-							<i class="award-icon award-{{ award.icon }} fa-2x"></i>
-							<br>
-							<strong>{{ badgesentries.name }}</strong>
-						</p>
-						<p class="text-center">{{ badgesentries.description or ""}}</p>
+					<table class="table table-striped">
+						<thead>
+						<tr>
+							<td><b>Name</b></td>
+							<td class="d-none d-md-block d-lg-block"><b>Descripton</b></td>
+							<td><b>Date</b></td>
 
-					</div>
-				{% endfor %}
+						</tr>
+						</thead>
+						<tbody>
+						{% for badges in user.badgesentries %}
+
+								<tr>
+									<td>
+										<i class="awards-icon awards-{{ badges.icon }} fa-2x"></i>
+										<br>
+										<strong>{{ badges.badge.name}}</strong>
+									</td>
+									<td class="d-none d-md-block d-lg-block">{{ badges.badge.description }}</td>
+									<td class="solve-time">{{ badges.obtained_date }}</td>
+
+								</tr>
+
+						{% endfor %}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 			<br>
