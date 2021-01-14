@@ -3,7 +3,7 @@
 
 from freezegun import freeze_time
 
-from CTFd.models import Awards, Fails, Solves, Users
+from CTFd.models import BadgesEntries, Fails, Solves, Users
 from CTFd.schemas.users import UserSchema
 from CTFd.utils import set_config
 from CTFd.utils.crypto import verify_password

@@ -357,14 +357,14 @@ class UserPrivateFails(Resource):
 
 @users_namespace.route("/me/badgesentries")
 @users_namespace.param("user_id", "User ID")
-class UserPrivateAwards(Resource):
+class UserPrivateBadges(Resource):
     @authed_only
     def get(self):
         user = get_current_user()
-        awards = user.get_awards(admin=True)
+        basgesentries = user.get_awards(admin=True)
 
         view = "user" if not is_admin() else "admin"
-        response = BadgesEntriesSchema(view=view, many=True).dump(awards)
+        response = BadgesEntriesSchema(view=view, many=True).dump(basgesentries)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -422,7 +422,7 @@ class UserPublicFails(Resource):
 
 @users_namespace.route("/<user_id>/badgesentries")
 @users_namespace.param("user_id", "User ID or 'me'")
-class UserPublicAwards(Resource):
+class UserPublicbadges(Resource):
     @check_account_visibility
     @check_score_visibility
     def get(self, user_id):
@@ -430,10 +430,10 @@ class UserPublicAwards(Resource):
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
-        awards = user.get_awards(admin=is_admin())
+        badgesentries = user.get_awards(admin=is_admin())
 
         view = "user" if not is_admin() else "admin"
-        response = BadgesEntriesSchema(view=view, many=True).dump(awards)
+        response = BadgesEntriesSchema(view=view, many=True).dump(badgesentries)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

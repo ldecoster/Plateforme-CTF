@@ -261,10 +261,12 @@ if __name__ == "__main__":
                 used.append(id)
                 word = gen_word()
                 exer = Exercices(
-                    id = id,
-                    name = word,
-                    description = gen_sentence()
+                    id=id,
+                    name=word,
+                    description=gen_sentence()
                 )
+
+
                 db.session.add(exer)
                 db.session.commit()
 

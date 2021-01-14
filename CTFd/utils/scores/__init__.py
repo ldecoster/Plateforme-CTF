@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import union_all
 
 from CTFd.cache import cache
-from CTFd.models import Challenges, Solves, Users, db
+from CTFd.models import Challenges, Solves, Users, db, BadgesEntries
 from CTFd.utils import get_config
 from CTFd.utils.dates import unix_time_to_utc
 from CTFd.utils.modes import get_model
@@ -9,7 +9,7 @@ from CTFd.utils.modes import get_model
 # TODO ISEN : remove this file or rewrite all the code (because Score is not suppose to exist at the end of the project)
 
 @cache.memoize(timeout=60)
-def get_standings(count=None, admin=False, fields=[]):
+def get_standings(count=None, admin=False, fields=[], badges_entries=None):
     """
     Get standings as a list of tuples containing account_id, name, and score e.g. [(account_id, team_name, score)].
 
@@ -20,27 +20,28 @@ def get_standings(count=None, admin=False, fields=[]):
     """
     Model = get_model()
 
-    scores = (
-        db.session.query(
-            Solves.account_id.label("account_id"),
-            db.func.sum(Challenges.value).label("score"),
-            db.func.max(Solves.id).label("id"),
-            db.func.max(Solves.date).label("date"),
-        )
-        .join(Challenges)
-        .filter(Challenges.value != 0)
-        .group_by(Solves.account_id)
-    )
+    #scores = (
+        #db.session.query(
+         #   Solves.account_id.label("account_id"),
+          #  db.func.sum(Challenges.value).label("score"),
+           # db.func.max(Solves.id).label("id"),
+            #db.func.max(Solves.date).label("date"),
+        #)
+        #.join(Challenges)
+        #.filter(Challenges.value != 0)
+        #.group_by(Solves.account_id)
+    #)
 
     badges_entries = (
         db.session.query(
-            BadgesEntries.account_id.label("account_id"),
+            BadgesEntries.user_id.label("user_id"),
             ##db.func.sum(BadgesEntries.value).label("score"),
             db.func.max(BadgesEntries.id).label("id"),
-            ##db.func.max(BadgesEntries.date).label("date"),
+            db.func.max(BadgesEntries.date).label("date"),
+            db.func.max(BadgesEntries.badge_id).label("badge_id"),
         )
-        .filter(BadgesEntries.value != 0)
-        .group_by(BadgesEntries.account_id)
+
+        .group_by(BadgesEntries.user_id)
     )
 
     """
@@ -48,13 +49,13 @@ def get_standings(count=None, admin=False, fields=[]):
     """
     freeze = get_config("freeze")
     if not admin and freeze:
-        scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
+    
         badges_entries = badges_entries.filter(BadgesEntries.date < unix_time_to_utc(freeze))
 
     """
     Combine awards and solves with a union. They should have the same amount of columns
     """
-    results = union_all(scores, badges_entries).alias("results")
+    results = union_all(badges_entries).alias("results")
 
     """
     Sum each of the results by the team id to get their score.
@@ -132,70 +133,9 @@ def get_team_standings(count=None, admin=False, fields=[]):
         .group_by(Solves.team_id)
     )
 """
-    badges_entries = (
-        db.session.query(
-            BadgesEntries.team_id.label("team_id"),
-            db.func.sum(BadgesEntries.value).label("score"),
-            db.func.max(BadgesEntries.id).label("id"),
-            db.func.max(BadgesEntries.date).label("date"),
-        )
-        .filter(BadgesEntries.value != 0)
-        .group_by(BadgesEntries.team_id)
-    )
 
-    freeze = get_config("freeze")
-    if not admin and freeze:
-        #scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
-        badges_entries = badges_entries.filter(BadgesEntries.date < unix_time_to_utc(freeze))
 
-    results = union_all(badges_entries).alias("results")
 
-    sumscores = (
-        db.session.query(
-            results.columns.team_id,
-            db.func.sum(results.columns.score).label("score"),
-            db.func.max(results.columns.id).label("id"),
-            db.func.max(results.columns.date).label("date"),
-        )
-        .group_by(results.columns.team_id)
-        .subquery()
-    )
-
-    if admin:
-        standings_query = (
-            db.session.query(
-                Teams.id.label("team_id"),
-                Teams.oauth_id.label("oauth_id"),
-                Teams.name.label("name"),
-                Teams.hidden,
-                Teams.banned,
-                sumscores.columns.score,
-                *fields,
-            )
-            .join(sumscores, Teams.id == sumscores.columns.team_id)
-            .order_by(sumscores.columns.score.desc(), sumscores.columns.id)
-        )
-    else:
-        standings_query = (
-            db.session.query(
-                Teams.id.label("team_id"),
-                Teams.oauth_id.label("oauth_id"),
-                Teams.name.label("name"),
-                sumscores.columns.score,
-                *fields,
-            )
-            .join(sumscores, Teams.id == sumscores.columns.team_id)
-            .filter(Teams.banned == False)
-            .filter(Teams.hidden == False)
-            .order_by(sumscores.columns.score.desc(), sumscores.columns.id)
-        )
-
-    if count is None:
-        standings = standings_query.all()
-    else:
-        standings = standings_query.limit(count).all()
-
-    return standings
 
 
 @cache.memoize(timeout=60)
@@ -213,7 +153,7 @@ def get_user_standings(count=None, admin=False, fields=[]):
         .group_by(Solves.user_id)
     )
 """
-    awards = (
+    badges_entries = (
         db.session.query(
             BadgesEntries.user_id.label("user_id"),
             #db.func.sum(BadgesEntries.value).label("score"),
@@ -227,7 +167,7 @@ def get_user_standings(count=None, admin=False, fields=[]):
     freeze = get_config("freeze")
     if not admin and freeze:
         #scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
-        awards = awards.filter(BadgesEntries.date < unix_time_to_utc(freeze))
+        badges_entries = badges_entries.filter(BadgesEntries.date < unix_time_to_utc(freeze))
 
     #results = union_all(scores, awards).alias("results")
     """
