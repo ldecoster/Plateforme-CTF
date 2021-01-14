@@ -6,7 +6,7 @@ let tagsList = [];
 
 export function deleteTag(_event) {
   const $elem = $(this);
-  const tag_id = $elem.attr("tag-id");
+  const tag_id = $elem.attr("id");
   const challenge_id = window.CHALLENGE_ID;
   CTFd.api.delete_tagChallenge({ tagId: tag_id, challengeId: challenge_id })
     .then(response => {
@@ -15,7 +15,7 @@ export function deleteTag(_event) {
       }
     });
 }
-//Todo Kylian : tag_challenges
+
 export function setTagList(event) {
 
   CTFd.api.get_tag_list().then(response => {
@@ -41,7 +41,7 @@ export function setTagList(event) {
       const regex = new RegExp(`^${searchtag}`, 'gi');
       return tag.value.match(regex);
     });
-    if (event.keyCode != 13 || newMatches.length != 0) {
+    if (event.keyCode !== 13 || newMatches.length !== 0) {
       return;
     }
 
@@ -59,10 +59,9 @@ function addNewTag(params) {
         const tpl =
           "<span class='badge badge-primary mx-1 challenge-tag'>" +
           "<span>{0}</span>" +
-          "<a class='btn-fa delete-tag' tag-id='{1}'>&times;</a></span>";
+          "<a class='btn-fa delete-tag' id='{1}'>&times;</a></span>";
         const tag = $(tpl.format(params.value, res.data.id));
         $("#challenge-tags").append(tag);
-        // TODO: tag deletion not working on freshly created tags
         $(".delete-tag").click(deleteTag);
       }
     });
@@ -70,14 +69,14 @@ function addNewTag(params) {
 }
 
 export function addClickedTag(_event) {
-  $elem = $(this);
+  let $elem = $(this);
   const params = {
-    tag_id: $elem.attr("tag_id"),
+    tag_id: $elem.attr("id"),
     challenge_id: window.CHALLENGE_ID
   }
-  matches = matches.filter(function (matche) {
-    let tag = tagsList.filter(tag => tag.id == params.tag_id);
-    return matche.value != tag[0].value;
+  matches = matches.filter(function (match) {
+    let tag = tagsList.filter(tag => tag.id === params.tag_id);
+    return match.value !== tag[0].value;
   });
   outputHtml(matches);
   addTag(params);
@@ -85,12 +84,12 @@ export function addClickedTag(_event) {
 
 function addTag(params) {
   CTFd.api.post_tagChallenge_list({}, params).then(res => {
-    CTFd.api.get_tag({ tagId: res.data.tag_id, }).then(response => {
+    CTFd.api.get_tag({ tagId: res.data.id, }).then(response => {
       if (response.success) {
         const tpl =
           "<span class='badge badge-primary mx-1 challenge-tag'>" +
           "<span>{0}</span>" +
-          "<a class='btn-fa delete-tag' tag-id='{1}'>&times;</a></span>";
+          "<a class='btn-fa delete-tag' id='{1}'>&times;</a></span>";
         const tag = $(tpl.format(response.data.value, response.data.id));
         $("#challenge-tags").append(tag);
         $(".delete-tag").click(deleteTag);
@@ -106,7 +105,7 @@ const outputHtml = matches => {
     const html = matches
       .map(
         match => `
-      <a class="list-group-item list-group-item-action list-group-item-dark" tag_id="${match.id}">${match.value}</a>
+      <a class="list-group-item list-group-item-action list-group-item-dark" id="${match.id}">${match.value}</a>
     `
       ).join('');
     $(".list-group").html(html);
