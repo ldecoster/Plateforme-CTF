@@ -3709,7 +3709,6 @@ let API = (function() {
 
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
-
     path = path.replace("{user_id}", parameters["userId"]);
 
     if (parameters["userId"] === undefined) {
