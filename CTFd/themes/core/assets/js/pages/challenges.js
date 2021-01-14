@@ -426,22 +426,22 @@ async function loadChals() {
     }
 
     else if (orderValue == "author") {
-      // userListChoice.sort((a, b) => a.name.localeCompare(b.name))
-      // console.log("user list", userListChoice);
+      // getuserList.sort((a, b) => a.name.localeCompare(b.name))
+      // console.log("user list", getuserList);
 
       const listuser = [];
       const listauthor = challenges.filter(challenge => challenge.author_id);
       console.log(listauthor);
-      for (i = 0; i < userListChoice.length; i++) {
+      for (i = 0; i < getuserList.length; i++) {
         for (j = 0; j < listauthor.length; j++) {
-          if (userListChoice[i].id == listauthor[j])
-            listuser.append(userListChoice[i]);
+          if (getuserList[i].id == listauthor[j])
+            listuser.append(getuserList[i]);
         }
       }
       console.log(listuser);
 
-      // for (let i = userListChoice.length - 1; i >= 0; i--) {
-      //   const ID = userListChoice[i].name.replace(/ /g, "-").hashCode();
+      // for (let i = getuserList.length - 1; i >= 0; i--) {
+      //   const ID = getuserList[i].name.replace(/ /g, "-").hashCode();
       //   const tagrow = $(
       //     "" +
       //     '<div id="{0}-row" class="pt-5">'.format(ID) +
@@ -454,7 +454,7 @@ async function loadChals() {
       //   );
       //   tagrow
       //     .find(".username-header")
-      //     .append($("<h3>" + userListChoice[i].name + "</h3>"));
+      //     .append($("<h3>" + getuserList[i].name + "</h3>"));
       //   $challenges_board.append(tagrow);
       // }
 
