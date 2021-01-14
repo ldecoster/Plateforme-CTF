@@ -5,7 +5,7 @@ from flask import request
 from marshmallow import ValidationError
 
 from CTFd.models import Users
-from CTFd.utils.countries import lookup_country_code
+from CTFd.utils.countries import lookup_country_code, get_school, lookup_school_code
 from CTFd.utils.user import get_current_user, is_admin
 
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
@@ -39,3 +39,9 @@ def validate_country_code(country_code):
         return
     if lookup_country_code(country_code) is None:
         raise ValidationError("Invalid Country")
+
+def validate_school_code(school_code):
+    if school_code.strip() == "":
+        return
+    if lookup_school_code(school_code) is None:
+        raise ValidationError("Invalid school")

@@ -5,7 +5,7 @@ from wtforms.fields.html5 import DateField, URLField
 from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.forms.users import attach_custom_user_fields, build_custom_user_fields
-from CTFd.utils.countries import SELECT_COUNTRIES_LIST
+from CTFd.utils.countries import SELECT_COUNTRIES_LIST, SELECT_SCHOOL_LIST
 
 
 def SettingsForm(*args, **kwargs):
@@ -18,7 +18,7 @@ def SettingsForm(*args, **kwargs):
         website = URLField("Website")
         country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
         submit = SubmitField("Submit")
-
+        school = SelectField("School", choices=SELECT_SCHOOL_LIST)
         @property
         def extra(self):
             return build_custom_user_fields(

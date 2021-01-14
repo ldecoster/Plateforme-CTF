@@ -191,7 +191,7 @@ def register():
         website = request.form.get("website")
         affiliation = request.form.get("affiliation")
         country = request.form.get("country")
-
+        school = request.form.get("school")
         name_len = len(name) == 0
         names = Users.query.add_columns("name", "id").filter_by(name=name).first()
         emails = (
@@ -237,6 +237,15 @@ def register():
         else:
             valid_country = True
 
+        if school:
+            try:
+                validators.validate_school_code(school)
+                valid_school = True
+            except ValidationError:
+                valid_school = False
+        else:
+            valid_school = True
+
         if website:
             valid_website = validators.validate_url(website)
         else:
@@ -269,6 +278,8 @@ def register():
             errors.append("Websites must be a proper URL starting with http or https")
         if valid_country is False:
             errors.append("Invalid country")
+        if valid_school is False:
+            errors.append("Invalid school")
         if valid_affiliation is False:
             errors.append("Please provide a shorter affiliation")
 
@@ -290,6 +301,8 @@ def register():
                     user.affiliation = affiliation
                 if country:
                     user.country = country
+                if school:
+                    user.school = school
 
                 db.session.add(user)
                 db.session.commit()

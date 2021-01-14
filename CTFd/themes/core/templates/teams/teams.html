@@ -49,6 +49,7 @@
 						<td><b>Team</b></td>
 						<td><b>Website</b></td>
 						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Affiliation</b></td>
+						<td class="d-none d-md-table-cell d-lg-table-cell"><b>School</b></td>
 						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Country</b></td>
 					</tr>
 				</thead>
@@ -92,6 +93,14 @@
 								{% if team.country %}
 									<i class="flag-{{ team.country.lower() }}"></i>
 									{{ lookup_country_code(team.country) }}
+								{% endif %}
+							</span>
+						</td>
+						<td class="d-none d-md-table-cell d-lg-table-cell text-center">
+							<span>
+								{% if team.school %}
+									<i class="flag-{{ team.school.lower() }}"></i>
+									{{ lookup_school_code(team.school) }}
 								{% endif %}
 							</span>
 						</td>

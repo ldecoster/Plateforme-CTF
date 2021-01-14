@@ -285,7 +285,7 @@ def settings():
     website = user.website
     affiliation = user.affiliation
     country = user.country
-
+    school= user.school
     tokens = UserTokens.query.filter_by(user_id=user.id).all()
 
     prevent_name_change = get_config("prevent_name_change")
@@ -307,6 +307,7 @@ def settings():
         website=website,
         affiliation=affiliation,
         country=country,
+        school=school,
         tokens=tokens,
         prevent_name_change=prevent_name_change,
         infos=infos,

@@ -76,6 +76,7 @@ class UserList(Resource):
         {
             "affiliation": (str, None),
             "country": (str, None),
+            "school": (str, None),
             "bracket": (str, None),
             "q": (str, None),
             "field": (
@@ -85,6 +86,7 @@ class UserList(Resource):
                         "name": "name",
                         "website": "website",
                         "country": "country",
+                        "school": "school",
                         "bracket": "bracket",
                         "affiliation": "affiliation",
                     },

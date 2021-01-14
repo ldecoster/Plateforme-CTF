@@ -44,6 +44,7 @@ def test_themes_escape_html():
         user.affiliation = "<script>alert(1)</script>"
         user.website = "<script>alert(1)</script>"
         user.country = "<script>alert(1)</script>"
+        user.school = "<script>alert(1)</script>"
 
         with app.test_client() as client:
             r = client.get("/users")
