@@ -48,11 +48,14 @@ def listing():
         conn.close()
 
         if json_str:
-            return json.dumps([dict(ix) for ix in rows])
+            return json.dumps([dict(ix) for ix in rows], indent=0)
         
         return rows
     
-    print(get_all_users(json_str=True))
+    data = get_all_users(json_str=True)
+    with open('data.json', 'w') as f:
+        f.write(data)
+
 
     return render_template(
         "users/users.html",
