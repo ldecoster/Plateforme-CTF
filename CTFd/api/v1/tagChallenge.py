@@ -111,11 +111,31 @@ class TagChallengeList(Resource):
 class TagChal(Resource):
     @admins_only
     @tagChallenge_namespace.doc(
+        description="Endpoint to get a specific TagChallenge object",
+        responses={
+            200: ("Success", "TagChallengeDetailedSuccessResponse"),
+            400: (
+                "An error occured processing the provided or stored data",
+                "APISimpleErrorResponse",
+            ),
+        },
+    )
+    def get(self, tag_id,challenge_id):
+        tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
+
+        response = TagChallengeSchema().dump(tag_challenge)
+
+        if response.errors:
+            return {"success": False, "errors": response.errors}, 400
+
+        return {"success": True, "data": response.data}
+    
+    @admins_only
+    @tagChallenge_namespace.doc(
         description="Endpoint to delete a specific TagChallenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, tag_id, challenge_id):
-        print("****DELETE METHODE CALLED*****")
         tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
         db.session.delete(tag_challenge)
         db.session.commit()

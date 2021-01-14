@@ -2784,7 +2784,56 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#delete_tagChallenge
+   * @name API#get_tagChallenge
+   * @param {object} parameters - method options and parameters
+   * @param {string} parameters.tagId - A Tag ID
+   * @param {string} parameters.challengeId - A Challenge ID
+   */
+  API.prototype.get_tagChallenge = function(parameters) {
+    if (parameters === undefined) {
+      parameters = {};
+    }
+    let deferred = Q.defer();
+    let domain = this.domain,
+      path = "/tagChallenge/<tag_id>/<challenge_id>";
+    let body = {},
+      queryParameters = {},
+      headers = {},
+      form = {};
+
+    headers["Accept"] = ["application/json"];
+    headers["Content-Type"] = ["application/json"];
+
+    if (parameters["tagId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: tagId"));
+      return deferred.promise;
+    }
+    if (parameters["challengeId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: tagId"));
+      return deferred.promise;
+    }
+    path = path.replace("<tag_id>", parameters["tagId"]);
+    path = path.replace("<challenge_id>", parameters["challengeId"]);
+    
+    queryParameters = mergeQueryParams(parameters, queryParameters);
+
+    this.request(
+      "GET",
+      domain + path,
+      parameters,
+      body,
+      headers,
+      queryParameters,
+      form,
+      deferred
+    );
+
+    return deferred.promise;
+  };
+  /**
+   *
+   * @method
+   * @name API#get_tagChallenge
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.tagId - A Tag ID
    * @param {string} parameters.challengeId - A Challenge ID
