@@ -2514,7 +2514,6 @@ let API = (function() {
     if (parameters === undefined) {
       parameters = {};
     }
-    
     let deferred = Q.defer();
     let domain = this.domain,
       path = "/tags";
@@ -2527,7 +2526,7 @@ let API = (function() {
     headers["Content-Type"] = ["application/json"];
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
-  
+
     this.request(
       "POST",
       domain + path,

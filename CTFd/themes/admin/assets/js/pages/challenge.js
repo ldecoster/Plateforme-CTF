@@ -336,7 +336,7 @@ $(() => {
       }
     });
   });
-    
+
   $("#challenge-update-container > form").submit(function(e) {
     e.preventDefault();
     var params = $(e.target).serializeJSON(true);
