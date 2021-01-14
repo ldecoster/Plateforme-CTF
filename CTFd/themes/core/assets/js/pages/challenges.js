@@ -264,13 +264,10 @@ function getSolves(id) {
 }
 
 $('select').on('change', function () {
-  loadChals(this.value);
+  loadChals();
 });
 
-
-
-
-function loadChals(orderValue) {
+function loadChals() {
   return CTFd.api.get_challenge_list().then(function (resChall) {
     CTFd.api.get_tag_list().then(function (restagList) {
 
@@ -281,6 +278,7 @@ function loadChals(orderValue) {
         tagNames = [];
         challenges = resChall.data
         $challenges_board.empty();
+        const orderValue = $("#challenges_filter option:selected").val();
 
         //Set up default tag/challenge values.
         if (orderValue === undefined)
@@ -337,8 +335,7 @@ function loadChals(orderValue) {
           challenges.reverse();
           for (let i = challenges.length - 1; i >= 0; i--) {
             const chalinfo = challenges[i];
-            console.log(challenges[i]);
-            console.log(solves.indexOf(chalinfo.id));
+
             if (solves.indexOf(chalinfo.id) == -1) {
               const chalrow = $(
                 "" +
@@ -349,9 +346,7 @@ function loadChals(orderValue) {
               );
 
               chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
-              console.log("chalrow", chalrow);
               $challenges_board.append(chalrow);
-              console.log("chall-board", $challenges_board);
             }
             else if (solves.indexOf(chalinfo.id) !== -1) {
               const chalrow = $(
@@ -362,9 +357,7 @@ function loadChals(orderValue) {
               );
 
               chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
-              console.log("chalrow", chalrow);
               $challenges_board.append(chalrow);
-              console.log("chall-board", $challenges_board);
             }
           }
         }
