@@ -13,12 +13,7 @@ class ScoresDistribution(Resource):
     @admins_only
     def get(self):
         challenge_count = Challenges.query.count() or 1
-        total_points = (
-            Challenges.query.with_entities(db.func.sum(Challenges.value).label("sum"))
-            .filter_by(state="visible")
-            .first()
-            .sum
-        ) or 0
+        total_points = 0
         # Convert Decimal() to int in some database backends for Python 2
         total_points = int(total_points)
 
