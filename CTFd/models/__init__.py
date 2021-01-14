@@ -329,8 +329,6 @@ class Users(db.Model):
     def awards(self):
         return self.get_awards(admin=False)
 
-  
-
     @property
     def place(self):
         from CTFd.utils.config.visibility import scores_visible
@@ -377,8 +375,6 @@ class Users(db.Model):
             dt = datetime.datetime.utcfromtimestamp(freeze)
             awards = awards.filter(Awards.date < dt)
         return awards.all()
-
-  
 
     @cache.memoize()
     def get_place(self, admin=False, numeric=False):

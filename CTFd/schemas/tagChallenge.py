@@ -1,13 +1,14 @@
 from CTFd.models import TagChallenge, ma
 from CTFd.utils import string_types
 
+
 class TagChallengeSchema(ma.ModelSchema):
     class Meta:
         model = TagChallenge
         include_fk = True
-        dump_only=("tagId")
+        dump_only = ("tagId",)
 
-    views = {"admin": ["tagId","challengeId"],"user":["tagId","challengeId"]}
+    views = {"admin": ["tagId", "challengeId"], "user": ["tagId", "challengeId"]}
 
     def __init__(self, view=None, *args, **kwargs):
         if view:

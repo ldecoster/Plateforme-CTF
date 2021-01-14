@@ -7,7 +7,6 @@ from CTFd.models import (
     Flags,
     Hints,
     Solves,
-    Tags,
     TagChallenge,
     db,
 )
@@ -102,6 +101,7 @@ class BaseChallenge(object):
         Challenges.query.filter_by(id=challenge.id).delete()
         cls.challenge_model.query.filter_by(id=challenge.id).delete()
         db.session.commit()
+
     @classmethod
     def attempt(cls, challenge, request):
         """
@@ -129,7 +129,8 @@ class BaseChallenge(object):
         """
         This method is used to insert Solves into the database in order to mark a challenge as solved.
 
-        :param chal: The Challenge object from the database
+        :param user: The User object from the database
+        :param challenge: The Challenge object from the database
         :param request: The request the user submitted
         :return:
         """
@@ -149,7 +150,8 @@ class BaseChallenge(object):
         """
         This method is used to insert Fails into the database in order to mark an answer incorrect.
 
-        :param chal: The Challenge object from the database
+        :param user: The User object from the database
+        :param challenge: The Challenge object from the database
         :param request: The request the user submitted
         :return:
         """

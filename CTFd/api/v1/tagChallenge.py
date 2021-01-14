@@ -68,9 +68,9 @@ class TagChallengeList(Resource):
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=TagChallenge, query=q, field=field)
 
-        tagChallenge = TagChallenge.query.filter_by(**query_args).filter(*filters).all()
+        tag_challenge = TagChallenge.query.filter_by(**query_args).filter(*filters).all()
         schema = TagChallengeSchema(many=True)
-        response = schema.dump(tags)
+        response = schema.dump(tag_challenge)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -92,6 +92,7 @@ class TagChallengeList(Resource):
         req = request.get_json()
         schema = TagChallengeSchema()
         response = schema.load(req, session=db.session)
+
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
@@ -113,10 +114,10 @@ class TagChal(Resource):
         description="Endpoint to delete a specific TagChallenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
-    def delete(self,tag_id,challenge_id):
+    def delete(self, tag_id, challenge_id):
         print("****DELETE METHODE CALLED*****")
-        tagChallenge = TagChallenge.query.filter_by(tag_id=tag_id,challenge_id=challenge_id).first_or_404()
-        db.session.delete(tagChallenge)
+        tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
+        db.session.delete(tag_challenge)
         db.session.commit()
         db.session.close()
 

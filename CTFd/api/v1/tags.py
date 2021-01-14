@@ -11,6 +11,7 @@ from CTFd.models import Tags, db
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
+
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
 TagModel = sqlalchemy_to_pydantic(Tags)
@@ -33,7 +34,6 @@ tags_namespace.schema_model("TagListSuccessResponse", TagListSuccessResponse.api
 
 @tags_namespace.route("")
 class TagList(Resource):
-    # @admins_only
     @tags_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
@@ -86,6 +86,7 @@ class TagList(Resource):
         req = request.get_json()
         schema = TagSchema()
         response = schema.load(req, session=db.session)
+
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
