@@ -5,6 +5,8 @@ from CTFd.utils.decorators import authed_only
 from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.user import get_current_user
+from flask import jsonify
+import json 
 
 users = Blueprint("users", __name__)
 
@@ -27,7 +29,9 @@ def listing():
         .order_by(Users.id.asc())
         .paginate(per_page=50)
     )
-
+    print("\n\n\n 22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222")
+    data=dict(users)
+    print(json.dumps(data))
     args = dict(request.args)
     args.pop("page", 1)
 
