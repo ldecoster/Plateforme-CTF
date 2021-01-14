@@ -158,6 +158,9 @@ def setup():
 
             page = Pages(title=None, route="index", content=index, draft=False)
 
+            # Set up default number of positive votes
+            set_config("votes_number_delta", 3)
+
             # Visibility
             set_config(
                 ConfigTypes.CHALLENGE_VISIBILITY, ChallengeVisibilityTypes.PRIVATE

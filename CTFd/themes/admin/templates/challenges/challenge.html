@@ -8,6 +8,8 @@
 	{% include "admin/modals/hints/edit.html" %}
 	{% include "admin/modals/flags/create.html" %}
 	{% include "admin/modals/flags/edit.html" %}
+	{% include "admin/modals/votes/create.html" %}
+	{% include "admin/modals/votes/edit.html" %}
 
 	<div class="modal fade" id="challenge-window" role="dialog">
 	</div>
@@ -15,8 +17,11 @@
 	<div class="jumbotron">
 		<div class="container">
 			<h1 class="text-center">{{ challenge.name }}</h1>
+			<h2 class="text-center">Author : {{ challenge.author.name }}</h2>
+			<h2 class="text-center">{{ challenge.category }}</h2>
 			<h2 class="text-center">{{ challenge.type }}</h2>
-			{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-success' %}
+			{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-warning' if  challenge.state == 'voting' else 'badge-success'  %}
+
 			<h5>
 				<span class="badge {{ badge_state }} challenge-state">
 					{{ challenge.state }}
@@ -27,6 +32,7 @@
 					<i class="btn-fa fas fa-file-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Preview Challenge"></i>
 				</a>
+				{% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 				<a class="no-decoration" href="{{ url_for('admin.submissions_listing', submission_type='correct', field='challenge_id', q=challenge.id) }}">
 					<i class="btn-fa fas fa-tasks fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Correct Submissions"></i>
@@ -35,20 +41,24 @@
 					<i class="btn-fa fas fa-trash-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"
 					   title="Delete Challenge"></i>
 				</a>
+				{% endif %}
 			</div>
 		</div>
 	</div>
 
 	<div class="container">
 		<div class="row">
-			<div class="col-md-6">
+			<div class="col-md-7">
 				<nav class="nav nav-tabs nav-fill" id="challenge-properties" role="tablist">
 					<a class="nav-item nav-link active" data-toggle="tab" href="#comments" role="tab" >Comments</a>
+					<a class="nav-item nav-link" data-toggle="tab" href="#votes" role="tab">Votes</a>
+					{% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<a class="nav-item nav-link" data-toggle="tab" href="#flags" role="tab">Flags</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#files" role="tab">Files</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#tags" role="tab">Tags</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#hints" role="tab">Hints</a>
 					<a class="nav-item nav-link" data-toggle="tab" href="#requirements" role="tab">Requirements</a>
+					{% endif %}
 				</nav>
 
 				<div class="tab-content" id="nav-tabContent">
@@ -63,6 +73,20 @@
 							</div>
 						</div>
 					</div>
+                    {% if is_admin() or is_teacher() or
+                    (is_contributor() and challenge.author_id == session["id"] ) or
+                    (is_contributor() and challenge.state == "voting")
+                    %}
+                    <div class="tab-pane fade" id="votes" role="tabpanel">
+						<div class="row">
+							<div class="col-md-12">
+								<h3 class="text-center py-3 d-block">Votes</h3>
+								{% include "admin/modals/challenges/votes.html" %}
+							</div>
+						</div>
+					</div>
+                    {% endif %}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="flags" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -71,6 +95,8 @@
 							</div>
 						</div>
 					</div>
+                    {% endif %}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="files" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -79,6 +105,8 @@
 							</div>
 						</div>
 					</div>
+                    {% endif %}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="tags" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -87,6 +115,8 @@
 							</div>
 						</div>
 					</div>
+                    {% endif %}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
 					<div class="tab-pane fade" id="hints" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
@@ -95,7 +125,9 @@
 							</div>
 						</div>
 					</div>
-					<div class="tab-pane fade" id="requirements" role="tabpanel">
+                    {% endif %}
+                    {% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
+                    <div class="tab-pane fade" id="requirements" role="tabpanel">
 						<div class="row">
 							<div class="col-md-12">
 								<h3 class="text-center py-3 d-block">Requirements</h3>
@@ -103,10 +135,11 @@
 							</div>
 						</div>
 					</div>
+                    {% endif %}
 				</div>
 
 			</div>
-			<div id="challenge-update-container" class="col-md-6">
+			<div id="challenge-update-container" class="col-md-5">
 				{{ update_template | safe }}
 			</div>
 		</div>

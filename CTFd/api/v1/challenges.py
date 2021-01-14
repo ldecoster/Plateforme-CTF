@@ -10,7 +10,7 @@ from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
-from CTFd.models import ChallengeFiles as ChallengeFilesModel
+from CTFd.models import ChallengeFiles as ChallengeFilesModel, Votes
 from CTFd.models import (
     Challenges,
     Fails,
@@ -28,7 +28,9 @@ from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config, get_config
+from CTFd.utils import sessions
 from CTFd.utils import user as current_user
+from CTFd.utils.config import get_votes_number
 from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,
@@ -37,6 +39,8 @@ from CTFd.utils.config.visibility import (
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     admins_only,
+    contributors_teachers_admins_only,
+    teachers_admins_only,
     during_ctf_time_only,
     require_verified_emails,
 )
@@ -48,7 +52,9 @@ from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import authed, get_current_user, is_admin
+from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_teacher
+from CTFd.utils.security.auth import login_user
+from flask import session
 
 challenges_namespace = Namespace(
     "challenges", description="Endpoint to retrieve Challenges"
@@ -133,7 +139,7 @@ class ChallengeList(Resource):
         else:
             challenges = (
                 Challenges.query.filter(
-                    and_(Challenges.state != "hidden", Challenges.state != "locked")
+                    and_(Challenges.state != "hidden", Challenges.state != "locked", Challenges.state != "voting")
                 )
                 .filter_by(**query_args)
                 .filter(*filters)
@@ -203,7 +209,7 @@ class ChallengeList(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @admins_only
+    @contributors_teachers_admins_only
     @challenges_namespace.doc(
         description="Endpoint to create a Challenge object",
         responses={
@@ -217,6 +223,7 @@ class ChallengeList(Resource):
     def post(self):
         data = request.form or request.get_json()
         challenge_type = data["type"]
+        data["author_id"] = session["id"]
         challenge_class = get_chal_class(challenge_type)
         challenge = challenge_class.create(request)
         response = challenge_class.read(challenge)
@@ -225,7 +232,7 @@ class ChallengeList(Resource):
 
 @challenges_namespace.route("/types")
 class ChallengeTypes(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     def get(self):
         response = {}
 
@@ -402,7 +409,7 @@ class Challenge(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @admins_only
+    @contributors_teachers_admins_only
     @challenges_namespace.doc(
         description="Endpoint to edit a specific Challenge object",
         responses={
@@ -414,23 +421,53 @@ class Challenge(Resource):
         },
     )
     def patch(self, challenge_id):
+        author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        challenge_class = get_chal_class(challenge.type)
-        challenge = challenge_class.update(challenge, request)
-        response = challenge_class.read(challenge)
-        return {"success": True, "data": response}
+        data = request.form or request.get_json()
+        challenge_new_state = None
 
-    @admins_only
+        # Check state's value to avoid unwanted input from the user
+        if 'state' in data:
+            challenge_new_state = data['state']
+            if challenge_new_state != "visible" and challenge_new_state != "voting" and challenge_new_state != "hidden":
+                return {"success": False}
+
+        if is_admin() or is_teacher():
+            challenge_class = get_chal_class(challenge.type)
+            challenge = challenge_class.update(challenge, request)
+            response = challenge_class.read(challenge)
+            return {"success": True, "data": response}
+        elif is_contributor() and challenge.author_id == author_id:
+            challenge_class = get_chal_class(challenge.type)
+
+            # Check the number of votes before changing the state of the challenge
+            if challenge_new_state == "visible" and challenge.state == "voting":
+                positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count()
+                negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count()
+                votes_delta = get_votes_number()
+                # If positives votes minus the delta is not greater than or equal to the negative votes, abort
+                if (positive_votes - votes_delta) < negative_votes:
+                    return {"success": False, "errors": "votes"}
+
+            challenge = challenge_class.update(challenge, request)
+            response = challenge_class.read(challenge)
+            return {"success": True, "data": response}
+        return {"success": False}
+
+    @contributors_teachers_admins_only
     @challenges_namespace.doc(
         description="Endpoint to delete a specific Challenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, challenge_id):
+        author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        chal_class = get_chal_class(challenge.type)
-        chal_class.delete(challenge)
+        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==author_id):
+            chal_class = get_chal_class(challenge.type)
+            chal_class.delete(challenge)
 
-        return {"success": True}
+            return {"success": True}
+        return {"success": False}
 
 
 @challenges_namespace.route("/attempt")
@@ -678,10 +715,9 @@ class ChallengeSolves(Resource):
 
 @challenges_namespace.route("/<challenge_id>/files")
 class ChallengeFiles(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         response = []
-
         challenge_files = ChallengeFilesModel.query.filter_by(
             challenge_id=challenge_id
         ).all()
@@ -693,7 +729,7 @@ class ChallengeFiles(Resource):
 
 @challenges_namespace.route("/<challenge_id>/tags")
 class ChallengeTags(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         response = []
         tags = []
@@ -712,7 +748,7 @@ class ChallengeTags(Resource):
 
 @challenges_namespace.route("/<challenge_id>/hints")
 class ChallengeHints(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         hints = Hints.query.filter_by(challenge_id=challenge_id).all()
         schema = HintSchema(many=True)
@@ -726,7 +762,7 @@ class ChallengeHints(Resource):
 
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     def get(self, challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)
