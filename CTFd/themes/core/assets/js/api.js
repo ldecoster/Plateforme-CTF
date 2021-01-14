@@ -103,7 +103,7 @@ let API = (function() {
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/awards";
+      path = "/badges";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -140,7 +140,7 @@ let API = (function() {
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/awards/{award_id}";
+      path = "/badgesentries/{badge_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -149,10 +149,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{award_id}", parameters["awardId"]);
+    path = path.replace("{badge_id}", parameters["badgesId"]);
 
-    if (parameters["awardId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: awardId"));
+    if (parameters["badgesId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: badgesId"));
       return deferred.promise;
     }
 
@@ -184,7 +184,7 @@ let API = (function() {
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/awards/{award_id}";
+      path = "/badgeentries/{badge_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -193,10 +193,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{award_id}", parameters["awardId"]);
+    path = path.replace("{badge_id}", parameters["badgesId"]);
 
-    if (parameters["awardId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: awardId"));
+    if (parameters["badgesId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: badgesId"));
       return deferred.promise;
     }
 
@@ -3534,7 +3534,6 @@ let API = (function() {
 
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
-
     path = path.replace("{user_id}", parameters["userId"]);
 
     if (parameters["userId"] === undefined) {
@@ -3652,13 +3651,13 @@ let API = (function() {
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.userId - User ID or 'me'
    */
-  API.prototype.get_user_awards = function(parameters) {
+  API.prototype.get_user_badges = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/users/{user_id}/awards";
+      path = "/users/{user_id}/badges";
     let body = {},
       queryParameters = {},
       headers = {},

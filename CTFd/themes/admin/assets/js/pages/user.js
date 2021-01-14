@@ -146,7 +146,7 @@ function badgesUser(event) {
   const params = $("#user-badgesentries-form").serializeJSON(true);
   params["user_id"] = window.USER_ID;
 
-  CTFd.fetch("/api/v1/badgesentries", {
+  CTFd.fetch("/api/v1/badges", {
     method: "POST",
     credentials: "same-origin",
     headers: {
