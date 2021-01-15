@@ -134,9 +134,10 @@ class Exercices(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     description = db.Column(db.Text)
-
-
-    #challenge = db.relationship("Challenges", foreign_keys="Challenges.challenge_id", lazy="select")
+    challenge_id = db.Column(
+        db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
+    )
+    challenge = db.relationship("Challenges", foreign_keys="Challenges.challenge_id", lazy="select")
 
     #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
@@ -209,8 +210,10 @@ class BadgesExercices(db.Model):
      exercice_id = db.Column(db.Integer, db.ForeignKey("exercices.id", ondelete="CASCADE"))
      badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
 
+
      badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
      exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
+
 
      def __init__(self, *args, **kwargs):
          super(BadgesExercices, self).__init__(**kwargs)
