@@ -46,6 +46,7 @@ class Badges(db.Model):
     def __repr__(self):
         return "<Badges %r>" % self.name
 
+
 class Notifications(db.Model):
     __tablename__ = "notifications"
     id = db.Column(db.Integer, primary_key=True)
@@ -128,6 +129,7 @@ class Challenges(db.Model):
     def __repr__(self):
         return "<Challenge %r>" % self.name
 
+
 class Exercices(db.Model):
     __tablename__ = "exercices"
     id = db.Column(db.Integer, primary_key=True)
@@ -136,7 +138,7 @@ class Exercices(db.Model):
     challenge_id = db.Column(
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
     )
-    challenge = db.relationship("Challenges", foreign_keys="Challenges.challenge_id", lazy="select")
+    challenge = db.relationship("Challenges", foreign_keys="Exercices.challenge_id", lazy="select")
 
     #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
@@ -209,10 +211,8 @@ class BadgesExercices(db.Model):
      exercice_id = db.Column(db.Integer, db.ForeignKey("exercices.id", ondelete="CASCADE"))
      badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
 
-
      badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
      exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
-
 
      def __init__(self, *args, **kwargs):
          super(BadgesExercices, self).__init__(**kwargs)
@@ -360,8 +360,6 @@ class Users(db.Model):
     @property
     def badgesentries(self):
         return self.get_badgesentries(admin=False)
-
-
 
     @property
     def place(self):

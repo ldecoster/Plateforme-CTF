@@ -422,7 +422,7 @@ class UserPublicFails(Resource):
 
 @users_namespace.route("/<user_id>/badgesentries")
 @users_namespace.param("user_id", "User ID or 'me'")
-class UserPublicbadges(Resource):
+class UserPublicBadges(Resource):
     @check_account_visibility
     @check_score_visibility
     def get(self, user_id):
@@ -430,10 +430,10 @@ class UserPublicbadges(Resource):
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
-        badgesentries = user.get_awards(admin=is_admin())
+        badges_entries = user.get_awards(admin=is_admin())
 
         view = "user" if not is_admin() else "admin"
-        response = BadgesEntriesSchema(view=view, many=True).dump(badgesentries)
+        response = BadgesEntriesSchema(view=view, many=True).dump(badges_entries)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

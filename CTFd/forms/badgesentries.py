@@ -7,11 +7,8 @@ from CTFd.forms.fields import SubmitField
 
 class BadgesCreationForm(BaseForm):
     name = StringField("Name")
-    ##value = IntegerField("Value")
-    ##category = StringField("Category")
     description = TextAreaField("Description")
     submit = SubmitField("Create")
-
     icon = RadioField(
         "Icon",
         choices=[
@@ -28,6 +25,4 @@ class BadgesCreationForm(BaseForm):
             ("cowboy", "Cowboy"),
             ("angry", "Angry"),
         ],
-    
     )
-
