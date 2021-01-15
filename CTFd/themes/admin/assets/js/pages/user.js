@@ -159,7 +159,7 @@ function badgesUser(event) {
       return response.json();
     })
     .then(function(response) {
-      if (response.ccsuess) {
+      if (response.success) {
         window.location.reload();
       } else {
         $("#user-badgesentries-form > #results").empty();

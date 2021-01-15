@@ -8,7 +8,7 @@ from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
-from CTFd.models import Users, db, BadgesEntries
+from CTFd.models import BadgesEntries, Users, db
 from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.helpers.models import build_model_filters
@@ -52,7 +52,6 @@ class BadgesList(Resource):
         {
             "user_id": (int, None),
             "type": (str, None),
-            "value": (int, None),
             "icon": (int, None),
             "q": (str, None),
             "field": (
@@ -74,9 +73,9 @@ class BadgesList(Resource):
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=BadgesEntries, query=q, field=field)
 
-        badgesEntries = BadgesEntries.query.filter_by(**query_args).filter(*filters).all()
+        badges_entries = BadgesEntries.query.filter_by(**query_args).filter(*filters).all()
         schema = BadgesEntriesSchema(many=True)
-        response = schema.dump(badgesEntries)
+        response = schema.dump(badges_entries)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
