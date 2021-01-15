@@ -113,17 +113,27 @@ class PublicUserSearchForm(BaseForm):
     submit = SubmitField("Search")
 
 
-class UserBaseForm(BaseForm):
+class UserBaseFormAdmin(BaseForm):
     name = StringField("User Name", validators=[InputRequired()])
     email = EmailField("Email", validators=[InputRequired()])
     password = PasswordField("Password")
     website = StringField("Website")
     affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
-    if is_admin():
-        type = SelectField("Type", choices=[("user", "User"), ("admin", "Admin"), ("contributor","contributor"),("teacher","teacher")])
-    if is_teacher():
-        type = SelectField("Type", choices=[("user", "User"),("contributor","contributor"),("teacher","teacher")])
+    type = SelectField("Type", choices=[("user", "User"), ("admin", "Admin"), ("contributor","Contributor"),("teacher","Teacher")])
+    verified = BooleanField("Verified")
+    hidden = BooleanField("Hidden")
+    banned = BooleanField("Banned")
+    submit = SubmitField("Submit")
+
+class UserBaseFormTeacher(BaseForm):
+    name = StringField("User Name", validators=[InputRequired()])
+    email = EmailField("Email", validators=[InputRequired()])
+    password = PasswordField("Password")
+    website = StringField("Website")
+    affiliation = StringField("Affiliation")
+    country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
+    type = SelectField("Type", choices=[("user", "User"), ("contributor","Contributor"),("teacher","Teacher")])
     verified = BooleanField("Verified")
     hidden = BooleanField("Hidden")
     banned = BooleanField("Banned")
@@ -131,26 +141,49 @@ class UserBaseForm(BaseForm):
 
 
 def UserEditForm(*args, **kwargs):
-    class _UserEditForm(UserBaseForm):
-        pass
+    if is_admin():
+        class _UserEditForm(UserBaseFormAdmin):
+            pass
 
-        @property
-        def extra(self):
-            return build_custom_user_fields(
-                self,
-                include_entries=True,
-                fields_kwargs=None,
-                field_entries_kwargs={"user_id": self.obj.id},
-            )
+            @property
+            def extra(self):
+                return build_custom_user_fields(
+                    self,
+                    include_entries=True,
+                    fields_kwargs=None,
+                    field_entries_kwargs={"user_id": self.obj.id},
+                )
 
-        def __init__(self, *args, **kwargs):
-            """
-            Custom init to persist the obj parameter to the rest of the form
-            """
-            super().__init__(*args, **kwargs)
-            obj = kwargs.get("obj")
-            if obj:
-                self.obj = obj
+            def __init__(self, *args, **kwargs):
+                """
+                Custom init to persist the obj parameter to the rest of the form
+                """
+                super().__init__(*args, **kwargs)
+                obj = kwargs.get("obj")
+                if obj:
+                    self.obj = obj
+    elif is_teacher():
+        class _UserEditForm(UserBaseFormTeacher):
+            pass
+
+            @property
+            def extra(self):
+                return build_custom_user_fields(
+                    self,
+                    include_entries=True,
+                    fields_kwargs=None,
+                    field_entries_kwargs={"user_id": self.obj.id},
+                )
+
+            def __init__(self, *args, **kwargs):
+                """
+                Custom init to persist the obj parameter to the rest of the form
+                """
+                super().__init__(*args, **kwargs)
+                obj = kwargs.get("obj")
+                if obj:
+                    self.obj = obj
+
 
     attach_custom_user_fields(_UserEditForm)
 
