@@ -6,6 +6,7 @@ from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.models import UserFieldEntries, UserFields
 from CTFd.utils.countries import SELECT_COUNTRIES_LIST
+from CTFd.utils.user import is_admin,is_teacher
 
 
 def build_custom_user_fields(
@@ -119,7 +120,10 @@ class UserBaseForm(BaseForm):
     website = StringField("Website")
     affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
-    type = SelectField("Type", choices=[("user", "User"), ("admin", "Admin")])
+    if is_admin():
+        type = SelectField("Type", choices=[("user", "User"), ("admin", "Admin"), ("contributor","contributor"),("teacher","teacher")])
+    if is_teacher():
+        type = SelectField("Type", choices=[("user", "User"),("contributor","contributor"),("teacher","teacher")])
     verified = BooleanField("Verified")
     hidden = BooleanField("Hidden")
     banned = BooleanField("Banned")
