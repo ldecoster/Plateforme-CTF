@@ -6,7 +6,7 @@ from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.models import UserFieldEntries, UserFields
 from CTFd.utils.countries import SELECT_COUNTRIES_LIST
-from CTFd.utils.user import is_admin,is_teacher
+from CTFd.utils.user import is_admin, is_teacher
 
 
 def build_custom_user_fields(
@@ -120,11 +120,14 @@ class UserBaseFormAdmin(BaseForm):
     website = StringField("Website")
     affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
-    type = SelectField("Type", choices=[("user", "User"), ("admin", "Admin"), ("contributor","Contributor"),("teacher","Teacher")])
+    type = SelectField("Type", choices=[
+        ("user", "User"), ("contributor", "Contributor"), ("teacher", "Teacher"), ("admin", "Admin")
+    ])
     verified = BooleanField("Verified")
     hidden = BooleanField("Hidden")
     banned = BooleanField("Banned")
     submit = SubmitField("Submit")
+
 
 class UserBaseFormTeacher(BaseForm):
     name = StringField("User Name", validators=[InputRequired()])
@@ -133,7 +136,7 @@ class UserBaseFormTeacher(BaseForm):
     website = StringField("Website")
     affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
-    type = SelectField("Type", choices=[("user", "User"), ("contributor","Contributor"),("teacher","Teacher")])
+    type = SelectField("Type", choices=[("user", "User"), ("contributor", "Contributor"), ("teacher", "Teacher")])
     verified = BooleanField("Verified")
     hidden = BooleanField("Hidden")
     banned = BooleanField("Banned")
@@ -184,19 +187,26 @@ def UserEditForm(*args, **kwargs):
                 if obj:
                     self.obj = obj
 
-
     attach_custom_user_fields(_UserEditForm)
 
     return _UserEditForm(*args, **kwargs)
 
 
 def UserCreateForm(*args, **kwargs):
-    class _UserCreateForm(UserBaseForm):
-        notify = BooleanField("Email account credentials to user", default=True)
+    if is_admin():
+        class _UserCreateForm(UserBaseFormAdmin):
+            notify = BooleanField("Email account credentials to user", default=True)
 
-        @property
-        def extra(self):
-            return build_custom_user_fields(self, include_entries=False)
+            @property
+            def extra(self):
+                return build_custom_user_fields(self, include_entries=False)
+    elif is_teacher():
+        class _UserCreateForm(UserBaseFormTeacher):
+            notify = BooleanField("Email account credentials to user", default=True)
+
+            @property
+            def extra(self):
+                return build_custom_user_fields(self, include_entries=False)
 
     attach_custom_user_fields(_UserCreateForm)
 
