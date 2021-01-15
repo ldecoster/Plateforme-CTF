@@ -308,13 +308,16 @@ async function loadChals() {
         const ID = tagList[i].value.replace(/ /g, "-").hashCode();
         const tagrow = $(
           "" +
+          '<ul style="padding-left:1.3rem;list-style-type: none;">' +
           '<div id="{0}-row" class="pt-5">'.format(ID) +
-          '<div class="tag-header col-md-12 mb-3">' +
-          "</div>" +
+          '<li style=" padding-left: 2.5rem;background-image: url(themes/core/static/img/finish.png);background-position: 0 0;background-size: 2rem 2rem;background-repeat: no-repeat;">' +
+          '<div class="tag-header col-md-12 mb-3" style=" font-variant: small-caps; font-family:Lato,LatoOffline,sans-serif;font-size: 10rem">' +
+          "</li>" +
           '<div class="tag-challenge col-md-12">' +
           '<div class="challenges-row col-md-12"></div>' +
           "</div>" +
-          "</div>"
+          "</div>" +
+          "</ul>"
         );
         tagrow
           .find(".tag-header")
@@ -460,13 +463,18 @@ async function loadChals() {
           user = (await CTFd.api.get_user_public({ userId: challenges[i].authorId })).data;
           const chalrow = $(
             "" +
+            '<ul style="padding-left:1.3rem;list-style-type: none;">' +
             '<div id="{0}-row" class="pt-5">'.format(challenges[i].authorId) +
+            '<li style=" padding-left: 2.5rem;background-image: url(themes/core/static/img/user.png);background-position: 0 0;background-size: 2rem 2rem;background-repeat: no-repeat;">' +
             '<div class="author-header col-md-12 mb-3">' +
             "</div>" +
+            "</li>" +
             '<div class="author-challenge col-md-12">' +
             '<div class="challenges-row col-md-12"></div>' +
             "</div>" +
-            "</div>"
+            "</div>" +
+            "</ul>"
+
           );
           chalrow
             .find(".author-header")
