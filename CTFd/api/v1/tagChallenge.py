@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import db, TagChallenge
 from CTFd.schemas.tagChallenge import TagChallengeSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 
 tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve TagChallenge")
@@ -34,7 +34,7 @@ tagChallenge_namespace.schema_model("TagChallengeListSuccessResponse", TagChalle
 
 @tagChallenge_namespace.route("")
 class TagChallengeList(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
@@ -77,7 +77,7 @@ class TagChallengeList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to create a TagChallenge object",
         responses={
@@ -109,7 +109,7 @@ class TagChallengeList(Resource):
 @tagChallenge_namespace.param("tag_id", "A Tag ID")
 @tagChallenge_namespace.param("challenge_id", "A challenge ID")
 class TagChal(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to get a specific TagChallenge object",
         responses={
@@ -130,7 +130,7 @@ class TagChal(Resource):
 
         return {"success": True, "data": response.data}
     
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to delete a specific TagChallenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
