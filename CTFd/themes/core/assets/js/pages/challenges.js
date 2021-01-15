@@ -17,7 +17,6 @@ CTFd._internal.challenge = {};
 let challenges = [];
 let solves = [];
 let tagList = [];
-let getuserList = [];
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
 
@@ -277,11 +276,8 @@ async function loadChals() {
   if (tagList.length === 0) {
     tagList = (await CTFd.api.get_tag_list()).data;
   }
-  if (getuserList.length === 0) {
-    getuserList = (await CTFd.api.get_user_list()).data;
-  }
 
-  loadUserSolves().then(function (solvedChallenges) {
+  loadUserSolves().then(async function () {
 
     const $challenges_board = $("#challenges-board");
     $challenges_board.empty();
@@ -425,40 +421,54 @@ async function loadChals() {
       }
     }
 
-    else if (orderValue == "author") {
-      // getuserList.sort((a, b) => a.name.localeCompare(b.name))
-      // console.log("user list", getuserList);
-
-      const listuser = [];
-      const listauthor = challenges.filter(challenge => challenge.author_id);
-      console.log(listauthor);
-      for (i = 0; i < getuserList.length; i++) {
-        for (j = 0; j < listauthor.length; j++) {
-          if (getuserList[i].id == listauthor[j])
-            listuser.append(getuserList[i]);
+    //Display challenges sorted by author
+    else if (orderValue === "author") {
+      const authorList = [];
+      for(let i = 0; i < challenges.length; i++){
+        const chalwrap = $(
+          "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(challenges[i].id)
+        );
+        if(authorList.indexOf(challenges[i].authorId) === -1){
+          authorList.push(challenges[i].authorId);
+          user = (await CTFd.api.get_user_public({userId : challenges[i].authorId})).data;
+          const chalrow = $(
+            "" +
+            '<div id="{0}-row" class="pt-5">'.format(challenges[i].authorId) +
+            '<div class="author-header col-md-12 mb-3">' +
+            "</div>" +
+            '<div class="author-challenge col-md-12">' +
+            '<div class="challenges-row col-md-12"></div>' +
+            "</div>" +
+            "</div>"
+          );
+          chalrow
+            .find(".author-header")
+            .append($("<h3>" + user.name + "</h3>"));
+            $challenges_board.append(chalrow);
         }
+        if (solves.indexOf(challenges[i].id) === -1) {
+          chalbutton = $(
+            "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
+              challenges[i].id
+            )
+          );
+        } else {
+          chalbutton = $(
+            "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
+              challenges[i].id
+            )
+          );
+        }
+        const chalheader = $("<p>{0}</p>".format(challenges[i].name));
+        const chalscore = $("<span>{0}</span>".format(challenges[i].value));
+        chalbutton.append(chalheader);
+        chalbutton.append(chalscore);
+        chalwrap.append(chalbutton);
+        $("#" + challenges[i].authorId + "-row")
+          .find(".author-challenge > .challenges-row")
+          .append(chalwrap);
       }
-      console.log(listuser);
-
-      // for (let i = getuserList.length - 1; i >= 0; i--) {
-      //   const ID = getuserList[i].name.replace(/ /g, "-").hashCode();
-      //   const tagrow = $(
-      //     "" +
-      //     '<div id="{0}-row" class="pt-5">'.format(ID) +
-      //     '<div class="user-header col-md-12 mb-3">' +
-      //     "</div>" +
-      //     '<div class="username-header col-md-12">' +
-      //     '<div class="challenges-row col-md-12"></div>' +
-      //     "</div>" +
-      //     "</div>"
-      //   );
-      //   tagrow
-      //     .find(".username-header")
-      //     .append($("<h3>" + getuserList[i].name + "</h3>"));
-      //   $challenges_board.append(tagrow);
-      // }
-
-   }
+    }
 
     for (let i = 0; i < challenges.length; i++) {
       for (let j = 0; j < challenges[i].tags.length; j++) {

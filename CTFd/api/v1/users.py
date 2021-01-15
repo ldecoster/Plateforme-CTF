@@ -188,8 +188,14 @@ class UserPublic(Resource):
     )
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
+        print('*'*64)
+        print(user)
+        print('*'*64)
 
         if (user.banned or user.hidden) and is_admin() is False:
+            print('*'*64)
+            print('Abort')
+            print('*'*64)
             abort(404)
 
         user_type = get_current_user_type(fallback="user")
@@ -198,8 +204,9 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        response.data["place"] = user.place
-        response.data["score"] = user.score
+        print('*'*64)
+        print(response)
+        print('*'*64)
 
         return {"success": True, "data": response.data}
 
