@@ -104,6 +104,7 @@ class ChallengeList(Resource):
             "type": (str, None),
             "state": (str, None),
             "q": (str, None),
+            "author_id":(str,None),
             "field": (
                 RawEnum(
                     "ChallengeFields",
@@ -112,6 +113,7 @@ class ChallengeList(Resource):
                         "description": "description",
                         "type": "type",
                         "state": "state",
+                        "author_id":"author_id",
                     },
                 ),
                 None,
@@ -179,6 +181,7 @@ class ChallengeList(Resource):
                                 "name": "???",
                                 "value": 0,
                                 "tags": [],
+                                "authorId":"",
                                 "template": "",
                                 "script": "",
                             }
@@ -201,6 +204,7 @@ class ChallengeList(Resource):
                     "name": challenge.name,
                     "value": 0,
                     "tags": tag_schema.dump(challenge.tags).data,
+                    "authorId":challenge.author_id,
                     "template": challenge_type.templates["view"],
                     "script": challenge_type.scripts["view"],
                 }

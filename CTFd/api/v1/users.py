@@ -198,9 +198,6 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        response.data["place"] = user.place
-        response.data["score"] = user.score
-
         return {"success": True, "data": response.data}
 
     @teachers_admins_only
