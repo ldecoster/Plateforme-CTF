@@ -1,4 +1,4 @@
-id;oauth_id;name;password;email;type;school;promotion;speciality;secret;website;affiliation;country;bracket;hidden;banned;verified;created
+('id',);('oauth_id',);('name',);('password',);('email',);('type',);('school',);('promotion',);('speciality',);('secret',);('website',);('affiliation',);('country',);('bracket',);('hidden',);('banned',);('verified',);('created',)
 1;;Charles;$bcrypt-sha256$2b,12$0Y3536ySDXWdsor2xdJR1.$Fjg0wYGwRWIAIFICAKaM3S5XDvP6BCe;ethomas@chang.com;user;HEI;63;Médicale et Santé;;;;;;0;0;1;2021-01-14 15:26:30.862134
 2;;Theresa;$bcrypt-sha256$2b,12$KBiTFyJMM6IoyBNYaiTELe$2RTqnz6jr6VulhH6eO8UcU3x2dERBV2;harveytimothy@hotmail.com;user;HEI;66;Entrepreneuriat;;;;;;0;0;1;2021-01-14 15:26:31.367325
 3;924;Stacy;$bcrypt-sha256$2b,12$2SOjmuQZodO4G2aCkhZZ3e$MxAVfNnoMTxsI2h14WvZG9MErF35HVq;barrettanne@cruz-george.info;user;HEI;65;Conception Mécanique;;;Politics Squad;;;0;0;1;2021-01-14 15:26:31.813788
