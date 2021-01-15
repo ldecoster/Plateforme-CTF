@@ -133,7 +133,7 @@ def gen_word():
     return fake.word()
 
 def gen_badge():
-    random.choice(badges)
+    return random.choice(badges)
 
 def gen_icon():
     return random.choice(icons)
@@ -372,9 +372,6 @@ if __name__ == "__main__":
                 badgesentries = BadgesEntries(
                     user_id=user.id,
                     badge_id=badge.id,
-                    
-
-
                 )
                 new_base = random_date(
                     base_time,
