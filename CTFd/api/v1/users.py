@@ -25,7 +25,7 @@ from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
-from CTFd.utils.decorators import admins_only, authed_only, ratelimit
+from CTFd.utils.decorators import admins_only,teachers_admins_only, authed_only, ratelimit
 from CTFd.utils.decorators.visibility import (
     check_account_visibility,
     check_score_visibility,
@@ -133,7 +133,7 @@ class UserList(Resource):
         }
 
     @users_namespace.doc()
-    @admins_only
+    @teachers_admins_only
     @users_namespace.doc(
         description="Endpoint to create a User object",
         responses={
@@ -203,7 +203,7 @@ class UserPublic(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @teachers_admins_only
     @users_namespace.doc(
         description="Endpoint to edit a specific User object",
         responses={
@@ -244,7 +244,7 @@ class UserPublic(Resource):
 
         return {"success": True, "data": response}
 
-    @admins_only
+    @teachers_admins_only
     @users_namespace.doc(
         description="Endpoint to delete a specific User object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -422,7 +422,7 @@ class UserPublicFails(Resource):
 
 @users_namespace.route("/<user_id>/badgesentries")
 @users_namespace.param("user_id", "User ID or 'me'")
-class UserPublicbadges(Resource):
+class UserPublicBadges(Resource):
     @check_account_visibility
     @check_score_visibility
     def get(self, user_id):
@@ -430,10 +430,10 @@ class UserPublicbadges(Resource):
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
-        badgesentries = user.get_awards(admin=is_admin())
+        badges_entries = user.get_awards(admin=is_admin())
 
         view = "user" if not is_admin() else "admin"
-        response = BadgesEntriesSchema(view=view, many=True).dump(badgesentries)
+        response = BadgesEntriesSchema(view=view, many=True).dump(badges_entries)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

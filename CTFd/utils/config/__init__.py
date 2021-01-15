@@ -44,6 +44,10 @@ def is_scoreboard_frozen():
     return False
 
 
+def get_votes_number():
+    return get_config("votes_number_delta")
+
+
 def can_send_mail():
     return mailserver() or mailgun()
 

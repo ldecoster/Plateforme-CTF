@@ -315,7 +315,6 @@ function solveSelectedMissingChallenges(event) {
         let params = {
           provided: "MARKED AS SOLVED BY ADMIN",
           user_id: window.USER_ID,
-          team_id: window.TEAM_ID,
           challenge_id: challengeID,
           type: "correct"
         };
@@ -339,11 +338,6 @@ function solveSelectedMissingChallenges(event) {
 }
 
 const api_funcs = {
-  team: [
-    x => CTFd.api.get_team_solves({ teamId: x }),
-    x => CTFd.api.get_team_fails({ teamId: x }),
-    x => CTFd.api.get_team_awards({ teamId: x })
-  ],
   user: [
     x => CTFd.api.get_user_solves({ userId: x }),
     x => CTFd.api.get_user_fails({ userId: x }),

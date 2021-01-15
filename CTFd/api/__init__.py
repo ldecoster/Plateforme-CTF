@@ -18,10 +18,12 @@ from CTFd.api.v1.schemas import (
 from CTFd.api.v1.scoreboard import scoreboard_namespace
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.api.v1.submissions import submissions_namespace
+from CTFd.api.v1.tagChallenge import tagChallenge_namespace
 from CTFd.api.v1.tags import tags_namespace
 from CTFd.api.v1.tokens import tokens_namespace
 from CTFd.api.v1.unlocks import unlocks_namespace
 from CTFd.api.v1.users import users_namespace
+from CTFd.api.v1.votes import votes_namespace
 
 api = Blueprint("api", __name__, url_prefix="/api/v1")
 CTFd_API_v1 = Api(api, version="v1", doc=current_app.config.get("SWAGGER_UI_ENDPOINT"))
@@ -34,12 +36,13 @@ CTFd_API_v1.schema_model("APISimpleSuccessResponse", APISimpleSuccessResponse.sc
 
 CTFd_API_v1.add_namespace(challenges_namespace, "/challenges")
 CTFd_API_v1.add_namespace(tags_namespace, "/tags")
+CTFd_API_v1.add_namespace(tagChallenge_namespace, "/tagChallenge")
 CTFd_API_v1.add_namespace(badges_entries_namespace, "/badgesentries")
 CTFd_API_v1.add_namespace(hints_namespace, "/hints")
 CTFd_API_v1.add_namespace(flags_namespace, "/flags")
+CTFd_API_v1.add_namespace(votes_namespace, "/votes")
 CTFd_API_v1.add_namespace(submissions_namespace, "/submissions")
 CTFd_API_v1.add_namespace(scoreboard_namespace, "/scoreboard")
-##CTFd_API_v1.add_namespace(teams_namespace, "/teams")
 CTFd_API_v1.add_namespace(users_namespace, "/users")
 CTFd_API_v1.add_namespace(statistics_namespace, "/statistics")
 CTFd_API_v1.add_namespace(files_namespace, "/files")

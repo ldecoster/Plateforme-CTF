@@ -13,19 +13,14 @@ function deleteCorrectSubmission(_event) {
     .find(".chal")
     .text()
     .trim();
-  const team_name = $elem
-    .find(".team")
-    .text()
-    .trim();
-
-  const row = $(this)
+ 
+    const row = $(this)
     .parent()
     .parent();
 
   ezQuery({
     title: "Delete Submission",
     body: "Are you sure you want to delete correct submission from {0} for challenge {1}".format(
-      "<strong>" + htmlEntities(team_name) + "</strong>",
       "<strong>" + htmlEntities(chal_name) + "</strong>"
     ),
     success: function() {

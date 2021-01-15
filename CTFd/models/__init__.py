@@ -24,12 +24,13 @@ def get_class_by_tablename(tablename):
             return c
     return None
 
+
 class Votes(db.Model):
     __tablename__ = "votes"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"))
-    value = db.Column(db.Integer)
+    value = db.Column(db.Boolean, default=False)
 
     user = db.relationship("Users", foreign_keys="Votes.user_id", lazy="select")
 
@@ -45,6 +46,7 @@ class Badges(db.Model):
 
     def __repr__(self):
         return "<Badges %r>" % self.name
+
 
 class Notifications(db.Model):
     __tablename__ = "notifications"
@@ -90,10 +92,9 @@ class Challenges(db.Model):
     state = db.Column(db.String(80), nullable=False, default="visible")
     requirements = db.Column(db.JSON)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-
     files = db.relationship("ChallengeFiles", backref="challenge")
-    tags = db.relationship("Tags", backref="challenge")
     hints = db.relationship("Hints", backref="challenge")
+    tags = db.relationship("Tags", secondary="tagChallenge")
     flags = db.relationship("Flags", backref="challenge")
     comments = db.relationship("ChallengeComments", backref="challenge")
     author = db.relationship("Users", foreign_keys="Challenges.author_id", lazy="select")
@@ -128,6 +129,7 @@ class Challenges(db.Model):
     def __repr__(self):
         return "<Challenge %r>" % self.name
 
+
 class Exercices(db.Model):
     __tablename__ = "exercices"
     id = db.Column(db.Integer, primary_key=True)
@@ -136,7 +138,7 @@ class Exercices(db.Model):
     challenge_id = db.Column(
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
     )
-    challenge = db.relationship("Challenges", foreign_keys="Challenges.challenge_id", lazy="select")
+    challenge = db.relationship("Challenges", foreign_keys="Exercices.challenge_id", lazy="select")
 
     #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
@@ -209,10 +211,8 @@ class BadgesExercices(db.Model):
      exercice_id = db.Column(db.Integer, db.ForeignKey("exercices.id", ondelete="CASCADE"))
      badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
 
-
      badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
      exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
-
 
      def __init__(self, *args, **kwargs):
          super(BadgesExercices, self).__init__(**kwargs)
@@ -224,13 +224,22 @@ class BadgesExercices(db.Model):
 class Tags(db.Model):
     __tablename__ = "tags"
     id = db.Column(db.Integer, primary_key=True)
-    challenge_id = db.Column(
-        db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
-    )
     value = db.Column(db.String(80))
+    challenges = db.relationship("Challenges", secondary="tagChallenge")
 
     def __init__(self, *args, **kwargs):
         super(Tags, self).__init__(**kwargs)
+
+
+class TagChallenge(db.Model):
+    __tablename__ = "tagChallenge"
+    challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"),
+                             primary_key=True, nullable=False)
+    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"),
+                            primary_key=True, nullable=False)
+
+    def __init__(self, *args, **kwargs):
+        super(TagChallenge, self).__init__(**kwargs)
 
 
 class Files(db.Model):
@@ -361,8 +370,6 @@ class Users(db.Model):
     def badgesentries(self):
         return self.get_badgesentries(admin=False)
 
-
-
     @property
     def place(self):
         from CTFd.utils.config.visibility import scores_visible
@@ -438,6 +445,16 @@ class Users(db.Model):
 class Admins(Users):
     __tablename__ = "admins"
     __mapper_args__ = {"polymorphic_identity": "admin"}
+
+
+class Contributors(Users):
+    __tablename__ = "contributors"
+    __mapper_args__ = {"polymorphic_identity": "contributor"}
+
+
+class Teachers(Users):
+    __tablename__ = "teachers"
+    __mapper_args__ = {"polymorphic_identity": "teacher"}
 
 
 class Submissions(db.Model):
@@ -583,7 +600,6 @@ class Tokens(db.Model):
 
     user = db.relationship("Users", foreign_keys="Tokens.user_id", lazy="select")
 
-
     def __init__(self, *args, **kwargs):
         super(Tokens, self).__init__(**kwargs)
 
@@ -598,6 +614,7 @@ class UserTokens(Tokens):
 class Comments(db.Model):
     __tablename__ = "comments"
     id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(80), default="standard")
     content = db.Column(db.Text)
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
@@ -609,6 +626,8 @@ class Comments(db.Model):
         from CTFd.utils.helpers import markup
 
         return markup(build_html(self.content, sanitize=True))
+
+    __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
 
 class ChallengeComments(Comments):

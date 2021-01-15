@@ -143,7 +143,6 @@ class UnlockList(Resource):
             "name": target.name,
             "description": target.description,
             "value": (-target.cost),
-            "category": target.category,
         }
 
         badges_entries = badges_entries_schema.load(badges_entries)

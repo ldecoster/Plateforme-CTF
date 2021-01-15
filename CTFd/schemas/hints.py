@@ -27,7 +27,6 @@ class HintSchema(ma.ModelSchema):
             "content",
             "html",
             "cost",
-            "requirements",
         ],
     }
 

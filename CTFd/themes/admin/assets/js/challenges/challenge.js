@@ -92,7 +92,7 @@ function renderSubmissionResponse(response, cb) {
 
 $(() => {
   $(".preview-challenge").click(function(_event) {
-    window.challenge = new Object();
+    window.challenge = {};
     $.get(
       CTFd.config.urlRoot + "/api/v1/challenges/" + window.CHALLENGE_ID,
       function(response) {
@@ -196,7 +196,7 @@ $(() => {
       if (data.success) {
         ezToast({
           title: "Success",
-          body: "Your challenge has been updated!"
+          body: "The challenge has been updated!"
         });
       }
     });

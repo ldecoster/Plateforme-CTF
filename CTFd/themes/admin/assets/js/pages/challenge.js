@@ -7,7 +7,7 @@ import { htmlEntities } from "core/utils";
 import { ezQuery, ezAlert, ezToast } from "core/ezq";
 import { default as helpers } from "core/helpers";
 import { addFile, deleteFile } from "../challenges/files";
-import { addTag, deleteTag } from "../challenges/tags";
+import { setTagList, deleteTag, addClickedTag } from "../challenges/tags";
 import { addRequirement, deleteRequirement } from "../challenges/requirements";
 import { bindMarkdownEditors } from "../styles";
 import Vue from "vue/dist/vue.esm.browser";
@@ -24,6 +24,11 @@ import {
   deleteFlag,
   flagTypeSelect
 } from "../challenges/flags";
+import {
+  addVoteModal,
+  editVoteModal,
+  deleteVote,
+} from "../challenges/votes";
 
 const displayHint = data => {
   ezAlert({
@@ -44,11 +49,11 @@ const loadHint = id => {
 };
 
 function renderSubmissionResponse(response, cb) {
-  var result = response.data;
+  const result = response.data;
 
-  var result_message = $("#result-message");
-  var result_notification = $("#result-notification");
-  var answer_input = $("#submission-input");
+  const result_message = $("#result-message");
+  const result_notification = $("#result-notification");
+  const answer_input = $("#submission-input");
   result_notification.removeClass();
   result_message.text(result.message);
 
@@ -244,7 +249,7 @@ $(() => {
       CTFd.config.urlRoot + "/api/v1/challenges/" + window.CHALLENGE_ID,
       function(response) {
         // Preview should not show any solves
-        var challenge_data = response.data;
+        const challenge_data = response.data;
         challenge_data["solves"] = null;
 
         $.getScript(
@@ -339,7 +344,7 @@ $(() => {
 
   $("#challenge-update-container > form").submit(function(e) {
     e.preventDefault();
-    var params = $(e.target).serializeJSON(true);
+    const params = $(e.target).serializeJSON(true);
 
     CTFd.fetch("/api/v1/challenges/" + window.CHALLENGE_ID + "/flags", {
       method: "GET",
@@ -373,11 +378,19 @@ $(() => {
                   case "visible":
                     $(".challenge-state")
                       .removeClass("badge-danger")
+                      .removeClass("badge-warning")
                       .addClass("badge-success");
+                    break;
+                  case "voting":
+                    $(".challenge-state")
+                      .removeClass("badge-success")
+                      .removeClass("badge-danger")
+                      .addClass("badge-warning");
                     break;
                   case "hidden":
                     $(".challenge-state")
                       .removeClass("badge-success")
+                      .removeClass("badge-warning")
                       .addClass("badge-danger");
                     break;
                   default:
@@ -385,7 +398,18 @@ $(() => {
                 }
                 ezToast({
                   title: "Success",
-                  body: "Your challenge has been updated!"
+                  body: "The challenge has been updated!"
+                });
+              } else {
+                let body_message = "";
+                if (response.errors === "votes") {
+                  body_message = "Not enough positive votes for this challenge!";
+                } else {
+                  body_message = "The challenge can't be updated!";
+                }
+                ezToast({
+                  title: "Error",
+                  body: body_message
                 });
               }
             });
@@ -405,9 +429,9 @@ $(() => {
   });
 
   $("#challenge-create-options form").submit(handleChallengeOptions);
-
-  $("#tags-add-input").keyup(addTag);
+  $("#tags-add-input").keyup(setTagList);
   $(".delete-tag").click(deleteTag);
+  $('.list-group').on('click', 'a', addClickedTag);
 
   $("#prerequisite-add-form").submit(addRequirement);
   $(".delete-requirement").click(deleteRequirement);
@@ -424,6 +448,10 @@ $(() => {
   $(".delete-flag").click(deleteFlag);
   $("#flags-create-select").change(flagTypeSelect);
   $(".edit-flag").click(editFlagModal);
+
+  $("#vote-add-button").click(addVoteModal);
+  $(".delete-vote").click(deleteVote);
+  $(".edit-vote").click(editVoteModal);
 
   // Because this JS is shared by a few pages,
   // we should only insert the CommentBox if it's actually in use

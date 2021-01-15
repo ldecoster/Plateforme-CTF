@@ -25,7 +25,6 @@ const roots = {
       'pages/settings': 'assets/js/pages/settings.js',
       'pages/stats': 'assets/js/pages/stats.js',
       'pages/notifications': 'assets/js/pages/notifications.js',
-      'pages/teams/private': 'assets/js/pages/teams/private.js',
     }
   },
   'themes/admin': {
@@ -46,8 +45,6 @@ const roots = {
       'pages/scoreboard': 'assets/js/pages/scoreboard.js',
       'pages/statistics': 'assets/js/pages/statistics.js',
       'pages/submissions': 'assets/js/pages/submissions.js',
-      'pages/team': 'assets/js/pages/team.js',
-      'pages/teams': 'assets/js/pages/teams.js',
       'pages/user': 'assets/js/pages/user.js',
       'pages/users': 'assets/js/pages/users.js',
     }

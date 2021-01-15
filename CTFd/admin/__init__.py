@@ -47,15 +47,15 @@ from CTFd.utils.exports import import_ctf as import_ctf_util
 from CTFd.utils.helpers import get_errors
 from CTFd.utils.security.auth import logout_user
 from CTFd.utils.uploads import delete_file
-from CTFd.utils.user import is_admin
+from CTFd.utils.user import is_admin, is_contributor, is_teacher
 
 
 @admin.route("/admin", methods=["GET"])
 def view():
-    if is_admin():
+    if is_admin() or is_contributor() or is_teacher():
         return redirect(url_for("admin.statistics"))
-    return redirect(url_for("auth.login"))
-
+    abort(403)
+    
 
 @admin.route("/admin/plugins/<plugin>", methods=["GET", "POST"])
 @admins_only

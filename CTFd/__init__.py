@@ -164,6 +164,7 @@ def create_app(config="CTFd.config.Config"):
             Challenges,
             Fails,
             Flags,
+            TagChallenge,
             Tags,
             Files,
             Tracking,
