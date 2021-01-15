@@ -192,17 +192,18 @@ class UserSchema(ma.ModelSchema):
         user_type = data.get("type")
         existing_user = Users.query.filter_by(id=user_id).first()
 
-        if is_admin():
-            pass
-        elif is_teacher():
-            if existing_user.type == "admin":
-                raise ValidationError("You can't change the type of an Admin", field_names=["type"])
-            if user_type == "user" or user_type == "contributor" or user_type == "teacher":
+        if user_type is not None:
+            if is_admin():
                 pass
+            elif is_teacher():
+                if existing_user.type == "admin":
+                    raise ValidationError("You can't change the type of an Admin", field_names=["type"])
+                if user_type == "user" or user_type == "contributor" or user_type == "teacher":
+                    pass
+                else:
+                    raise ValidationError("Please choose a valid type", field_names=["type"])
             else:
                 raise ValidationError("Please choose a valid type", field_names=["type"])
-        else:
-            raise ValidationError("Please choose a valid type", field_names=["type"])
 
     @pre_load
     def validate_fields(self, data):
