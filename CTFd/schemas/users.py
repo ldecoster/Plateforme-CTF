@@ -8,7 +8,7 @@ from CTFd.schemas.fields import UserFieldEntriesSchema
 from CTFd.utils import get_config, string_types
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.email import check_email_is_whitelisted
-from CTFd.utils.user import get_current_user, is_admin
+from CTFd.utils.user import get_current_user, is_admin, is_teacher
 from CTFd.utils.validators import validate_country_code
 
 
@@ -65,7 +65,7 @@ class UserSchema(ma.ModelSchema):
 
         existing_user = Users.query.filter_by(name=name).first()
         current_user = get_current_user()
-        if is_admin():
+        if is_admin() or is_teacher():
             user_id = data.get("id")
             if user_id:
                 if existing_user and existing_user.id != user_id:
@@ -106,7 +106,7 @@ class UserSchema(ma.ModelSchema):
 
         existing_user = Users.query.filter_by(email=email).first()
         current_user = get_current_user()
-        if is_admin():
+        if is_admin() or is_teacher:
             user_id = data.get("id")
             if user_id:
                 if existing_user and existing_user.id != user_id:
@@ -164,7 +164,7 @@ class UserSchema(ma.ModelSchema):
         confirm = data.get("confirm")
         target_user = get_current_user()
 
-        if is_admin():
+        if is_admin() or is_teacher():
             pass
         else:
             if password and (bool(confirm) is False):
@@ -187,6 +187,24 @@ class UserSchema(ma.ModelSchema):
                 data.pop("confirm", None)
 
     @pre_load
+    def validate_type(self, data):
+        user_id = data.get("id")
+        user_type = data.get("type")
+        existing_user = Users.query.filter_by(id=user_id).first()
+
+        if is_admin():
+            pass
+        elif is_teacher():
+            if existing_user.type == "admin":
+                raise ValidationError("You can't change the type of an Admin", field_names=["type"])
+            if user_type == "user" or user_type == "contributor" or user_type == "teacher":
+                pass
+            else:
+                raise ValidationError("Please choose a valid type", field_names=["type"])
+        else:
+            raise ValidationError("Please choose a valid type", field_names=["type"])
+
+    @pre_load
     def validate_fields(self, data):
         """
         This validator is used to only allow users to update the field entry for their user.
@@ -198,7 +216,7 @@ class UserSchema(ma.ModelSchema):
 
         current_user = get_current_user()
 
-        if is_admin():
+        if is_admin() or is_teacher():
             user_id = data.get("id")
             if user_id:
                 target_user = Users.query.filter_by(id=data["id"]).first()
