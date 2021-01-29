@@ -445,7 +445,7 @@ class Challenge(Resource):
             challenge_class = get_chal_class(challenge.type)
 
             # Check the number of votes before changing the state of the challenge
-            if challenge_new_state == "visible" and challenge.state == "voting":
+            if challenge_new_state == "visible" and (challenge.state == "voting" or challenge.state == 'hidden'):
                 positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count()
                 negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count()
                 votes_delta = get_votes_number()

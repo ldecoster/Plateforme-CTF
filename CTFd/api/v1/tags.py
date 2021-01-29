@@ -93,9 +93,7 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(session["id"])
-      #  print(response.data.challenge.author_id)
+
         if is_admin() or is_teacher() or is_contributor():
             db.session.commit()
 
