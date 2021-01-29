@@ -44,7 +44,7 @@ class HintList(Resource):
         responses={
             200: ("Success", "HintListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -82,7 +82,7 @@ class HintList(Resource):
         responses={
             200: ("Success", "HintDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -114,7 +114,7 @@ class Hint(Resource):
         responses={
             200: ("Success", "HintDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -149,7 +149,7 @@ class Hint(Resource):
         responses={
             200: ("Success", "HintDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

@@ -45,7 +45,7 @@ class ConfigList(Resource):
         responses={
             200: ("Success", "ConfigListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -78,7 +78,7 @@ class ConfigList(Resource):
         responses={
             200: ("Success", "ConfigDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -127,7 +127,7 @@ class Config(Resource):
         responses={
             200: ("Success", "ConfigDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -144,7 +144,7 @@ class Config(Resource):
         responses={
             200: ("Success", "ConfigDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

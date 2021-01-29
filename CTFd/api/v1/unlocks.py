@@ -51,7 +51,7 @@ class UnlockList(Resource):
         responses={
             200: ("Success", "UnlockListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -92,7 +92,7 @@ class UnlockList(Resource):
         responses={
             200: ("Success", "UnlockDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

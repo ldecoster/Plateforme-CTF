@@ -200,7 +200,7 @@ def test_submitting_invalid_regex_flag():
         assert r.status_code == 200
         resp = r.get_json()["data"]
         assert resp.get("status") == "incorrect"
-        assert resp.get("message") == "Regex parse error occured"
+        assert resp.get("message") == "Regex parse error occurred"
     destroy_ctfd(app)
 
 

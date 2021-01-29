@@ -44,7 +44,7 @@ class NotificantionList(Resource):
         responses={
             200: ("Success", "NotificationListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -83,7 +83,7 @@ class NotificantionList(Resource):
         responses={
             200: ("Success", "NotificationDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -121,7 +121,7 @@ class Notification(Resource):
         responses={
             200: ("Success", "NotificationDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

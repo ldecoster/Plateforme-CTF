@@ -43,7 +43,7 @@ class AwardList(Resource):
         responses={
             200: ("Success", "AwardListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -89,7 +89,7 @@ class AwardList(Resource):
         responses={
             200: ("Success", "AwardListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -123,7 +123,7 @@ class Award(Resource):
         responses={
             200: ("Success", "AwardDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

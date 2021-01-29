@@ -91,7 +91,7 @@ class ChallengeList(Resource):
         responses={
             200: ("Success", "ChallengeListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -219,7 +219,7 @@ class ChallengeList(Resource):
         responses={
             200: ("Success", "ChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -264,7 +264,7 @@ class Challenge(Resource):
         responses={
             200: ("Success", "ChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -419,7 +419,7 @@ class Challenge(Resource):
         responses={
             200: ("Success", "ChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

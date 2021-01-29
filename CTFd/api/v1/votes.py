@@ -45,7 +45,7 @@ class VoteList(Resource):
         responses={
             200: ("Success", "VoteListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -83,7 +83,7 @@ class VoteList(Resource):
         responses={
             200: ("Success", "VoteDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -131,7 +131,7 @@ class Vote(Resource):
         responses={
             200: ("Success", "VoteDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -170,7 +170,7 @@ class Vote(Resource):
         responses={
             200: ("Success", "VoteDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

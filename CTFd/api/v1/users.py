@@ -67,7 +67,7 @@ class UserList(Resource):
         responses={
             200: ("Success", "UserListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -139,7 +139,7 @@ class UserList(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -181,7 +181,7 @@ class UserPublic(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -206,7 +206,7 @@ class UserPublic(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -271,7 +271,7 @@ class UserPrivate(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -289,7 +289,7 @@ class UserPrivate(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
