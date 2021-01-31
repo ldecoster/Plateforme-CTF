@@ -6,7 +6,7 @@ from flask_restx import Namespace, Resource
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import clear_config, clear_standings
+from CTFd.cache import clear_config
 from CTFd.constants import RawEnum
 from CTFd.models import Configs, Fields, db
 from CTFd.schemas.config import ConfigSchema
@@ -98,7 +98,6 @@ class ConfigList(Resource):
         db.session.close()
 
         clear_config()
-        clear_standings()
 
         return {"success": True, "data": response.data}
 
@@ -114,7 +113,6 @@ class ConfigList(Resource):
             set_config(key=key, value=value)
 
         clear_config()
-        clear_standings()
 
         return {"success": True}
 
@@ -170,7 +168,6 @@ class Config(Resource):
         db.session.close()
 
         clear_config()
-        clear_standings()
 
         return {"success": True, "data": response.data}
 
@@ -187,7 +184,6 @@ class Config(Resource):
         db.session.close()
 
         clear_config()
-        clear_standings()
 
         return {"success": True}
 

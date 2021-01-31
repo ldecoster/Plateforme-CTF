@@ -25,38 +25,6 @@ def clear_config():
     cache.delete_memoized(get_app_config)
 
 
-def clear_standings():
-    from CTFd.models import Users
-    from CTFd.constants.static import CacheKeys
-    from CTFd.utils.scores import get_standings, get_user_standings
-    from CTFd.api.v1.scoreboard import ScoreboardDetail, ScoreboardList
-    from CTFd.api import api
-    from CTFd.utils.user import (
-        get_user_score,
-        get_user_place,
-    )
-
-    # Clear out the bulk standings functions
-    cache.delete_memoized(get_standings)
-    cache.delete_memoized(get_user_standings)
-
-    # Clear out the individual helpers for accessing score via the model
-   
-    cache.delete_memoized(Users.get_place)
-
-    # Clear the Jinja Attrs constants
-    cache.delete_memoized(get_user_score)
-    cache.delete_memoized(get_user_place)
-
-    # Clear out HTTP request responses
-    cache.delete(make_cache_key(path=api.name + "." + ScoreboardList.endpoint))
-    cache.delete(make_cache_key(path=api.name + "." + ScoreboardDetail.endpoint))
-    cache.delete_memoized(ScoreboardList.get)
-
-    # Clear out scoreboard templates
-    cache.delete(make_template_fragment_key(CacheKeys.PUBLIC_SCOREBOARD_TABLE))
-
-
 def clear_pages():
     from CTFd.utils.config.pages import get_page, get_pages
 

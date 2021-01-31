@@ -1,7 +1,6 @@
 from wtforms import (
     HiddenField,
     PasswordField,
-    RadioField,
     SelectField,
     StringField,
     TextAreaField,
@@ -20,13 +19,6 @@ class SetupForm(BaseForm):
     )
     ctf_description = TextAreaField(
         "Event Description", description="Description for the CTF"
-    )
-    user_mode = RadioField(
-        "User Mode",
-        choices=[("users", "User Mode")],
-        default="users",
-        description="Controls whether users join together in teams to play (Team Mode) or play as themselves (User Mode)",
-        validators=[InputRequired()],
     )
 
     name = StringField(
@@ -57,10 +49,4 @@ class SetupForm(BaseForm):
         description="Color used by theme to control aesthetics. Requires theme support. Optional.",
     )
 
-    start = StringField(
-        "Start Time", description="Time when your CTF is scheduled to start. Optional."
-    )
-    end = StringField(
-        "End Time", description="Time when your CTF is scheduled to end. Optional."
-    )
     submit = SubmitField("Finish")

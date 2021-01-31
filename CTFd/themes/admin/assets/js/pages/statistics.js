@@ -284,10 +284,7 @@ const graph_configs = {
         title: "Challenge Name"
       },
       yaxis: {
-        title: "Percentage of {0} (%)".format(
-          CTFd.config.userMode.charAt(0).toUpperCase() +
-            CTFd.config.userMode.slice(1)
-        ),
+        title: "Percentage of Users (%)",
         range: [0, 100]
       },
       annotations: annotations
@@ -351,10 +348,7 @@ const graph_configs = {
           }
         },
         yAxis: {
-          name: "Percentage of {0} (%)".format(
-            CTFd.config.userMode.charAt(0).toUpperCase() +
-              CTFd.config.userMode.slice(1)
-          ),
+          name: "Percentage of Users (%)",
           nameGap: 50,
           nameLocation: "middle",
           type: "value",

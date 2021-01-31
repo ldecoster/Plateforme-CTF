@@ -8,7 +8,6 @@ from CTFd.api.v1.schemas import (
     APIDetailedSuccessResponse,
     PaginatedAPIListSuccessResponse,
 )
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Submissions, db
 from CTFd.schemas.submissions import SubmissionSchema
@@ -137,9 +136,6 @@ class SubmissionsList(Resource):
         response = schema.dump(response.data)
         db.session.close()
 
-        # Delete standings cache
-        clear_standings()
-
         return {"success": True, "data": response.data}
 
 
@@ -183,8 +179,5 @@ class Submission(Resource):
         db.session.delete(submission)
         db.session.commit()
         db.session.close()
-
-        # Delete standings cache
-        clear_standings()
 
         return {"success": True}

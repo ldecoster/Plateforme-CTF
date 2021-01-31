@@ -15,7 +15,6 @@ from CTFd.api.v1.schemas import (
     APISimpleErrorResponse,
     APISimpleSuccessResponse,
 )
-from CTFd.api.v1.scoreboard import scoreboard_namespace
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.api.v1.submissions import submissions_namespace
 from CTFd.api.v1.tagChallenge import tagChallenge_namespace
@@ -42,7 +41,6 @@ CTFd_API_v1.add_namespace(hints_namespace, "/hints")
 CTFd_API_v1.add_namespace(flags_namespace, "/flags")
 CTFd_API_v1.add_namespace(votes_namespace, "/votes")
 CTFd_API_v1.add_namespace(submissions_namespace, "/submissions")
-CTFd_API_v1.add_namespace(scoreboard_namespace, "/scoreboard")
 CTFd_API_v1.add_namespace(users_namespace, "/users")
 CTFd_API_v1.add_namespace(statistics_namespace, "/statistics")
 CTFd_API_v1.add_namespace(files_namespace, "/files")

@@ -1,4 +1,3 @@
-import datetime
 from typing import List
 
 from flask import abort, render_template, request, url_for
@@ -8,7 +7,6 @@ from sqlalchemy.sql import and_
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import ChallengeFiles as ChallengeFilesModel, Votes
 from CTFd.models import (
@@ -27,33 +25,24 @@ from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
 from CTFd.schemas.tags import TagSchema
-from CTFd.utils import config, get_config
-from CTFd.utils import sessions
+from CTFd.utils import config
 from CTFd.utils import user as current_user
 from CTFd.utils.config import get_votes_number
 from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,
-    scores_visible,
 )
-from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
+from CTFd.utils.dates import ctf_paused, isoformat
 from CTFd.utils.decorators import (
-    admins_only,
     contributors_teachers_admins_only,
-    teachers_admins_only,
-    during_ctf_time_only,
     require_verified_emails,
 )
-from CTFd.utils.decorators.visibility import (
-    check_challenge_visibility,
-    check_score_visibility,
-)
+from CTFd.utils.decorators.visibility import check_challenge_visibility
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
 from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_teacher
-from CTFd.utils.security.auth import login_user
 from flask import session
 
 challenges_namespace = Namespace(
@@ -84,7 +73,6 @@ challenges_namespace.schema_model(
 @challenges_namespace.route("")
 class ChallengeList(Resource):
     @check_challenge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     @challenges_namespace.doc(
         description="Endpoint to get Challenge objects in bulk",
@@ -257,7 +245,6 @@ class ChallengeTypes(Resource):
 @challenges_namespace.route("/<challenge_id>")
 class Challenge(Resource):
     @check_challenge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     @challenges_namespace.doc(
         description="Endpoint to get a specific Challenge object",
@@ -357,7 +344,7 @@ class Challenge(Resource):
             files = [url_for("views.files", path=f.location) for f in chal.files]
 
         for hint in Hints.query.filter_by(challenge_id=chal.id).all():
-            if hint.id in unlocked_hints or ctf_ended():
+            if hint.id in unlocked_hints:
                 hints.append(
                     {"id": hint.id, "cost": hint.cost, "content": hint.content}
                 )
@@ -368,17 +355,12 @@ class Challenge(Resource):
 
         Model = get_model()
 
-        if scores_visible() is True and accounts_visible() is True:
+        if accounts_visible() is True:
             solves = Solves.query.join(Model, Solves.account_id == Model.id).filter(
                 Solves.challenge_id == chal.id,
                 Model.banned == False,
                 Model.hidden == False,
             )
-
-            # Only show solves that happened before freeze time if configured
-            freeze = get_config("freeze")
-            if not is_admin() and freeze:
-                solves = solves.filter(Solves.date < unix_time_to_utc(freeze))
 
             solves = solves.count()
             response["solves"] = solves
@@ -477,7 +459,6 @@ class Challenge(Resource):
 @challenges_namespace.route("/attempt")
 class ChallengeAttempt(Resource):
     @check_challenge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     def post(self):
         if authed() is False:
@@ -551,10 +532,9 @@ class ChallengeAttempt(Resource):
         # Anti-bruteforce / submitting Flags too quickly
         kpm = current_user.get_wrong_submissions_per_minute(user.account_id)
         if kpm > 10:
-            if ctftime():
-                chal_class.fail(
-                    user=user, challenge=challenge, request=request
-                )
+            chal_class.fail(
+                user=user, challenge=challenge, request=request
+            )
             log(
                 "submissions",
                 "[{date}] {name} submitted {submission} on {challenge_id} with kpm {kpm} [TOO FAST]",
@@ -596,11 +576,9 @@ class ChallengeAttempt(Resource):
 
             status, message = chal_class.attempt(challenge, request)
             if status:  # The challenge plugin says the input is right
-                if ctftime() or current_user.is_admin():
-                    chal_class.solve(
-                        user=user, challenge=challenge, request=request
-                    )
-                    clear_standings()
+                chal_class.solve(
+                    user=user, challenge=challenge, request=request
+                )
 
                 log(
                     "submissions",
@@ -614,11 +592,9 @@ class ChallengeAttempt(Resource):
                     "data": {"status": "correct", "message": message},
                 }
             else:  # The challenge plugin says the input is wrong
-                if ctftime() or current_user.is_admin():
-                    chal_class.fail(
-                        user=user, challenge=challenge, request=request
-                    )
-                    clear_standings()
+                chal_class.fail(
+                    user=user, challenge=challenge, request=request
+                )
 
                 log(
                     "submissions",
@@ -672,9 +648,6 @@ class ChallengeAttempt(Resource):
 
 @challenges_namespace.route("/<challenge_id>/solves")
 class ChallengeSolves(Resource):
-    @check_challenge_visibility
-    @check_score_visibility
-    @during_ctf_time_only
     @require_verified_emails
     def get(self, challenge_id):
         response = []
@@ -696,13 +669,6 @@ class ChallengeSolves(Resource):
             )
             .order_by(Solves.date.asc())
         )
-
-        freeze = get_config("freeze")
-        if freeze:
-            preview = request.args.get("preview")
-            if (is_admin() is False) or (is_admin() is True and preview):
-                dt = datetime.datetime.utcfromtimestamp(freeze)
-                solves = solves.filter(Solves.date < dt)
 
         for solve in solves:
             response.append(

@@ -56,18 +56,9 @@
 					{% for user in users.items %}
 						<tr>
 							<td>
-								{% if scores_visible() %}
-									<a href="{{ url_for('users.public', user_id=user.id) }}">
-										{{ user.name | truncate(50) }}
-									</a>
-								{% else %}
-									<span>{{ user.name | truncate(50) }}</span>
-								{% endif %}
-								{% if user.oauth_id %}
-									<a href="https://majorleaguecyber.org/u/{{ user.name }}">
-										<span class="badge badge-primary">Official</span>
-									</a>
-								{% endif %}
+                                <a href="{{ url_for('users.public', user_id=user.id) }}">
+                                    {{ user.name | truncate(50) }}
+                                </a>
 							</td>
 							<td class="text-center" style="width: 10px;">
 								{% if user.website and (user.website.startswith('http://') or user.website.startswith('https://')) %}

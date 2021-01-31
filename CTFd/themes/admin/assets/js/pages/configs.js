@@ -1,8 +1,6 @@
 import "./main";
 import "core/utils";
 import "bootstrap/js/dist/tab";
-import Moment from "moment-timezone";
-import moment from "moment-timezone";
 import CTFd from "core/CTFd";
 import { default as helpers } from "core/helpers";
 import $ from "jquery";
@@ -11,79 +9,6 @@ import CodeMirror from "codemirror";
 import "codemirror/mode/htmlmixed/htmlmixed.js";
 import Vue from "vue/dist/vue.esm.browser";
 import FieldList from "../components/configs/fields/FieldList.vue";
-
-function loadTimestamp(place, timestamp) {
-  if (typeof timestamp == "string") {
-    timestamp = parseInt(timestamp, 10);
-  }
-  const m = Moment(timestamp * 1000);
-  $("#" + place + "-month").val(m.month() + 1); // Months are zero indexed (http://momentjs.com/docs/#/get-set/month/)
-  $("#" + place + "-day").val(m.date());
-  $("#" + place + "-year").val(m.year());
-  $("#" + place + "-hour").val(m.hour());
-  $("#" + place + "-minute").val(m.minute());
-  loadDateValues(place);
-}
-
-function loadDateValues(place) {
-  const month = $("#" + place + "-month").val();
-  const day = $("#" + place + "-day").val();
-  const year = $("#" + place + "-year").val();
-  const hour = $("#" + place + "-hour").val();
-  const minute = $("#" + place + "-minute").val();
-  const timezone = $("#" + place + "-timezone").val();
-
-  const utc = convertDateToMoment(month, day, year, hour, minute);
-  if (isNaN(utc.unix())) {
-    $("#" + place).val("");
-    $("#" + place + "-local").val("");
-    $("#" + place + "-zonetime").val("");
-  } else {
-    $("#" + place).val(utc.unix());
-    $("#" + place + "-local").val(
-      utc.local().format("dddd, MMMM Do YYYY, h:mm:ss a zz")
-    );
-    $("#" + place + "-zonetime").val(
-      utc.tz(timezone).format("dddd, MMMM Do YYYY, h:mm:ss a zz")
-    );
-  }
-}
-
-function convertDateToMoment(month, day, year, hour, minute) {
-  let month_num = month.toString();
-  if (month_num.length == 1) {
-    month_num = "0" + month_num;
-  }
-
-  let day_str = day.toString();
-  if (day_str.length == 1) {
-    day_str = "0" + day_str;
-  }
-
-  let hour_str = hour.toString();
-  if (hour_str.length == 1) {
-    hour_str = "0" + hour_str;
-  }
-
-  let min_str = minute.toString();
-  if (min_str.length == 1) {
-    min_str = "0" + min_str;
-  }
-
-  // 2013-02-08 24:00
-  const date_string =
-    year.toString() +
-    "-" +
-    month_num +
-    "-" +
-    day_str +
-    " " +
-    hour_str +
-    ":" +
-    min_str +
-    ":00";
-  return Moment(date_string, Moment.ISO_8601);
-}
 
 function updateConfigs(event) {
   event.preventDefault();
@@ -220,16 +145,6 @@ function exportConfig(event) {
   window.location.href = $(this).attr("href");
 }
 
-function insertTimezones(target) {
-  let current = $("<option>").text(moment.tz.guess());
-  $(target).append(current);
-  let tz_names = moment.tz.names();
-  for (let i = 0; i < tz_names.length; i++) {
-    let tz = $("<option>").text(tz_names[i]);
-    $(target).append(tz);
-  }
-}
-
 $(() => {
   const theme_header_editor = CodeMirror.fromTextArea(
     document.getElementById("theme-header"),
@@ -316,10 +231,6 @@ $(() => {
     $("#theme-settings-modal").modal();
   });
 
-  insertTimezones($("#start-timezone"));
-  insertTimezones($("#end-timezone"));
-  insertTimezones($("#freeze-timezone"));
-
   $(".config-section > form:not(.form-upload)").submit(updateConfigs);
   $("#logo-upload").submit(uploadLogo);
   $("#remove-logo").click(removeLogo);
@@ -342,30 +253,6 @@ $(() => {
     }
     theme_header_editor.getDoc().setValue(new_css);
   });
-
-  $(".start-date").change(function() {
-    loadDateValues("start");
-  });
-  $(".end-date").change(function() {
-    loadDateValues("end");
-  });
-  $(".freeze-date").change(function() {
-    loadDateValues("freeze");
-  });
-
-  const start = $("#start").val();
-  const end = $("#end").val();
-  const freeze = $("#freeze").val();
-
-  if (start) {
-    loadTimestamp("start", start);
-  }
-  if (end) {
-    loadTimestamp("end", end);
-  }
-  if (freeze) {
-    loadTimestamp("freeze", freeze);
-  }
 
   // Toggle username and password based on stored value
   $("#mail_useauth")

@@ -12,7 +12,6 @@ from CTFd.constants.config import (
     ChallengeVisibilityTypes,
     ConfigTypes,
     RegistrationVisibilityTypes,
-    ScoreVisibilityTypes,
 )
 from CTFd.models import (
     Admins,
@@ -29,7 +28,6 @@ from CTFd.utils import validators
 from CTFd.utils.config import is_setup
 from CTFd.utils.config.pages import build_html, get_page
 from CTFd.utils.config.visibility import challenges_visible
-from CTFd.utils.dates import ctf_ended, ctftime, view_after_ctf
 from CTFd.utils.decorators import authed_only
 from CTFd.utils.email import (
     DEFAULT_PASSWORD_RESET_BODY,
@@ -42,7 +40,6 @@ from CTFd.utils.email import (
     DEFAULT_VERIFICATION_EMAIL_SUBJECT,
 )
 from CTFd.utils.helpers import get_errors, get_infos, markup
-from CTFd.utils.modes import USERS_MODE
 from CTFd.utils.security.auth import login_user
 from CTFd.utils.security.csrf import generate_nonce
 from CTFd.utils.security.signing import (
@@ -68,10 +65,8 @@ def setup():
             # General
             ctf_name = request.form.get("ctf_name")
             ctf_description = request.form.get("ctf_description")
-            user_mode = request.form.get("user_mode", USERS_MODE)
             set_config("ctf_name", ctf_name)
             set_config("ctf_description", ctf_description)
-            set_config("user_mode", user_mode)
 
             # Style
             theme = request.form.get("ctf_theme", "core")
@@ -88,13 +83,6 @@ def setup():
                     "</style>\n"
                 ).format(theme_color=theme_color)
                 set_config("theme_header", css)
-
-            # DateTime
-            start = request.form.get("start")
-            end = request.form.get("end")
-            set_config("start", start)
-            set_config("end", end)
-            set_config("freeze", None)
 
             # Administration
             name = request.form["name"]
@@ -168,7 +156,6 @@ def setup():
             set_config(
                 ConfigTypes.REGISTRATION_VISIBILITY, RegistrationVisibilityTypes.PUBLIC
             )
-            set_config(ConfigTypes.SCORE_VISIBILITY, ScoreVisibilityTypes.PUBLIC)
             set_config(ConfigTypes.ACCOUNT_VISIBILITY, AccountVisibilityTypes.PUBLIC)
 
             # Verify emails
@@ -238,34 +225,6 @@ def setup():
             return redirect(url_for("views.static_html"))
         return render_template("setup.html", state=serialize(generate_nonce()))
     return redirect(url_for("views.static_html"))
-
-
-@views.route("/setup/integrations", methods=["GET", "POST"])
-def integrations():
-    if is_admin() or is_setup() is False:
-        name = request.values.get("name")
-        state = request.values.get("state")
-
-        try:
-            state = unserialize(state, max_age=3600)
-        except (BadSignature, BadTimeSignature):
-            state = False
-        except Exception:
-            state = False
-
-        if state:
-            if name == "mlc":
-                mlc_client_id = request.values.get("mlc_client_id")
-                mlc_client_secret = request.values.get("mlc_client_secret")
-                set_config("oauth_client_id", mlc_client_id)
-                set_config("oauth_client_secret", mlc_client_secret)
-                return render_template("admin/integrations.html")
-            else:
-                abort(404)
-        else:
-            abort(403)
-    else:
-        abort(403)
 
 
 @views.route("/notifications", methods=["GET"])
@@ -365,17 +324,8 @@ def files(path):
     """
     f = Files.query.filter_by(location=path).first_or_404()
     if f.type == "challenge":
-        if challenges_visible():
-            if current_user.is_admin() is False:
-                if not ctftime():
-                    if ctf_ended() and view_after_ctf():
-                        pass
-                    else:
-                        abort(403)
-        else:
-            if not ctftime():
-                abort(403)
-
+        # si les challenges sont visibles
+        if challenges_visible() is False:
             # Allow downloads if a valid token is provided
             token = request.args.get("token", "")
             try:

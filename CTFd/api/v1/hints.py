@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Challenges, HintUnlocks, Hints, db
 from CTFd.schemas.hints import HintSchema
-from CTFd.utils.decorators import admins_only,contributors_teachers_admins_only, authed_only, during_ctf_time_only
+from CTFd.utils.decorators import contributors_teachers_admins_only, authed_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import get_current_user, is_admin, is_contributor, is_teacher
 from flask import session
@@ -107,7 +107,6 @@ class HintList(Resource):
 
 @hints_namespace.route("/<hint_id>")
 class Hint(Resource):
-    @during_ctf_time_only
     @authed_only
     @hints_namespace.doc(
         description="Endpoint to get a specific Hint object",

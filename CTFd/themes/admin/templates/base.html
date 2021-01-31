@@ -15,10 +15,7 @@
 		var init = {
 			'urlRoot': "{{ request.script_root }}",
 			'csrfNonce': "{{ Session.nonce }}",
-			'userMode': "{{ get_config('user_mode') }}",
 			'userId': {{ id if (id is defined) else 0 }},
-			'start': {{ get_config("start") | tojson }},
-			'end': {{ get_config("end") | tojson }},
 		}
 	</script>
 	{% block stylesheets %} {% endblock %}
@@ -54,11 +51,6 @@
 							<a class="dropdown-item" href="{{ url_for('admin.pages_new') }}">New Page</a>
 						</div>
 					</li>
-					
-					{% if get_config('user_mode') == 'teams' %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.teams_listing') }}">Teams</a></li>
-					{% endif %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.scoreboard_listing') }}">Scoreboard</a></li>
 					
 					<li class="nav-item dropdown">
 						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"

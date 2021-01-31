@@ -5,7 +5,7 @@ import { cumulativeSum, colorHash } from "./utils";
 
 const graph_configs = {
   score_graph: {
-    format: (type, id, name, _account_id, responses) => {
+    format: (id, name, _account_id, responses) => {
       let option = {
         title: {
           left: "center",
@@ -97,7 +97,7 @@ const graph_configs = {
   },
 
   category_breakdown: {
-    format: (type, id, name, account_id, responses) => {
+    format: (id, name, account_id, responses) => {
       let option = {
         title: {
           left: "center",
@@ -290,14 +290,13 @@ export function createGraph(
   graph_type,
   target,
   data,
-  type,
   id,
   name,
   account_id
 ) {
   const cfg = graph_configs[graph_type];
   let chart = echarts.init(document.querySelector(target));
-  chart.setOption(cfg.format(type, id, name, account_id, data));
+  chart.setOption(cfg.format(id, name, account_id, data));
   $(window).on("resize", function() {
     if (chart != null && chart != undefined) {
       chart.resize();
@@ -309,14 +308,13 @@ export function updateGraph(
   graph_type,
   target,
   data,
-  type,
   id,
   name,
   account_id
 ) {
   const cfg = graph_configs[graph_type];
   let chart = echarts.init(document.querySelector(target));
-  chart.setOption(cfg.format(type, id, name, account_id, data));
+  chart.setOption(cfg.format(id, name, account_id, data));
 }
 
 export function disposeGraph(target) {

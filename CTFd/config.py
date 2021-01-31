@@ -184,8 +184,6 @@ class ServerConfig(object):
 
     SWAGGER_UI_ENDPOINT: str = "/" if SWAGGER_UI else None
 
-    UPDATE_CHECK: bool = empty_str_cast(config_ini["optional"]["UPDATE_CHECK"], default=True)
-
     APPLICATION_ROOT: str = empty_str_cast(config_ini["optional"]["APPLICATION_ROOT"], default="/")
 
     SERVER_SENT_EVENTS: bool = empty_str_cast(config_ini["optional"]["SERVER_SENT_EVENTS"], default=True)
@@ -198,9 +196,6 @@ class ServerConfig(object):
             "pool_pre_ping": empty_str_cast(config_ini["optional"]["SQLALCHEMY_POOL_PRE_PING"], default=True),  # noqa: E131
         }
 
-    # === OAUTH ===
-    OAUTH_CLIENT_ID: str = empty_str_cast(config_ini["oauth"]["OAUTH_CLIENT_ID"])
-    OAUTH_CLIENT_SECRET: str = empty_str_cast(config_ini["oauth"]["OAUTH_CLIENT_SECRET"])
 # fmt: on
 
 
@@ -211,7 +206,6 @@ class TestingConfig(ServerConfig):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv("TESTING_DATABASE_URL") or "sqlite://"
     SERVER_NAME = "localhost"
-    UPDATE_CHECK = False
     REDIS_URL = None
     CACHE_TYPE = "simple"
     CACHE_THRESHOLD = 500

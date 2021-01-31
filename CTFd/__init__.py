@@ -24,7 +24,6 @@ from CTFd.utils.initialization import (
 )
 from CTFd.utils.migrations import create_database, migrations, stamp_latest_revision
 from CTFd.utils.sessions import CachingSessionInterface
-from CTFd.utils.updates import update_check
 
 __version__ = "3.1.1"
 __channel__ = "oss"
@@ -242,8 +241,6 @@ def create_app(config="CTFd.config.Config"):
         if not utils.get_config("ctf_theme"):
             utils.set_config("ctf_theme", "core")
 
-        update_check(force=True)
-
         init_request_processors(app)
         init_template_filters(app)
         init_template_globals(app)
@@ -252,7 +249,6 @@ def create_app(config="CTFd.config.Config"):
         from CTFd.views import views
         from CTFd.users import users
         from CTFd.challenges import challenges
-        from CTFd.scoreboard import scoreboard
         from CTFd.auth import auth
         from CTFd.admin import admin
         from CTFd.api import api
@@ -262,7 +258,6 @@ def create_app(config="CTFd.config.Config"):
         app.register_blueprint(views)
         app.register_blueprint(users)
         app.register_blueprint(challenges)
-        app.register_blueprint(scoreboard)
         app.register_blueprint(auth)
         app.register_blueprint(api)
         app.register_blueprint(events)

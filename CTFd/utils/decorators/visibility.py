@@ -1,55 +1,15 @@
 import functools
 
-from flask import abort, redirect, render_template, request, url_for
+from flask import abort, redirect, request, url_for
 
 from CTFd.constants.config import (
     AccountVisibilityTypes,
     ChallengeVisibilityTypes,
     ConfigTypes,
     RegistrationVisibilityTypes,
-    ScoreVisibilityTypes,
 )
 from CTFd.utils import get_config
 from CTFd.utils.user import authed, is_admin
-
-
-def check_score_visibility(f):
-    @functools.wraps(f)
-    def _check_score_visibility(*args, **kwargs):
-        v = get_config(ConfigTypes.SCORE_VISIBILITY)
-        if v == ScoreVisibilityTypes.PUBLIC:
-            return f(*args, **kwargs)
-
-        elif v == ScoreVisibilityTypes.PRIVATE:
-            if authed():
-                return f(*args, **kwargs)
-            else:
-                if request.content_type == "application/json":
-                    abort(403)
-                else:
-                    return redirect(url_for("auth.login", next=request.full_path))
-
-        elif v == ScoreVisibilityTypes.HIDDEN:
-            if is_admin():
-                return f(*args, **kwargs)
-            else:
-                if request.content_type == "application/json":
-                    abort(403)
-                else:
-                    return (
-                        render_template(
-                            "errors/403.html", error="Scores are currently hidden"
-                        ),
-                        403,
-                    )
-
-        elif v == ScoreVisibilityTypes.ADMINS:
-            if is_admin():
-                return f(*args, **kwargs)
-            else:
-                abort(404)
-
-    return _check_score_visibility
 
 
 def check_challenge_visibility(f):

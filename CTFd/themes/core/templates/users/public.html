@@ -8,22 +8,6 @@
 		<div class="container">
 			<h1>{{ user.name }}</h1>
 
-			{% if user.team_id %}
-				<h2>
-					<a href="{{ url_for('teams.public', team_id=user.team_id) }}">
-						<span class="badge badge-secondary">
-							{{ user.team.name }}
-						</span>
-					</a>
-				</h2>
-			{% endif %}
-
-			{% if user.oauth_id %}
-				<a href="https://majorleaguecyber.org/u/{{ user.name }}">
-					<h3><span class="badge badge-primary">Official</span></h3>
-				</a>
-			{% endif %}
-
 			{% if user.affiliation %}
 				<h3 class="d-inline-block">
 					<span class="badge badge-primary">{{ user.affiliation }}</span>
@@ -44,19 +28,6 @@
 					{{ field.name }}: {{ field.value }}
 				</h3>
 			{% endfor %}
-
-			<div>
-				<h2 class="text-center">
-					{% if account.place %}
-						{{ account.place }} <small>place</small>
-					{% endif %}
-				</h2>
-				<h2 class="text-center">
-					{% if account.place %}
-						{{ account.score }} <small>points</small>
-					{% endif %}
-				</h2>
-			</div>
 
 			<div class="pt-3">
 				{% if user.website %}
@@ -163,7 +134,6 @@
 {% block scripts %}
 	<script>
 		var stats_data = {{ {
-			'type': 'user',
 			'id': user.id,
 			'name': user.name,
 			'account_id': 'me' if user.id == id else user.id,

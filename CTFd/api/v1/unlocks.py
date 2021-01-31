@@ -6,7 +6,6 @@ from flask_restx import Namespace, Resource
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Unlocks, db, get_class_by_tablename
 from CTFd.schemas.awards import AwardSchema
@@ -14,7 +13,6 @@ from CTFd.schemas.unlocks import UnlockSchema
 from CTFd.utils.decorators import (
     admins_only,
     authed_only,
-    during_ctf_time_only,
     require_verified_emails,
 )
 from CTFd.utils.helpers.models import build_model_filters
@@ -59,7 +57,6 @@ class UnlockList(Resource):
     @validate_args(
         {
             "user_id": (int, None),
-            "team_id": (int, None),
             "target": (int, None),
             "type": (str, None),
             "q": (str, None),
@@ -84,7 +81,6 @@ class UnlockList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @during_ctf_time_only
     @require_verified_emails
     @authed_only
     @unlocks_namespace.doc(
@@ -102,21 +98,9 @@ class UnlockList(Resource):
         user = get_current_user()
 
         req["user_id"] = user.id
-        req["team_id"] = user.team_id
 
         Model = get_class_by_tablename(req["type"])
         target = Model.query.filter_by(id=req["target"]).first_or_404()
-
-        if target.cost > user.score:
-            return (
-                {
-                    "success": False,
-                    "errors": {
-                        "score": "You do not have enough points to unlock this hint"
-                    },
-                },
-                400,
-            )
 
         schema = UnlockSchema()
         response = schema.load(req, session=db.session)
@@ -139,7 +123,6 @@ class UnlockList(Resource):
         award_schema = AwardSchema()
         award = {
             "user_id": user.id,
-            "team_id": user.team_id,
             "name": target.name,
             "description": target.description,
             "value": (-target.cost),
@@ -148,7 +131,6 @@ class UnlockList(Resource):
         award = award_schema.load(award)
         db.session.add(award.data)
         db.session.commit()
-        clear_standings()
 
         response = schema.dump(response.data)
 
