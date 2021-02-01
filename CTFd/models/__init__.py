@@ -253,8 +253,7 @@ class Users(db.Model):
     __table_args__ = (db.UniqueConstraint("id"), {})
     # Core attributes
     id = db.Column(db.Integer, primary_key=True)
-    # User names are not constrained to be unique to allow for official/unofficial teams.
-    name = db.Column(db.String(128))
+    name = db.Column(db.String(128), unique=True)
     password = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
     type = db.Column(db.String(80))
