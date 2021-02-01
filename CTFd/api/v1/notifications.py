@@ -54,7 +54,6 @@ class NotificantionList(Resource):
             "title": (str, None),
             "content": (str, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "q": (str, None),
             "field": (
                 RawEnum("NotificationFields", {"title": "title", "content": "content"}),

@@ -9,7 +9,7 @@ from CTFd.models import db
 class ResetInstanceForm(BaseForm):
     accounts = BooleanField(
         "Accounts",
-        description="Deletes all user and team accounts and their associated information",
+        description="Deletes all user accounts and their associated information",
     )
     submissions = BooleanField(
         "Submissions",

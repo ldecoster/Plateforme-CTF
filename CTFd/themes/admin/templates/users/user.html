@@ -86,7 +86,7 @@
 
 <div class="jumbotron">
 	<div class="container">
-		<h1 id="team-id" class="text-center p-0 m-0">{{ user.name }}</h1>
+		<h1 class="text-center p-0 m-0">{{ user.name }}</h1>
 		<div class="mb-2">
 			{% if user.type == 'admin' %}
 				<span class="badge badge-primary">admin</span>
@@ -117,7 +117,7 @@
 				</h3>
 			{% endif %}
 
-		<h2 id="team-email" class="text-center">{{ user.email }}</h2>
+		<h2 class="text-center">{{ user.email }}</h2>
 
 		{% for field in user.get_fields(admin=true) %}
 			<h3 class="d-block">
