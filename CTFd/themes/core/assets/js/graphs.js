@@ -48,7 +48,7 @@ const graph_configs = {
       };
 
       const times = [];
-      const scores = [];
+      const scores = [0];
       const solves = responses[0].data;
       const awards = responses[2].data;
       const total = solves.concat(awards);
@@ -60,11 +60,6 @@ const graph_configs = {
       for (let i = 0; i < total.length; i++) {
         const date = Moment(total[i].date);
         times.push(date.toDate());
-        try {
-          scores.push(total[i].challenge.value);
-        } catch (e) {
-          scores.push(total[i].value);
-        }
       }
 
       times.forEach(time => {

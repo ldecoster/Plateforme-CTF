@@ -93,7 +93,6 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-
         if is_admin() or is_teacher() or is_contributor():
             db.session.commit()
 
@@ -101,7 +100,7 @@ class TagList(Resource):
             db.session.close()
 
             return {"success": True, "data": response.data}
-        return {"success":False}
+        return {"success": False}
 
 
 @tags_namespace.route("/<tag_id>")
@@ -169,4 +168,4 @@ class Tag(Resource):
             db.session.close()
 
             return {"success": True}
-        return {"success":False}
+        return {"success": False}

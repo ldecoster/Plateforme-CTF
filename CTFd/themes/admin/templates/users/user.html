@@ -199,7 +199,6 @@
 							<th class="sort-col text-center"><b>Challenge</b></th>
 							<th class="sort-col text-center"><b>Submitted</b></th>
 							<th class="sort-col text-center"><b>Category</b></th>
-							<th class="sort-col text-center"><b>Value</b></th>
 							<th class="sort-col text-center"><b>Time</b></th>
 						</tr>
 					</thead>
@@ -220,7 +219,6 @@
 							</td>
 							<td class="flag" id="{{ solve.id }}"><pre>{{ solve.provided }}</pre></td>
 							<td class="text-center">{{ solve.challenge.category }}</td>
-							<td class="text-center">{{ solve.challenge.value }}</td>
 							<td class="text-center solve-time">
 								<span data-time="{{ solve.date | isoformat }}"></span>
 							</td>
@@ -369,7 +367,6 @@
 							</th>
 							<th class="sort-col text-center"><b>Challenge</b></th>
 							<th class="sort-col text-center"><b>Category</b></th>
-							<th class="sort-col text-center"><b>Value</b></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -387,7 +384,6 @@
 								</a>
 							</td>
 							<td class="text-center">{{ challenge.category }}</td>
-							<td class="text-center">{{ challenge.value }}</td>
 						</tr>
 					{% endfor %}
 					</tbody>
