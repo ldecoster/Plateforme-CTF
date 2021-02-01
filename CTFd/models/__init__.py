@@ -6,8 +6,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, validates
 
-from CTFd.cache import cache
-
 db = SQLAlchemy()
 ma = Marshmallow()
 
@@ -125,7 +123,6 @@ class Hints(db.Model):
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
     )
     content = db.Column(db.Text)
-    cost = db.Column(db.Integer, default=0)
 
     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 

@@ -7,11 +7,11 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Challenges, HintUnlocks, Hints, db
+from CTFd.models import Challenges, Hints, db
 from CTFd.schemas.hints import HintSchema
 from CTFd.utils.decorators import contributors_teachers_admins_only, authed_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import get_current_user, is_admin, is_contributor, is_teacher
+from CTFd.utils.user import is_admin, is_contributor, is_teacher
 from flask import session
 
 hints_namespace = Namespace("hints", description="Endpoint to retrieve Hints")
@@ -54,7 +54,6 @@ class HintList(Resource):
             "type": (str, None),
             "challenge_id": (int, None),
             "content": (str, None),
-            "cost": (int, None),
             "q": (str, None),
             "field": (
                 RawEnum("HintFields", {"type": "type", "content": "content"}),
@@ -119,23 +118,9 @@ class Hint(Resource):
         },
     )
     def get(self, hint_id):
-        user = get_current_user()
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
 
-        view = "unlocked"
-        if hint.cost:
-            view = "locked"
-            unlocked = HintUnlocks.query.filter_by(
-                account_id=user.account_id, target=hint.id
-            ).first()
-            if unlocked:
-                view = "unlocked"
-
-        if is_admin():
-            if request.args.get("preview", False):
-                view = "admin"
-
-        response = HintSchema(view=view).dump(hint)
+        response = HintSchema(view="unlocked").dump(hint)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

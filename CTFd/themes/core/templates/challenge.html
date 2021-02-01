@@ -39,21 +39,9 @@
 							{% for hint in hints %}
 								<div class='col-md-12 hint-button-wrapper text-center mb-3'>
 									<a class="btn btn-info btn-hint btn-block load-hint" href="javascript:;" data-hint-id="{{ hint.id }}">
-										{% if hint.content %}
-											<small>
-												View Hint
-											</small>
-										{% else %}
-											{% if hint.cost %}
-												<small>
-													Unlock Hint for {{ hint.cost }} points
-												</small>
-											{% else %}
-												<small>
-													View Hint
-												</small>
-											{% endif %}
-										{% endif %}
+                                        <small>
+                                            View Hint
+                                        </small>
 									</a>
 								</div>
 							{% endfor %}

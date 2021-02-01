@@ -60,7 +60,6 @@ export function showEditHintModal(event) {
             });
           });
 
-        $("#hint-edit-form input[name=cost]").val(response.data.cost);
         $("#hint-edit-form input[name=id]").val(response.data.id);
 
         $("#hint-edit-modal").modal();

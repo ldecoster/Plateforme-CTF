@@ -346,10 +346,10 @@ class Challenge(Resource):
         for hint in Hints.query.filter_by(challenge_id=chal.id).all():
             if hint.id in unlocked_hints:
                 hints.append(
-                    {"id": hint.id, "cost": hint.cost, "content": hint.content}
+                    {"id": hint.id, "content": hint.content}
                 )
             else:
-                hints.append({"id": hint.id, "cost": hint.cost})
+                hints.append({"id": hint.id})
 
         response = chal_class.read(challenge=chal)
 

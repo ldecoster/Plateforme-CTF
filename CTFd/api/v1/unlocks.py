@@ -125,7 +125,6 @@ class UnlockList(Resource):
             "user_id": user.id,
             "name": target.name,
             "description": target.description,
-            "value": (-target.cost),
         }
 
         award = award_schema.load(award)
