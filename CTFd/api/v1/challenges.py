@@ -167,9 +167,8 @@ class ChallengeList(Resource):
                                 "id": challenge.id,
                                 "type": "hidden",
                                 "name": "???",
-                                "value": 0,
                                 "tags": [],
-                                "authorId":"",
+                                "authorId": "",
                                 "template": "",
                                 "script": "",
                             }
@@ -184,15 +183,13 @@ class ChallengeList(Resource):
                 continue
 
             # Challenge passes all checks, add it to response
-            # TODO ISEN : remove unused "value" and "category"
             response.append(
                 {
                     "id": challenge.id,
                     "type": challenge_type.name,
                     "name": challenge.name,
-                    "value": 0,
                     "tags": tag_schema.dump(challenge.tags).data,
-                    "authorId":challenge.author_id,
+                    "authorId": challenge.author_id,
                     "template": challenge_type.templates["view"],
                     "script": challenge_type.scripts["view"],
                 }
@@ -300,8 +297,8 @@ class Challenge(Resource):
                                 "id": chal.id,
                                 "type": "hidden",
                                 "name": "???",
-                                "value": 0,
                                 "tags": [],
+                                "authorId": "",
                                 "template": "",
                                 "script": "",
                             },

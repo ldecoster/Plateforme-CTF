@@ -349,14 +349,12 @@ async function loadChals() {
           }
 
           const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-          const chalscore = $("<span>{0}</span>".format(chalinfo.value));
           for (let j = 0; j < chalinfo.tags.length; j++) {
             const tag = "tag-" + chalinfo.tags[j].value.replace(/ /g, "-");
             chalwrap.addClass(tag);
           }
 
           chalbutton.append(chalheader);
-          chalbutton.append(chalscore);
           chalwrap.append(chalbutton);
 
           challengesBoard
@@ -441,9 +439,7 @@ async function loadChals() {
           classValue = ".solved-header";
         }
         const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-        const chalscore = $("<span>{0}</span>".format(chalinfo.value));
         chalbutton.append(chalheader);
-        chalbutton.append(chalscore);
         chalwrap.append(chalbutton);
         challengesBoard
           .find(classValue + " > .challenges-row")
@@ -491,9 +487,7 @@ async function loadChals() {
           );
         }
         const chalheader = $("<p>{0}</p>".format(challenges[i].name));
-        const chalscore = $("<span>{0}</span>".format(challenges[i].value));
         chalbutton.append(chalheader);
-        chalbutton.append(chalscore);
         chalwrap.append(chalbutton);
         challengesBoard
           .find("#" + challenges[i].authorId + "-row > .author-challenge > .challenges-row")
