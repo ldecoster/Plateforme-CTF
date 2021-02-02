@@ -181,21 +181,22 @@ const graph_configs = {
         counts.push(count);
       }
 
-      keys.forEach((category, index) => {
-        option.legend.data.push(category);
-        option.series[0].data.push({
-          value: counts[index],
-          name: category,
-          itemStyle: { color: colorHash(category) }
-        });
-      });
+      // Todo : rebuild a new graph with tags
+      // keys.forEach((category, index) => {
+      //   option.legend.data.push(category);
+      //   option.series[0].data.push({
+      //     value: counts[index],
+      //     name: category,
+      //     itemStyle: { color: colorHash(category) }
+      //   });
+      // });
 
       return option;
     }
   },
 
   solve_percentages: {
-    format: (type, id, name, account_id, responses) => {
+    format: (id, name, account_id, responses) => {
       const solves_count = responses[0].data.length;
       const fails_count = responses[1].meta.count;
       let option = {
