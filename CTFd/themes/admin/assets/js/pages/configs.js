@@ -101,8 +101,11 @@ function updateConfigs(event) {
       delete obj.mail_password;
     }
   }
-
+ console.log(obj["newTagValue"]);
+ console.log(obj["value"]);
+ console.log(obj.value);
   Object.keys(obj).forEach(function(x) {
+    console.log(x);
     if (obj[x] === "true") {
       params[x] = true;
     } else if (obj[x] === "false") {
@@ -112,9 +115,9 @@ function updateConfigs(event) {
     }
   });
 
-  CTFd.api.patch_config_list({}, params).then(_response => {
-    window.location.reload();
-  });
+  // CTFd.api.patch_config_list({}, params).then(_response => {
+  //   window.location.reload();
+  // });
 }
 
 function uploadLogo(event) {

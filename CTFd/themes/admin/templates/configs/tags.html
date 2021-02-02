@@ -1,0 +1,27 @@
+<div role="tabpanel" class="tab-pane config-section" id="tags">
+    <div class="form-group">
+        Tags
+        <small class="form-text text-muted">
+            Edit or delete tags.
+        </small>
+
+        <select class="form-control custom-select">
+            {% for tag in tags %}
+            <option>{{ tag.value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <form method="POST" autocomplete="off" class="w-100">
+        <div class="form-group">
+            <input class="form-control" id='newTagValue' name='newTagValue' type='text' placeholder="New value">
+        </div>
+
+        <button type="submit" class="btn btn-md btn-primary float-right" value="Update">Update</button>
+    </form>
+
+    <form method="DELETE" autocomplete="off" class="w-100">
+        <button type="submit" class="btn btn-md btn-danger float-right" value="Delete">Delete</button>
+    </form>
+
+</div>
