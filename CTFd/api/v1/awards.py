@@ -50,8 +50,6 @@ class AwardList(Resource):
     @validate_args(
         {
             "user_id": (int, None),
-            "type": (str, None),
-            "value": (int, None),
             "icon": (int, None),
             "q": (str, None),
             "field": (
@@ -59,7 +57,6 @@ class AwardList(Resource):
                     "AwardFields",
                     {
                         "name": "name",
-                        "description": "description",
                         "icon": "icon",
                     },
                 ),
