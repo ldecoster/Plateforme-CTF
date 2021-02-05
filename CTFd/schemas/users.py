@@ -58,15 +58,15 @@ class UserSchema(ma.ModelSchema):
 
     @pre_load
     def validate_name(self, data):
-        name = data.get("name")
+        name = data.get("name")  # nouveau nom
         if name is None:
             return
         name = name.strip()
 
-        existing_user = Users.query.filter_by(name=name).first()
-        current_user = get_current_user()
+        existing_user = Users.query.filter_by(name=name).first()  # utilisateur existant avec ce nom
+        current_user = get_current_user()  # utilisateur actuel
         if is_admin() or is_teacher():
-            user_id = data.get("id")
+            user_id = data.get("id")  # id de la personne dont on change le nom
             if user_id:
                 if existing_user and existing_user.id != user_id:
                     raise ValidationError(
@@ -188,22 +188,33 @@ class UserSchema(ma.ModelSchema):
 
     @pre_load
     def validate_type(self, data):
-        user_id = data.get("id")
         user_type = data.get("type")
-        existing_user = Users.query.filter_by(id=user_id).first()
 
         if user_type is not None:
             if is_admin():
                 pass
             elif is_teacher():
-                if existing_user.type == "admin":
-                    raise ValidationError("You can't change the type of an Admin", field_names=["type"])
-                if user_type == "user" or user_type == "contributor" or user_type == "teacher":
+                user_id = data.get("id")
+                if user_id:
+                    target_user = Users.query.filter_by(id=user_id).first()
+                    if target_user.type == "admin":
+                        raise ValidationError(
+                            "You can't change the type of an Admin", field_names=["type"]
+                        )
+                    if target_user.type == "teacher":
+                        raise ValidationError(
+                            "You can't change the type of a Teacher", field_names=["type"]
+                        )
+                if user_type == "user" or user_type == "contributor":
                     pass
                 else:
-                    raise ValidationError("Please choose a valid type", field_names=["type"])
+                    raise ValidationError(
+                        "Please choose a valid type", field_names=["type"]
+                    )
             else:
-                raise ValidationError("Please choose a valid type", field_names=["type"])
+                raise ValidationError(
+                    "Please choose a valid type", field_names=["type"]
+                )
 
     @pre_load
     def validate_fields(self, data):
