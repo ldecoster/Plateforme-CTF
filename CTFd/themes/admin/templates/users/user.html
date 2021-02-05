@@ -91,6 +91,12 @@
 			{% if user.type == 'admin' %}
 				<span class="badge badge-primary">admin</span>
 			{% endif %}
+            {% if user.type == 'teacher' %}
+				<span class="badge badge-primary">teacher</span>
+			{% endif %}
+            {% if user.type == 'contributor' %}
+				<span class="badge badge-primary">contributor</span>
+			{% endif %}
 			{% if user.verified %}
 				<span class="badge badge-success">verified</span>
 			{% endif %}
