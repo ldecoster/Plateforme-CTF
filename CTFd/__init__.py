@@ -25,7 +25,7 @@ from CTFd.utils.initialization import (
 from CTFd.utils.migrations import create_database, migrations, stamp_latest_revision
 from CTFd.utils.sessions import CachingSessionInterface
 
-__version__ = "3.1.1"
+__version__ = "3.2.1"
 __channel__ = "oss"
 
 

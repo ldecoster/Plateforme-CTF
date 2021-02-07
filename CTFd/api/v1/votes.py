@@ -98,6 +98,7 @@ class VoteList(Resource):
 
         challenge = Challenges.query.filter_by(id=response.data.challenge_id).first_or_404()
         already_voted = Votes.query.filter_by(challenge_id=challenge.id, user_id=session["id"]).first()
+        response.data.user_id = session["id"]
         db.session.add(response.data)
 
         if is_admin() or is_teacher() or is_contributor():

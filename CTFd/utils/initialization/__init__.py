@@ -187,6 +187,7 @@ def init_request_processors(app):
             if request.endpoint in (
                 "views.setup",
                 "views.themes",
+                "views.files",
             ):
                 return
             else:

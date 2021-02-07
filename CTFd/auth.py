@@ -167,6 +167,9 @@ def reset_password(data=None):
 def register():
     errors = get_errors()
     if request.method == "POST":
+        if current_user.authed():
+            return redirect(url_for("challenges.listing"))
+
         name = request.form.get("name", "").strip()
         email_address = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
@@ -286,6 +289,11 @@ def register():
                 db.session.commit()
 
                 login_user(user)
+
+                if request.args.get("next") and validators.is_safe_url(
+                    request.args.get("next")
+                ):
+                    return redirect(request.args.get("next"))
 
                 if config.can_send_mail() and get_config(
                     "verify_emails"

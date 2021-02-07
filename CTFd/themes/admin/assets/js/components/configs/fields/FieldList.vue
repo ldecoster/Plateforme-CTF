@@ -72,7 +72,6 @@ export default {
     },
     removeField: function(index) {
       this.fields.splice(index, 1);
-      console.log(this.fields);
     }
   },
   created() {

@@ -108,7 +108,13 @@ class UnlockList(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        existing = Unlocks.query.filter_by(**req).first()
+        # Search for an existing unlock that matches the target and type
+        # And matches either the requesting user id
+        existing = Unlocks.query.filter(
+            Unlocks.target == req["target"],
+            Unlocks.type == req["type"],
+            Unlocks.account_id == user.account_id,
+        ).first()
         if existing:
             return (
                 {

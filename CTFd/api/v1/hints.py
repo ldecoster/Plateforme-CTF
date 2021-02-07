@@ -95,7 +95,7 @@ class HintList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id==session["id"]):
+        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id == session["id"]):
             db.session.commit()
 
             response = schema.dump(response.data)

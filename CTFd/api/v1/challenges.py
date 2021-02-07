@@ -24,6 +24,7 @@ from CTFd.models import (
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
+from CTFd.schemas.votes import VoteSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config
 from CTFd.utils import user as current_user
@@ -727,6 +728,53 @@ class ChallengeHints(Resource):
         return {"success": True, "data": response.data}
 
 
+@challenges_namespace.route("/<challenge_id>/votes")
+class ChallengeVotes(Resource):
+    @contributors_teachers_admins_only
+    def get(self, challenge_id):
+        response_votes = []
+        response_message = "Add vote"
+
+        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        votes = Votes.query.filter_by(challenge_id=challenge_id).all()
+
+        if challenge.state != "voting":
+            response_message = "Challenge is not in voting state"
+        else:
+            user_has_voted = Votes.query.filter_by(challenge_id=challenge.id, user_id=session["id"]).first()
+            if challenge.author_id == session["id"]:
+                response_message = "You can't vote for your own challenge"
+            elif user_has_voted is not None:
+                response_message = "Already voted"
+
+        for v in votes:
+            # An admin or the voter can edit or delete the vote
+            if challenge.state == "voting" and (is_admin() or session["id"] == v.user_id):
+                response_votes.append(
+                    {
+                        "id": v.id,
+                        "challenge_id": v.challenge_id,
+                        "user_id": v.user_id,
+                        "value": v.value,
+                        "user_name": v.user.name,
+                        "can_be_altered": True,
+                    }
+                )
+            else:
+                response_votes.append(
+                    {
+                        "id": v.id,
+                        "challenge_id": v.challenge_id,
+                        "user_id": v.user_id,
+                        "value": v.value,
+                        "user_name": v.user.name,
+                        "can_be_altered": False,
+                    }
+                )
+
+        return {"success": True, "data": {"votes": response_votes, "message": response_message}}
+
+
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
     @contributors_teachers_admins_only
@@ -739,3 +787,11 @@ class ChallengeFlags(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         return {"success": True, "data": response.data}
+
+
+@challenges_namespace.route("/<challenge_id>/requirements")
+class ChallengeRequirements(Resource):
+    @contributors_teachers_admins_only
+    def get(self, challenge_id):
+        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        return {"success": True, "data": challenge.requirements}
