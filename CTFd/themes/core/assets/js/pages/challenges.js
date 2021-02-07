@@ -16,6 +16,7 @@ CTFd._internal.challenge = {};
 let challenges = [];
 let solves = [];
 let tagList = [];
+
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
 
@@ -280,6 +281,7 @@ $('select').on('change', function () {
   loadChals();
 });
 
+// todo ISEN : fix async issue with dependencies
 async function loadChals() {
   //Add loading spinner while fetching API
   $("#challenges-board").empty();
@@ -300,8 +302,6 @@ async function loadChals() {
   }
 
   loadUserSolves().then(async function () {
-
-
     const challengesBoard = $("<div></div>");
     let orderValue = $("#challenges_filter option:selected").val();
 
@@ -342,7 +342,7 @@ async function loadChals() {
           );
           let chalbutton;
 
-          if (solves.indexOf(chalinfo.id) == -1) {
+          if (solves.indexOf(chalinfo.id) === -1) {
             chalbutton = $(
               "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
                 chalinfo.id
@@ -373,13 +373,13 @@ async function loadChals() {
     }
 
     //Display challenges sorted by name
-    else if (orderValue == "name") {
+    else if (orderValue === "name") {
       challenges.sort((a, b) => a.name.localeCompare(b.name))
       challenges.reverse();
       for (let i = challenges.length - 1; i >= 0; i--) {
         const chalinfo = challenges[i];
 
-        if (solves.indexOf(chalinfo.id) == -1) {
+        if (solves.indexOf(chalinfo.id) === -1) {
           const chalrow = $(
             "" +
             '<button class="btn btn-dark challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
@@ -406,7 +406,7 @@ async function loadChals() {
     }
 
     //Display challenges sorted by solved or not
-    else if (orderValue == "solved") {
+    else if (orderValue === "solved") {
       challenges.sort((a, b) => a.name.localeCompare(b.name))
       challenges.reverse();
       const chalrow = $(
@@ -430,7 +430,7 @@ async function loadChals() {
         );
         let chalbutton;
 
-        if (solves.indexOf(chalinfo.id) == -1) {
+        if (solves.indexOf(chalinfo.id) === -1) {
           chalbutton = $(
             "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
               chalinfo.id
@@ -480,7 +480,7 @@ async function loadChals() {
             .append($("<h3>" + user.name + "</h3>"));
           challengesBoard.append(chalrow);
         }
-        var chalbutton;
+        let chalbutton;
         if (solves.indexOf(challenges[i].id) === -1) {
           chalbutton = $(
             "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
@@ -511,8 +511,6 @@ async function loadChals() {
   });
 
 }
-
-
 
 function update() {
   return loadUserSolves() // Load the user's solved challenge ids

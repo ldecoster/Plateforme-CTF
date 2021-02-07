@@ -6,7 +6,6 @@ import CTFd from "core/CTFd";
 import { htmlEntities } from "core/utils";
 import { ezQuery, ezAlert, ezToast } from "core/ezq";
 import { default as helpers } from "core/helpers";
-import { setTagList, deleteTag, addClickedTag } from "../challenges/tags";
 import { bindMarkdownEditors } from "../styles";
 import Vue from "vue/dist/vue.esm.browser";
 import CommentBox from "../components/comments/CommentBox.vue";
@@ -424,9 +423,6 @@ $(() => {
   });
 
   $("#challenge-create-options form").submit(handleChallengeOptions);
-  $("#tags-add-input").keyup(setTagList);
-  $(".delete-tag").click(deleteTag);
-  $('.list-group').on('click', 'a', addClickedTag);
 
   // Load FlagList component
   if (document.querySelector("#challenge-flags")) {
@@ -434,6 +430,16 @@ $(() => {
     let vueContainer = document.createElement("div");
     document.querySelector("#challenge-flags").appendChild(vueContainer);
     new flagList({
+      propsData: { challenge_id: window.CHALLENGE_ID }
+    }).$mount(vueContainer);
+  }
+
+  // Load TagsList component
+  if (document.querySelector("#challenge-tags")) {
+    const tagList = Vue.extend(TagsList);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-tags").appendChild(vueContainer);
+    new tagList({
       propsData: { challenge_id: window.CHALLENGE_ID }
     }).$mount(vueContainer);
   }

@@ -705,11 +705,11 @@ class ChallengeTags(Resource):
         tag_challenges = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
         for tag_challenge in tag_challenges:
             tags.append(
-                Tags.query.filter_by(id=tag_challenge.tag_id).all()
+                Tags.query.filter_by(id=tag_challenge.tag_id).first()
             )
         for t in tags:
             response.append(
-                {"id": t.id, "challenge_id": t.challenge_id, "value": t.value}
+                {"id": t.id, "value": t.value}
             )
         return {"success": True, "data": response}
 
