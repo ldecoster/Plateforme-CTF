@@ -58,15 +58,15 @@ class UserSchema(ma.ModelSchema):
 
     @pre_load
     def validate_name(self, data):
-        name = data.get("name")  # nouveau nom
+        name = data.get("name")
         if name is None:
             return
         name = name.strip()
 
-        existing_user = Users.query.filter_by(name=name).first()  # utilisateur existant avec ce nom
-        current_user = get_current_user()  # utilisateur actuel
+        existing_user = Users.query.filter_by(name=name).first()
+        current_user = get_current_user()
         if is_admin() or is_teacher():
-            user_id = data.get("id")  # id de la personne dont on change le nom
+            user_id = data.get("id")
             if user_id:
                 if existing_user and existing_user.id != user_id:
                     raise ValidationError(
@@ -235,7 +235,7 @@ class UserSchema(ma.ModelSchema):
             else:
                 target_user = current_user
 
-            # We are editting an existing user
+            # We are editing an existing user
             if self.view == "admin" and self.instance:
                 target_user = self.instance
                 provided_ids = []
@@ -243,7 +243,7 @@ class UserSchema(ma.ModelSchema):
                     f.pop("id", None)
                     field_id = f.get("field_id")
 
-                    # # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
+                    # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
                     field = UserFields.query.filter_by(id=field_id).first_or_404()
 
                     # Get the existing field entry if one exists
@@ -272,7 +272,7 @@ class UserSchema(ma.ModelSchema):
                 field_id = f.get("field_id")
                 value = f.get("value")
 
-                # # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
+                # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
                 field = UserFields.query.filter_by(id=field_id).first_or_404()
 
                 if field.required is True and value.strip() == "":
