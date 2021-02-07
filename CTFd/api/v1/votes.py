@@ -8,7 +8,6 @@ from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
 from CTFd.models import Votes, db, Challenges
-from CTFd.plugins.votes import get_vote_class, VOTE_CLASSES
 from CTFd.schemas.votes import VoteSchema
 from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
@@ -112,18 +111,6 @@ class VoteList(Resource):
         return {"success": False}
 
 
-@votes_namespace.route("/types")
-class VoteTypes(Resource):
-    @contributors_teachers_admins_only
-    def get(self):
-        vote_class = VOTE_CLASSES.get("default")
-        response = {
-            "user": session["id"],
-            "templates": vote_class.templates
-        }
-        return {"success": True, "data": response}
-
-
 @votes_namespace.route("/<vote_id>")
 class Vote(Resource):
     @contributors_teachers_admins_only
@@ -139,13 +126,11 @@ class Vote(Resource):
     )
     def get(self, vote_id):
         vote = Votes.query.filter_by(id=vote_id).first_or_404()
-        schema = VoteSchema()
-        response = schema.dump(vote)
+
+        response = VoteSchema().dump(vote)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
-
-        response.data["templates"] = get_vote_class("default").templates
 
         return {"success": True, "data": response.data}
 
