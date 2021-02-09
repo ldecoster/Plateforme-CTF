@@ -225,15 +225,14 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        db.session.commit()
-
         response = schema.dump(response.data)
 
+        db.session.commit()
         db.session.close()
 
         clear_user_session(user_id=user_id)
 
-        return {"success": True, "data": response}
+        return {"success": True, "data": response.data}
 
     @teachers_admins_only
     @users_namespace.doc(
