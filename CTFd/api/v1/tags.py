@@ -93,9 +93,7 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(session["id"])
-      #  print(response.data.challenge.author_id)
+        
         if is_admin() or is_teacher() or is_contributor():
             db.session.commit()
 
@@ -145,6 +143,9 @@ class Tag(Resource):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
         schema = TagSchema()
         req = request.get_json()
+        
+        if is_admin() or is_teacher():
+            tag.value = req["tagValue"]
 
         response = schema.load(req, session=db.session, instance=tag)
         if response.errors:

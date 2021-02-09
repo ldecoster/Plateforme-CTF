@@ -2582,6 +2582,7 @@ let API = (function() {
    * @name API#patch_tag
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.tagId - A Tag ID
+   * @param {string} parameters.tagValue - A new value for the selected Tag
    */
   API.prototype.patch_tag = function(parameters) {
     if (parameters === undefined) {
@@ -2599,6 +2600,7 @@ let API = (function() {
     headers["Content-Type"] = ["application/json"];
 
     path = path.replace("{tag_id}", parameters["tagId"]);
+    body["tagValue"]=parameters["tagValue"];
 
     if (parameters["tagId"] === undefined) {
       deferred.reject(new Error("Missing required  parameter: tagId"));

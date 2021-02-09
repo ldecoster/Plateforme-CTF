@@ -5,7 +5,7 @@
             Edit or delete tags.
         </small>
 
-        <select class="form-control custom-select">
+        <select id="tag-selector" class="form-control custom-select">
             {% for tag in tags %}
             <option>{{ tag.value }}</option>
             {% endfor %}
@@ -16,12 +16,8 @@
         <div class="form-group">
             <input class="form-control" id='newTagValue' name='newTagValue' type='text' placeholder="New value">
         </div>
-
         <button type="submit" class="btn btn-md btn-primary float-right" value="Update">Update</button>
     </form>
 
-    <form method="DELETE" autocomplete="off" class="w-100">
-        <button type="submit" class="btn btn-md btn-danger float-right" value="Delete">Delete</button>
-    </form>
-
+    <button id="tagDeleteBtn" class="btn btn-md btn-danger float-right" value="Delete">Delete</button>
 </div>
