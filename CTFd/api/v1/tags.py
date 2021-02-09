@@ -7,7 +7,7 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Tags, db
+from CTFd.models import Tags, db, TagChallenge
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
@@ -165,8 +165,13 @@ class Tag(Resource):
     )
     def delete(self, tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
-        challenge = Challenges.query.filter_by(id=tag.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        tagChallenges = TagChallenge.query.filter_by(tag_id=tag.id).all()
+
+        if is_admin() or is_teacher():
+
+            for t in tagChallenges :
+                db.session.delete(t)
+
             db.session.delete(tag)
             db.session.commit()
             db.session.close()

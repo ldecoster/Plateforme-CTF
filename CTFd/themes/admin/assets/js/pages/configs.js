@@ -116,11 +116,11 @@ function updateConfigs(event) {
         if (response.success) {
           window.location.reload();
         }
-        console.log(response.errors);
       });
 
     });
   }
+  
 
   Object.keys(obj).forEach(function (x) {
     if (obj[x] === "true") {
@@ -132,9 +132,9 @@ function updateConfigs(event) {
     }
   });
 
-  // CTFd.api.patch_config_list({}, params).then(_response => {
-  //   window.location.reload();
-  // });
+  CTFd.api.patch_config_list({}, params).then(_response => {
+    window.location.reload();
+  });
 }
 
 function uploadLogo(event) {
@@ -298,9 +298,25 @@ $(() => {
       el.CodeMirror.refresh();
     });
   });
+
   $("#tagDeleteBtn").click(function (e) {
-    console.log('clicked delete button')
+    var selectedTag = $("#tag-selector :selected").text();
+    CTFd.api.get_tag_list().then(response => {
+      tagList = response.data;
+      matches = tagList.filter(tag => {
+        return tag.value.match(selectedTag);
+      })
+      var tag_id = matches[0].id;
+
+      CTFd.api.delete_tag({ tagId: tag_id }).then(response => {
+        if (response.success) {
+          window.location.reload();
+        }
+      });
+    });
+
   });
+
   $("#theme-settings-modal form").submit(function (e) {
     e.preventDefault();
     theme_settings_editor
