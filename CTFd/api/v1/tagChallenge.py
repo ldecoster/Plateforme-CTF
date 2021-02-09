@@ -7,7 +7,7 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import db, TagChallenge
+from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tagChallenge import TagChallengeSchema
 from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
@@ -137,7 +137,15 @@ class TagChal(Resource):
     )
     def delete(self, tag_id, challenge_id):
         tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
-        db.session.delete(tag_challenge)
+
+        if len(TagChallenge.query.filter_by(tag_id=tag_id).all()) == 1:
+            # If there is only one challenge linked to this tag ID,
+            # we delete it, and the link with the challenge will be 
+            # deleted too.
+            db.session.delete(Tags.query.filter_by(id=tag_id).first_or_404())
+        else:
+            db.session.delete(tag_challenge) 
+
         db.session.commit()
         db.session.close()
 
