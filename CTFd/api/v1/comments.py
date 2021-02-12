@@ -63,7 +63,7 @@ class CommentList(Resource):
         responses={
             200: ("Success", "CommentListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -117,7 +117,7 @@ class CommentList(Resource):
         responses={
             200: ("Success", "CommentDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

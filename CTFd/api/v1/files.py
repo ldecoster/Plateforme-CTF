@@ -44,7 +44,7 @@ class FilesList(Resource):
         responses={
             200: ("Success", "FileListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -81,7 +81,7 @@ class FilesList(Resource):
         responses={
             200: ("Success", "FileDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -114,7 +114,7 @@ class FilesDetail(Resource):
         responses={
             200: ("Success", "FileDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

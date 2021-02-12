@@ -86,10 +86,16 @@
 
 <div class="jumbotron">
 	<div class="container">
-		<h1 id="team-id" class="text-center p-0 m-0">{{ user.name }}</h1>
+		<h1 class="text-center p-0 m-0">{{ user.name }}</h1>
 		<div class="mb-2">
 			{% if user.type == 'admin' %}
 				<span class="badge badge-primary">admin</span>
+			{% endif %}
+            {% if user.type == 'teacher' %}
+				<span class="badge badge-primary">teacher</span>
+			{% endif %}
+            {% if user.type == 'contributor' %}
+				<span class="badge badge-primary">contributor</span>
 			{% endif %}
 			{% if user.verified %}
 				<span class="badge badge-success">verified</span>
@@ -117,20 +123,7 @@
 				</h3>
 			{% endif %}
 
-		<h2 id="team-email" class="text-center">{{ user.email }}</h2>
-		{% if user.oauth_id %}
-			<a href="https://majorleaguecyber.org/u/{{ user.name }}">
-				<h3><span class="badge badge-primary">Official</span></h3>
-			</a>
-		{% endif %}
-
-		{% if user.team_id %}
-			<h2 id="team-acc" class="text-center">
-				<a href="{{ url_for('admin.teams_detail', team_id=user.team_id) }}">
-					{{ user.team.name }}
-				</a>
-			</h2>
-		{% endif %}
+		<h2 class="text-center">{{ user.email }}</h2>
 
 		{% for field in user.get_fields(admin=true) %}
 			<h3 class="d-block">
@@ -138,18 +131,6 @@
 			</h3>
 		{% endfor %}
 
-		<h3 id="team-place" class="text-center">
-			{% if place %}
-				{{ place }}
-				<small>place</small>
-			{% endif %}
-		</h3>
-		<h3 id="team-score" class="text-center">
-			{% if score %}
-				{{ score }}
-				<small>points</small>
-			{% endif %}
-		</h3>
 		<hr class="w-50">
 		<div class="pt-3">
 			<a class="edit-user text-dark">
@@ -224,7 +205,6 @@
 							<th class="sort-col text-center"><b>Challenge</b></th>
 							<th class="sort-col text-center"><b>Submitted</b></th>
 							<th class="sort-col text-center"><b>Category</b></th>
-							<th class="sort-col text-center"><b>Value</b></th>
 							<th class="sort-col text-center"><b>Time</b></th>
 						</tr>
 					</thead>
@@ -245,7 +225,6 @@
 							</td>
 							<td class="flag" id="{{ solve.id }}"><pre>{{ solve.provided }}</pre></td>
 							<td class="text-center">{{ solve.challenge.category }}</td>
-							<td class="text-center">{{ solve.challenge.value }}</td>
 							<td class="text-center solve-time">
 								<span data-time="{{ solve.date | isoformat }}"></span>
 							</td>
@@ -338,10 +317,7 @@
 									</div>
 								</th>
 								<th class="sort-col text-center"><b>Name</b></th>
-								<th class="sort-col text-center"><b>Description</b></th>
 								<th class="sort-col text-center"><b>Date</b></th>
-								<th class="sort-col text-center"><b>Value</b></th>
-								<th class="sort-col text-center"><b>Category</b></th>
 								<th class="sort-col text-center"><b>Icon</b></th>
 							</tr>
 						</thead>
@@ -354,12 +330,9 @@
 									</div>
 								</td>
 								<td class="text-center chal" id="{{ award.id }}">{{ award.name }}</td>
-								<td class=""><pre>{{ award.description }}</pre></td>
 								<td class="text-center solve-time">
 									<span data-time="{{ award.date | isoformat }}"></span>
 								</td>
-								<td class="text-center">{{ award.value }}</td>
-								<td class="text-center">{{ award.category }}</td>
 								<td class="text-center"> <i class="award-icon award-{{ award.icon }}"></i> {{ award.icon }}</td>
 							</tr>
 						{% endfor %}
@@ -394,7 +367,6 @@
 							</th>
 							<th class="sort-col text-center"><b>Challenge</b></th>
 							<th class="sort-col text-center"><b>Category</b></th>
-							<th class="sort-col text-center"><b>Value</b></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -412,7 +384,6 @@
 								</a>
 							</td>
 							<td class="text-center">{{ challenge.category }}</td>
-							<td class="text-center">{{ challenge.value }}</td>
 						</tr>
 					{% endfor %}
 					</tbody>
@@ -438,14 +409,12 @@ var USER_ID = {{ user.id }};
 var USER_NAME = {{ user.name | tojson }};
 
 var stats_data = {{ {
-	'type': 'user',
 	'id': user.id,
 	'name': user.name,
 	'account_id': user.id,
 } | tojson }};
 </script>
 <script defer src="{{ url_for('views.themes', theme='admin', path='js/echarts.bundle.js') }}"></script>
-<script defer src="{{ url_for('views.themes', theme='admin', path='js/graphs.js') }}"></script>
 {% endblock %}
 
 {% block entrypoint %}

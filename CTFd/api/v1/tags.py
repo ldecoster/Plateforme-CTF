@@ -41,7 +41,7 @@ class TagList(Resource):
         responses={
             200: ("Success", "TagListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -79,7 +79,7 @@ class TagList(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -93,9 +93,6 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(session["id"])
-      #  print(response.data.challenge.author_id)
         if is_admin() or is_teacher() or is_contributor():
             db.session.commit()
 
@@ -103,7 +100,7 @@ class TagList(Resource):
             db.session.close()
 
             return {"success": True, "data": response.data}
-        return {"success":False}
+        return {"success": False}
 
 
 @tags_namespace.route("/<tag_id>")
@@ -115,7 +112,7 @@ class Tag(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -136,7 +133,7 @@ class Tag(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -171,4 +168,4 @@ class Tag(Resource):
             db.session.close()
 
             return {"success": True}
-        return {"success":False}
+        return {"success": False}

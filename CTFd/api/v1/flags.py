@@ -45,7 +45,7 @@ class FlagList(Resource):
         responses={
             200: ("Success", "FlagListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -84,7 +84,7 @@ class FlagList(Resource):
         responses={
             200: ("Success", "FlagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -143,7 +143,7 @@ class Flag(Resource):
         responses={
             200: ("Success", "FlagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -182,7 +182,7 @@ class Flag(Resource):
         responses={
             200: ("Success", "FlagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

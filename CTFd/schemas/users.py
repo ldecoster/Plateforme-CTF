@@ -16,7 +16,7 @@ class UserSchema(ma.ModelSchema):
     class Meta:
         model = Users
         include_fk = True
-        dump_only = ("id", "oauth_id", "created")
+        dump_only = ("id", "created")
         load_only = ("password",)
 
     name = field_for(
@@ -51,7 +51,7 @@ class UserSchema(ma.ModelSchema):
         ],
     )
     country = field_for(Users, "country", validate=[validate_country_code])
-    password = field_for(Users, "password")
+    password = field_for(Users, "password", required=True, allow_none=False)
     fields = Nested(
         UserFieldEntriesSchema, partial=True, many=True, attribute="field_entries"
     )
@@ -188,22 +188,33 @@ class UserSchema(ma.ModelSchema):
 
     @pre_load
     def validate_type(self, data):
-        user_id = data.get("id")
         user_type = data.get("type")
-        existing_user = Users.query.filter_by(id=user_id).first()
 
         if user_type is not None:
             if is_admin():
                 pass
             elif is_teacher():
-                if existing_user.type == "admin":
-                    raise ValidationError("You can't change the type of an Admin", field_names=["type"])
-                if user_type == "user" or user_type == "contributor" or user_type == "teacher":
+                user_id = data.get("id")
+                if user_id:
+                    target_user = Users.query.filter_by(id=user_id).first()
+                    if target_user.type == "admin":
+                        raise ValidationError(
+                            "You can't change the type of an Admin", field_names=["type"]
+                        )
+                    if target_user.type == "teacher":
+                        raise ValidationError(
+                            "You can't change the type of a Teacher", field_names=["type"]
+                        )
+                if user_type == "user" or user_type == "contributor":
                     pass
                 else:
-                    raise ValidationError("Please choose a valid type", field_names=["type"])
+                    raise ValidationError(
+                        "Please choose a valid type", field_names=["type"]
+                    )
             else:
-                raise ValidationError("Please choose a valid type", field_names=["type"])
+                raise ValidationError(
+                    "Please choose a valid type", field_names=["type"]
+                )
 
     @pre_load
     def validate_fields(self, data):
@@ -224,7 +235,7 @@ class UserSchema(ma.ModelSchema):
             else:
                 target_user = current_user
 
-            # We are editting an existing user
+            # We are editing an existing user
             if self.view == "admin" and self.instance:
                 target_user = self.instance
                 provided_ids = []
@@ -232,7 +243,7 @@ class UserSchema(ma.ModelSchema):
                     f.pop("id", None)
                     field_id = f.get("field_id")
 
-                    # # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
+                    # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
                     field = UserFields.query.filter_by(id=field_id).first_or_404()
 
                     # Get the existing field entry if one exists
@@ -261,7 +272,7 @@ class UserSchema(ma.ModelSchema):
                 field_id = f.get("field_id")
                 value = f.get("value")
 
-                # # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
+                # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
                 field = UserFields.query.filter_by(id=field_id).first_or_404()
 
                 if field.required is True and value.strip() == "":
@@ -333,7 +344,6 @@ class UserSchema(ma.ModelSchema):
             "affiliation",
             "bracket",
             "id",
-            "oauth_id",
             "fields",
         ],
         "self": [
@@ -344,7 +354,6 @@ class UserSchema(ma.ModelSchema):
             "affiliation",
             "bracket",
             "id",
-            "oauth_id",
             "password",
             "fields",
         ],
@@ -360,7 +369,6 @@ class UserSchema(ma.ModelSchema):
             "bracket",
             "hidden",
             "id",
-            "oauth_id",
             "password",
             "type",
             "verified",

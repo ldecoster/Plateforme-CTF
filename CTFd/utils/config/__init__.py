@@ -1,23 +1,13 @@
 import os
-import time
 
 from flask import current_app as app
 
 from CTFd.utils import get_config
-from CTFd.utils.modes import USERS_MODE
 
 
 def ctf_name():
     name = get_config("ctf_name")
     return name if name else "CTFd"
-
-
-def user_mode():
-    return get_config("user_mode")
-
-
-def is_users_mode():
-    return user_mode() == USERS_MODE
 
 
 def ctf_logo():
@@ -31,17 +21,6 @@ def ctf_theme():
 
 def is_setup():
     return bool(get_config("setup")) is True
-
-
-def is_scoreboard_frozen():
-    freeze = get_config("freeze")
-
-    if freeze:
-        freeze = int(freeze)
-        if freeze < time.time():
-            return True
-
-    return False
 
 
 def get_votes_number():

@@ -1,4 +1,3 @@
-import datetime
 from typing import List
 
 from flask import abort, render_template, request, url_for
@@ -8,7 +7,6 @@ from sqlalchemy.sql import and_
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import ChallengeFiles as ChallengeFilesModel, Votes
 from CTFd.models import (
@@ -26,34 +24,26 @@ from CTFd.models import (
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
+from CTFd.schemas.votes import VoteSchema
 from CTFd.schemas.tags import TagSchema
-from CTFd.utils import config, get_config
-from CTFd.utils import sessions
+from CTFd.utils import config
 from CTFd.utils import user as current_user
 from CTFd.utils.config import get_votes_number
 from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,
-    scores_visible,
 )
-from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
+from CTFd.utils.dates import ctf_paused, isoformat
 from CTFd.utils.decorators import (
-    admins_only,
     contributors_teachers_admins_only,
-    teachers_admins_only,
-    during_ctf_time_only,
     require_verified_emails,
 )
-from CTFd.utils.decorators.visibility import (
-    check_challenge_visibility,
-    check_score_visibility,
-)
+from CTFd.utils.decorators.visibility import check_challenge_visibility
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
 from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_teacher
-from CTFd.utils.security.auth import login_user
 from flask import session
 
 challenges_namespace = Namespace(
@@ -84,14 +74,13 @@ challenges_namespace.schema_model(
 @challenges_namespace.route("")
 class ChallengeList(Resource):
     @check_challenge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     @challenges_namespace.doc(
         description="Endpoint to get Challenge objects in bulk",
         responses={
             200: ("Success", "ChallengeListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -179,9 +168,8 @@ class ChallengeList(Resource):
                                 "id": challenge.id,
                                 "type": "hidden",
                                 "name": "???",
-                                "value": 0,
                                 "tags": [],
-                                "authorId":"",
+                                "authorId": "",
                                 "template": "",
                                 "script": "",
                             }
@@ -196,15 +184,13 @@ class ChallengeList(Resource):
                 continue
 
             # Challenge passes all checks, add it to response
-            # TODO ISEN : remove unused "value" and "category"
             response.append(
                 {
                     "id": challenge.id,
                     "type": challenge_type.name,
                     "name": challenge.name,
-                    "value": 0,
                     "tags": tag_schema.dump(challenge.tags).data,
-                    "authorId":challenge.author_id,
+                    "authorId": challenge.author_id,
                     "template": challenge_type.templates["view"],
                     "script": challenge_type.scripts["view"],
                 }
@@ -219,7 +205,7 @@ class ChallengeList(Resource):
         responses={
             200: ("Success", "ChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -257,14 +243,13 @@ class ChallengeTypes(Resource):
 @challenges_namespace.route("/<challenge_id>")
 class Challenge(Resource):
     @check_challenge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     @challenges_namespace.doc(
         description="Endpoint to get a specific Challenge object",
         responses={
             200: ("Success", "ChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -313,8 +298,8 @@ class Challenge(Resource):
                                 "id": chal.id,
                                 "type": "hidden",
                                 "name": "???",
-                                "value": 0,
                                 "tags": [],
+                                "authorId": "",
                                 "template": "",
                                 "script": "",
                             },
@@ -357,28 +342,23 @@ class Challenge(Resource):
             files = [url_for("views.files", path=f.location) for f in chal.files]
 
         for hint in Hints.query.filter_by(challenge_id=chal.id).all():
-            if hint.id in unlocked_hints or ctf_ended():
+            if hint.id in unlocked_hints:
                 hints.append(
-                    {"id": hint.id, "cost": hint.cost, "content": hint.content}
+                    {"id": hint.id, "content": hint.content}
                 )
             else:
-                hints.append({"id": hint.id, "cost": hint.cost})
+                hints.append({"id": hint.id})
 
         response = chal_class.read(challenge=chal)
 
         Model = get_model()
 
-        if scores_visible() is True and accounts_visible() is True:
+        if accounts_visible() is True:
             solves = Solves.query.join(Model, Solves.account_id == Model.id).filter(
                 Solves.challenge_id == chal.id,
                 Model.banned == False,
                 Model.hidden == False,
             )
-
-            # Only show solves that happened before freeze time if configured
-            freeze = get_config("freeze")
-            if not is_admin() and freeze:
-                solves = solves.filter(Solves.date < unix_time_to_utc(freeze))
 
             solves = solves.count()
             response["solves"] = solves
@@ -419,7 +399,7 @@ class Challenge(Resource):
         responses={
             200: ("Success", "ChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -445,7 +425,7 @@ class Challenge(Resource):
             challenge_class = get_chal_class(challenge.type)
 
             # Check the number of votes before changing the state of the challenge
-            if challenge_new_state == "visible" and challenge.state == "voting":
+            if challenge_new_state == "visible" and (challenge.state == "voting" or challenge.state == 'hidden'):
                 positive_votes = Votes.query.filter_by(challenge_id=challenge.id, value=1).count()
                 negative_votes = Votes.query.filter_by(challenge_id=challenge.id, value=0).count()
                 votes_delta = get_votes_number()
@@ -477,7 +457,6 @@ class Challenge(Resource):
 @challenges_namespace.route("/attempt")
 class ChallengeAttempt(Resource):
     @check_challenge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     def post(self):
         if authed() is False:
@@ -551,10 +530,9 @@ class ChallengeAttempt(Resource):
         # Anti-bruteforce / submitting Flags too quickly
         kpm = current_user.get_wrong_submissions_per_minute(user.account_id)
         if kpm > 10:
-            if ctftime():
-                chal_class.fail(
-                    user=user, challenge=challenge, request=request
-                )
+            chal_class.fail(
+                user=user, challenge=challenge, request=request
+            )
             log(
                 "submissions",
                 "[{date}] {name} submitted {submission} on {challenge_id} with kpm {kpm} [TOO FAST]",
@@ -596,11 +574,9 @@ class ChallengeAttempt(Resource):
 
             status, message = chal_class.attempt(challenge, request)
             if status:  # The challenge plugin says the input is right
-                if ctftime() or current_user.is_admin():
-                    chal_class.solve(
-                        user=user, challenge=challenge, request=request
-                    )
-                    clear_standings()
+                chal_class.solve(
+                    user=user, challenge=challenge, request=request
+                )
 
                 log(
                     "submissions",
@@ -614,11 +590,9 @@ class ChallengeAttempt(Resource):
                     "data": {"status": "correct", "message": message},
                 }
             else:  # The challenge plugin says the input is wrong
-                if ctftime() or current_user.is_admin():
-                    chal_class.fail(
-                        user=user, challenge=challenge, request=request
-                    )
-                    clear_standings()
+                chal_class.fail(
+                    user=user, challenge=challenge, request=request
+                )
 
                 log(
                     "submissions",
@@ -672,9 +646,6 @@ class ChallengeAttempt(Resource):
 
 @challenges_namespace.route("/<challenge_id>/solves")
 class ChallengeSolves(Resource):
-    @check_challenge_visibility
-    @check_score_visibility
-    @during_ctf_time_only
     @require_verified_emails
     def get(self, challenge_id):
         response = []
@@ -696,13 +667,6 @@ class ChallengeSolves(Resource):
             )
             .order_by(Solves.date.asc())
         )
-
-        freeze = get_config("freeze")
-        if freeze:
-            preview = request.args.get("preview")
-            if (is_admin() is False) or (is_admin() is True and preview):
-                dt = datetime.datetime.utcfromtimestamp(freeze)
-                solves = solves.filter(Solves.date < dt)
 
         for solve in solves:
             response.append(
@@ -741,11 +705,11 @@ class ChallengeTags(Resource):
         tag_challenges = TagChallenge.query.filter_by(challenge_id=challenge_id).all()
         for tag_challenge in tag_challenges:
             tags.append(
-                Tags.query.filter_by(id=tag_challenge.tag_id).all()
+                Tags.query.filter_by(id=tag_challenge.tag_id).first()
             )
         for t in tags:
             response.append(
-                {"id": t.id, "challenge_id": t.challenge_id, "value": t.value}
+                {"id": t.id, "value": t.value}
             )
         return {"success": True, "data": response}
 
@@ -764,6 +728,53 @@ class ChallengeHints(Resource):
         return {"success": True, "data": response.data}
 
 
+@challenges_namespace.route("/<challenge_id>/votes")
+class ChallengeVotes(Resource):
+    @contributors_teachers_admins_only
+    def get(self, challenge_id):
+        response_votes = []
+        response_message = "Add vote"
+
+        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        votes = Votes.query.filter_by(challenge_id=challenge_id).all()
+
+        if challenge.state != "voting":
+            response_message = "Challenge is not in voting state"
+        else:
+            user_has_voted = Votes.query.filter_by(challenge_id=challenge.id, user_id=session["id"]).first()
+            if challenge.author_id == session["id"]:
+                response_message = "You can't vote for your own challenge"
+            elif user_has_voted is not None:
+                response_message = "Already voted"
+
+        for v in votes:
+            # An admin or the voter can edit or delete the vote
+            if challenge.state == "voting" and (is_admin() or session["id"] == v.user_id):
+                response_votes.append(
+                    {
+                        "id": v.id,
+                        "challenge_id": v.challenge_id,
+                        "user_id": v.user_id,
+                        "value": v.value,
+                        "user_name": v.user.name,
+                        "can_be_altered": True,
+                    }
+                )
+            else:
+                response_votes.append(
+                    {
+                        "id": v.id,
+                        "challenge_id": v.challenge_id,
+                        "user_id": v.user_id,
+                        "value": v.value,
+                        "user_name": v.user.name,
+                        "can_be_altered": False,
+                    }
+                )
+
+        return {"success": True, "data": {"votes": response_votes, "message": response_message}}
+
+
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
     @contributors_teachers_admins_only
@@ -776,3 +787,11 @@ class ChallengeFlags(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         return {"success": True, "data": response.data}
+
+
+@challenges_namespace.route("/<challenge_id>/requirements")
+class ChallengeRequirements(Resource):
+    @contributors_teachers_admins_only
+    def get(self, challenge_id):
+        challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
+        return {"success": True, "data": challenge.requirements}
