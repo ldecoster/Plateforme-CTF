@@ -14,6 +14,8 @@ function updateConfigs(event) {
   event.preventDefault();
   const obj = $(this).serializeJSON();
   const params = {};
+  const selectedTag = $("#tag-selector :selected").text();
+  const newTagValue = obj["new-tag-value"];
 
   if (obj.mail_useauth === false) {
     obj.mail_username = null;
@@ -25,6 +27,23 @@ function updateConfigs(event) {
     if (obj.mail_password === "") {
       delete obj.mail_password;
     }
+  }
+
+  if (newTagValue !== undefined && newTagValue !== '') {
+    CTFd.api.get_tag_list().then(response => {
+      let tagList = response.data;
+      let matches = tagList.filter(tag => {
+        return tag.value.match(selectedTag);
+      });
+      let tag_id = matches[0].id;
+
+      CTFd.api.patch_tag({ tagId: tag_id, tagValue: newTagValue }).then(response => {
+        if (response.success) {
+          window.location.reload();
+        }
+      });
+
+    });
   }
 
   Object.keys(obj).forEach(function(x) {
@@ -238,6 +257,24 @@ $(() => {
     $("#privacy-policy-config .CodeMirror").each(function(i, el) {
       el.CodeMirror.refresh();
     });
+  });
+
+  $("#tag-delete-button").click(function() {
+    const selectedTag = $("#tag-selector :selected").text();
+    CTFd.api.get_tag_list().then(response => {
+      let tagList = response.data;
+      let matches = tagList.filter(tag => {
+        return tag.value.match(selectedTag);
+      })
+      let tag_id = matches[0].id;
+
+      CTFd.api.delete_tag({ tagId: tag_id }).then(response => {
+        if (response.success) {
+          window.location.reload();
+        }
+      });
+    });
+
   });
 
   $("#theme-settings-modal form").submit(function(e) {
