@@ -13,10 +13,3 @@ def lookup_ip_address(addr):
         return response["country"]["iso_code"]
     except KeyError:
         return None
-
-def lookup_ip_address2(addr):
-    response = IP_ADDR_LOOKUP.get(addr)
-    try:
-        return response["school"]["iso_code"]
-    except KeyError:
-        return None

@@ -192,6 +192,7 @@ def register():
         affiliation = request.form.get("affiliation")
         country = request.form.get("country")
         school = request.form.get("school")
+
         name_len = len(name) == 0
         names = Users.query.add_columns("name", "id").filter_by(name=name).first()
         emails = (

@@ -272,19 +272,3 @@ def get_countries():
 
 def lookup_country_code(country_code):
     return COUNTRIES_DICT.get(country_code)
-
-
-SCHOOL_LIST = [("II","ISEN"),("HE","HEI"),("IA","ISA"),("AK","ADIMAKER")]
-
-# Nicely titled (and translatable) school names.
-SCHOOL_DICT = OrderedDict(SCHOOL_LIST)
-
-# List of school suitable for use in forms
-SELECT_SCHOOL_LIST = [("", "")] + SCHOOL_LIST
-
-
-def get_school():
-    return SCHOOL_DICT
-
-def lookup_school_code(school_code):
-    return SCHOOL_DICT.get(school_code)

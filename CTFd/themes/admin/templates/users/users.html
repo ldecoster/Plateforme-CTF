@@ -111,7 +111,6 @@
 							{% if user.affiliation %}
 								<span class="d-block text-muted"><small>{{ user.affiliation | truncate(20) }}</small></span>
 							{% endif %}
-							
 						</td>
 						<td class="team-email d-none d-md-table-cell d-lg-table-cell" value="{{ user.email }}">
 							{% if user.email %}
@@ -126,11 +125,10 @@
 								{% endif %}
 							</span>
 						</td>
-						<td class="team-school text-center" value="{{ user.school if user.school is not none }}">
+						<td class="text-center" value="{{ user.school if user.school is not none }}">
 							<span>
 								{% if user.school %}
-									<i class="flag-{{ user.school.lower() }}"></i>
-									<small>{{ lookup_school_code(user.school) }}</small>
+                                    <span class="d-block text-muted"><small>{{ lookup_school_code(user.school) }}</small></span>
 								{% endif %}
 							</span>
 						</td>

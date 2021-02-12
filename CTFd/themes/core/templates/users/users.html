@@ -97,16 +97,13 @@
 										<i class="flag-{{ user.country.lower() }}"></i>
 										{{ lookup_country_code(user.country) }}
 									{% endif %}
-									
 								</span>
 							</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell">
 								<span>
 									{% if user.school %}
-										<i class="flag-{{ user.school.lower() }}"></i>
-										{{ lookup_school_code(user.school) }}
-									{% endif %}
-									
+                                        <span class="d-block text-muted"><small>{{ lookup_school_code(user.school) }}</small></span>
+								    {% endif %}
 								</span>
 							</td>
 						</tr>

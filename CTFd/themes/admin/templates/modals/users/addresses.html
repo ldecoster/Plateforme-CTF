@@ -6,7 +6,6 @@
 					<td class="text-center"><b>IP Address</b></td>
 					<td class="text-center"><b>Last Seen</b></td>
 					<td class="text-center"><b>Country</b></td>
-					<td class="text-center"><b>School</b></td>
 				</tr>
 			</thead>
 			<tbody>
@@ -27,19 +26,6 @@
 					<td class="text-center">
 					</td>
 					{% endif %}
-
-					{% set school = lookup_ip_address2(addr.ip) %}
-					{% if school %}
-					<td class="text-center">
-						<i class="flag-{{ school.lower() }}"></i>
-						&nbsp;
-						{{ lookup_school_code(school) }}
-					</td>
-					{% else %}
-					<td class="text-center">
-					</td>
-					{% endif %}
-
 				</tr>
 			{% endfor %}
 			</tbody>

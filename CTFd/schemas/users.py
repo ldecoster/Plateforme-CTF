@@ -9,8 +9,7 @@ from CTFd.utils import get_config, string_types
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.email import check_email_is_whitelisted
 from CTFd.utils.user import get_current_user, is_admin
-from CTFd.utils.validators import validate_country_code
-from CTFd.utils.validators import validate_school_code
+from CTFd.utils.validators import validate_country_code, validate_school_code
 
 
 class UserSchema(ma.ModelSchema):
@@ -52,8 +51,8 @@ class UserSchema(ma.ModelSchema):
         ],
     )
     country = field_for(Users, "country", validate=[validate_country_code])
-    password = field_for(Users, "password")
     school = field_for(Users, "school", validate=[validate_school_code])
+    password = field_for(Users, "password")
     fields = Nested(
         UserFieldEntriesSchema, partial=True, many=True, attribute="field_entries"
     )
@@ -313,31 +312,32 @@ class UserSchema(ma.ModelSchema):
             "website",
             "name",
             "country",
+            "school",
             "affiliation",
             "bracket",
             "id",
             "oauth_id",
             "fields",
-            "school",
         ],
         "self": [
             "website",
             "name",
             "email",
             "country",
+            "school",
             "affiliation",
             "bracket",
             "id",
             "oauth_id",
             "password",
             "fields",
-            "school",
         ],
         "admin": [
             "website",
             "name",
             "created",
             "country",
+            "school",
             "banned",
             "email",
             "affiliation",
@@ -350,7 +350,6 @@ class UserSchema(ma.ModelSchema):
             "type",
             "verified",
             "fields",
-            "school",
         ],
     }
 

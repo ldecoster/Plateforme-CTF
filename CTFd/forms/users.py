@@ -5,7 +5,8 @@ from wtforms.validators import InputRequired
 from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.models import UserFieldEntries, UserFields
-from CTFd.utils.countries import SELECT_COUNTRIES_LIST, SELECT_SCHOOL_LIST
+from CTFd.utils.countries import SELECT_COUNTRIES_LIST
+from CTFd.utils.schools import SELECT_SCHOOLS_LIST
 
 
 def build_custom_user_fields(
@@ -119,12 +120,12 @@ class UserBaseForm(BaseForm):
     website = StringField("Website")
     affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
+    school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
     type = SelectField("Type", choices=[("user", "User"), ("admin", "Admin")])
     verified = BooleanField("Verified")
     hidden = BooleanField("Hidden")
     banned = BooleanField("Banned")
     submit = SubmitField("Submit")
-    school = SelectField("School", choices=SELECT_SCHOOL_LIST)
 
 
 def UserEditForm(*args, **kwargs):

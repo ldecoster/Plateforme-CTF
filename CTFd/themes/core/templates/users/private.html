@@ -38,15 +38,12 @@
 					</span>
 				</h3>
 			{% endif %}
+
 			{% if user.school %}
 				<h3 class="d-inline-block">
-					<span class="badge badge-primary">
-						<i class="flag-{{ user.school.lower() }}"></i>
-						{{ lookup_school_code(user.school) }}
-					</span>
+					<span class="badge badge-primary">{{ lookup_school_code(user.school) }}</span>
 				</h3>
 			{% endif %}
-
 
 			{% for field in user.fields %}
 				<h3 class="d-inline-block">

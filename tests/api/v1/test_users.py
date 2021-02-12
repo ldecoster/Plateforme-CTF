@@ -304,14 +304,12 @@ def test_api_user_patch_admin():
                     "email": "user@ctfd.io",
                     "password": "password",
                     "country": "US",
-                    "school": "ISEN",
                     "verified": True,
                 },
             )
             assert r.status_code == 200
             user_data = r.get_json()["data"][0]
             assert user_data["country"] == "US"
-            assert user_data["school"] == "ISEN"
             assert user_data["verified"] is True
     destroy_ctfd(app)
 
@@ -387,12 +385,10 @@ def test_api_user_patch_me_logged_in():
                     "password": "password",
                     "confirm": "password",
                     "country": "US",
-                    "school": "ISEN",
                 },
             )
             assert r.status_code == 200
             assert r.get_json()["data"]["country"] == "US"
-            assert r.get_json()["data"]["school"] == "ISEN"
     destroy_ctfd(app)
 
 
