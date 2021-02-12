@@ -7,12 +7,11 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Tags, db, TagChallenge
+from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
-from flask import session
 
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
@@ -165,11 +164,11 @@ class Tag(Resource):
     )
     def delete(self, tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
-        tagChallenges = TagChallenge.query.filter_by(tag_id=tag.id).all()
+        tag_challenges = TagChallenge.query.filter_by(tag_id=tag.id).all()
 
         if is_admin() or is_teacher():
 
-            for t in tagChallenges :
+            for t in tag_challenges:
                 db.session.delete(t)
 
             db.session.delete(tag)
@@ -177,4 +176,4 @@ class Tag(Resource):
             db.session.close()
 
             return {"success": True}
-        return {"success":False}
+        return {"success": False}

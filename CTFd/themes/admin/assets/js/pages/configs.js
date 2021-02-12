@@ -89,8 +89,8 @@ function updateConfigs(event) {
   event.preventDefault();
   const obj = $(this).serializeJSON();
   const params = {};
-  var selectedTag = $("#tag-selector :selected").text();
-  var newValue = obj["newTagValue"];
+  const selectedTag = $("#tag-selector :selected").text();
+  const newTagValue = obj["new-tag-value"];
 
   if (obj.mail_useauth === false) {
     obj.mail_username = null;
@@ -104,15 +104,15 @@ function updateConfigs(event) {
     }
   }
 
-  if (newValue !== undefined && newValue !== '') {
+  if (newTagValue !== undefined && newTagValue !== '') {
     CTFd.api.get_tag_list().then(response => {
-      tagList = response.data;
-      matches = tagList.filter(tag => {
+      let tagList = response.data;
+      let matches = tagList.filter(tag => {
         return tag.value.match(selectedTag);
-      })
-      var tag_id = matches[0].id;
+      });
+      let tag_id = matches[0].id;
 
-      CTFd.api.patch_tag({ tagId: tag_id, tagValue: newValue }).then(response => {
+      CTFd.api.patch_tag({ tagId: tag_id, tagValue: newTagValue }).then(response => {
         if (response.success) {
           window.location.reload();
         }
@@ -120,7 +120,6 @@ function updateConfigs(event) {
 
     });
   }
-  
 
   Object.keys(obj).forEach(function(x) {
     if (obj[x] === "true") {
@@ -299,14 +298,14 @@ $(() => {
     });
   });
 
-  $("#tagDeleteBtn").click(function(e) {
-    var selectedTag = $("#tag-selector :selected").text();
+  $("#tag-delete-button").click(function() {
+    const selectedTag = $("#tag-selector :selected").text();
     CTFd.api.get_tag_list().then(response => {
-      tagList = response.data;
-      matches = tagList.filter(tag => {
+      let tagList = response.data;
+      let matches = tagList.filter(tag => {
         return tag.value.match(selectedTag);
       })
-      var tag_id = matches[0].id;
+      let tag_id = matches[0].id;
 
       CTFd.api.delete_tag({ tagId: tag_id }).then(response => {
         if (response.success) {

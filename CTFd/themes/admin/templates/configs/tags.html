@@ -1,23 +1,29 @@
 <div role="tabpanel" class="tab-pane config-section" id="tags">
-    <div class="form-group">
-        Tags
-        <small class="form-text text-muted">
-            Edit or delete tags.
-        </small>
-
-        <select id="tag-selector" class="form-control custom-select">
-            {% for tag in tags %}
-            <option>{{ tag.value }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
     <form method="POST" autocomplete="off" class="w-100">
         <div class="form-group">
-            <input class="form-control" id='newTagValue' name='newTagValue' type='text' placeholder="New value">
+            <label for="tag-selector">
+                Tags
+                <small class="form-text text-muted">
+                    List of tags that are associated with at least one Challenge
+                </small>
+            </label>
+            <select id="tag-selector" class="form-control custom-select">
+                {% for tag in tags %}
+                <option>{{ tag.value }}</option>
+                {% endfor %}
+            </select>
         </div>
-        <button type="submit" class="btn btn-md btn-primary float-right" value="Update">Update</button>
-    </form>
 
-    <button id="tagDeleteBtn" class="btn btn-md btn-danger float-right" value="Delete">Delete</button>
+
+        <div class="form-group">
+            <label for="new-tag-value">
+                Actions on tag
+                <small class="form-text text-muted">You can update the value of the above selected tag or delete it</small>
+            </label>
+            <input class="form-control" id='new-tag-value' name='new-tag-value' type='text' placeholder="New value">
+        </div>
+
+        <button type="submit" class="btn btn-md btn-primary float-right ml-2" value="Update">Update</button>
+        <button id="tag-delete-button" class="btn btn-md btn-danger float-right" value="Delete">Delete</button>
+    </form>
 </div>

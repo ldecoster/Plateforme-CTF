@@ -120,7 +120,7 @@ class TagChal(Resource):
             ),
         },
     )
-    def get(self, tag_id,challenge_id):
+    def get(self, tag_id, challenge_id):
         tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
 
         response = TagChallengeSchema().dump(tag_challenge)
@@ -137,8 +137,9 @@ class TagChal(Resource):
     )
     def delete(self, tag_id, challenge_id):
         tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
+        nb_of_challenges_belonging_to_tag = len(TagChallenge.query.filter_by(tag_id=tag_id).all())
 
-        if len(TagChallenge.query.filter_by(tag_id=tag_id).all()) == 1:
+        if nb_of_challenges_belonging_to_tag == 1:
             # If there is only one challenge linked to this tag ID,
             # we delete it, and the link with the challenge will be 
             # deleted too.
