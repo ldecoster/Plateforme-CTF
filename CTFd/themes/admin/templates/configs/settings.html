@@ -32,35 +32,9 @@
 
 		<div class="form-group">
 			<label>
-				Score Visibility<br>
-				<small class="form-text text-muted">
-					Control whether solves/score are shown to the public, to logged in users, hidden to all non-admins, or only shown to admins
-				</small>
-			</label>
-			<select class="form-control custom-select" name="score_visibility">
-				<option value="public" {% if score_visibility == 'public' %}selected{% endif %}>
-					Public
-				</option>
-				<option value="private" {% if score_visibility == 'private' %}selected{% endif %}>
-					Private
-				</option>
-				<option value="hidden" {% if score_visibility == 'hidden' %}selected{% endif %}>
-					Hidden
-				</option>
-				<option value="admins" {% if score_visibility == 'admins' %}selected{% endif %}>
-					Admins Only
-				</option>
-			</select>
-			<small class="form-text text-muted">
-				This setting should generally be the same as Account Visibility to avoid conflicts.
-			</small>
-		</div>
-
-		<div class="form-group">
-			<label>
 				Account Visibility<br>
 				<small class="form-text text-muted">
-					Control whether accounts (users &amp; teams) are shown to everyone, only to authenticated users, or only to admins
+					Control whether users accounts are shown to everyone, only to authenticated users, or only to admins
 				</small>
 			</label>
 			<select class="form-control custom-select" name="account_visibility">
@@ -74,9 +48,6 @@
 					Admins Only
 				</option>
 			</select>
-			<small class="form-text text-muted">
-				This setting should generally be the same as Score Visibility to avoid conflicts.
-			</small>
 		</div>
 
 		<div class="form-group">
@@ -92,9 +63,6 @@
 				</option>
 				<option value="private" {% if registration_visibility == 'private' %}selected{% endif %}>
 					Private
-				</option>
-				<option value="mlc" {% if registration_visibility == 'mlc' %}selected{% endif %}>
-					MajorLeagueCyber Only
 				</option>
 			</select>
 		</div>

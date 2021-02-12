@@ -16,7 +16,6 @@ from CTFd.utils.config import (
     ctf_logo,
     ctf_name,
     ctf_theme,
-    integrations,
     is_setup,
 )
 from CTFd.utils.config.pages import get_pages
@@ -57,14 +56,12 @@ def init_template_globals(app):
     from CTFd.constants.config import Configs
     from CTFd.constants.plugins import Plugins
     from CTFd.constants.sessions import Session
-    from CTFd.constants.static import Static
     from CTFd.constants.users import User
     from CTFd.forms import Forms
     from CTFd.utils.config.visibility import (
         accounts_visible,
         challenges_visible,
         registration_visible,
-        scores_visible,
     )
     from CTFd.utils.countries import get_countries, lookup_country_code
     from CTFd.utils.countries.geoip import lookup_ip_address
@@ -92,9 +89,7 @@ def init_template_globals(app):
     app.jinja_env.globals.update(accounts_visible=accounts_visible)
     app.jinja_env.globals.update(challenges_visible=challenges_visible)
     app.jinja_env.globals.update(registration_visible=registration_visible)
-    app.jinja_env.globals.update(scores_visible=scores_visible)
     app.jinja_env.globals.update(get_mode_as_word=get_mode_as_word)
-    app.jinja_env.globals.update(integrations=integrations)
     app.jinja_env.globals.update(authed=authed)
     app.jinja_env.globals.update(is_admin=is_admin)
     app.jinja_env.globals.update(is_contributor=is_contributor)
@@ -104,7 +99,6 @@ def init_template_globals(app):
     app.jinja_env.globals.update(Configs=Configs)
     app.jinja_env.globals.update(Plugins=Plugins)
     app.jinja_env.globals.update(Session=Session)
-    app.jinja_env.globals.update(Static=Static)
     app.jinja_env.globals.update(Forms=Forms)
     app.jinja_env.globals.update(User=User)
 
@@ -192,8 +186,8 @@ def init_request_processors(app):
         if is_setup() is False:
             if request.endpoint in (
                 "views.setup",
-                "views.integrations",
                 "views.themes",
+                "views.files",
             ):
                 return
             else:

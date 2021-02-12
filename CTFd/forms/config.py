@@ -1,6 +1,5 @@
 from wtforms import BooleanField, SelectField, StringField, TextAreaField
-from wtforms.fields.html5 import IntegerField, URLField
-from wtforms.widgets.html5 import NumberInput
+from wtforms.fields.html5 import URLField
 
 from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
@@ -10,11 +9,11 @@ from CTFd.models import db
 class ResetInstanceForm(BaseForm):
     accounts = BooleanField(
         "Accounts",
-        description="Deletes all user and team accounts and their associated information",
+        description="Deletes all user accounts and their associated information",
     )
     submissions = BooleanField(
         "Submissions",
-        description="Deletes all records that accounts gained points or took an action",
+        description="Deletes all records that accounts took an action",
     )
     challenges = BooleanField(
         "Challenges", description="Deletes all challenges and associated data"
@@ -32,9 +31,6 @@ class AccountSettingsForm(BaseForm):
     domain_whitelist = StringField(
         "Account Email Whitelist",
         description="Comma-seperated email domains which users can register under (e.g. ctfd.io, gmail.com, yahoo.com)",
-    )
-    team_size = IntegerField(
-        widget=NumberInput(min=0), description="Amount of users per team"
     )
     verify_emails = SelectField(
         "Verify Emails",

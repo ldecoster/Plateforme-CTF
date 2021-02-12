@@ -26,7 +26,6 @@ const init = data => {
 
   config.urlRoot = data.urlRoot || config.urlRoot;
   config.csrfNonce = data.csrfNonce || config.csrfNonce;
-  config.userMode = data.userMode || config.userMode;
   api.domain = config.urlRoot + "/api/v1";
   user.id = data.userId;
 };

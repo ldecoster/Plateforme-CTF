@@ -3,20 +3,20 @@ import "bootstrap/js/dist/tab";
 import regeneratorRuntime from "regenerator-runtime";
 import { ezQuery, ezAlert } from "../ezq";
 import { htmlEntities } from "../utils";
-import Moment from "moment";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import $ from "jquery";
 import CTFd from "../CTFd";
 import config from "../config";
+import hljs from "highlight.js";
 
-const api_func = {
-  teams: x => CTFd.api.get_team_solves({ teamId: x }),
-  users: x => CTFd.api.get_user_solves({ userId: x })
-};
+dayjs.extend(relativeTime);
 
 CTFd._internal.challenge = {};
 let challenges = [];
 let solves = [];
 let tagList = [];
+
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
 
@@ -32,6 +32,14 @@ const loadChal = id => {
   displayChal(chal);
 };
 
+const loadChalByName = name => {
+  let idx = name.lastIndexOf("-");
+  let pieces = [name.slice(0, idx), name.slice(idx + 1)];
+  let id = pieces[1];
+
+  const chal = $.grep(challenges, chal => chal.id == id)[0];
+  displayChal(chal);
+};
 
 const displayChal = chal => {
   return Promise.all([
@@ -117,6 +125,12 @@ const displayChal = chal => {
     });
 
     challenge.postRender();
+
+    $("#challenge-window")
+      .find("pre code")
+      .each(function(_idx) {
+        hljs.highlightBlock(this);
+      });
 
     window.location.replace(
       window.location.href.split("#")[0] + `#${chal.name}-${chal.id}`
@@ -215,7 +229,7 @@ function renderSubmissionResponse(response) {
 }
 
 function markSolves() {
-  return api_func[CTFd.config.userMode]("me").then(function (response) {
+  return CTFd.api.get_user_solves({ userId: "me" }).then(function (response) {
     const solves = response.data;
     for (let i = solves.length - 1; i >= 0; i--) {
       const btn = $('button[value="' + solves[i].challenge_id + '"]');
@@ -230,7 +244,7 @@ function loadUserSolves() {
     return Promise.resolve();
   }
 
-  return api_func[CTFd.config.userMode]("me").then(function (response) {
+  return CTFd.api.get_user_solves({ userId: "me" }).then(function (response) {
     solves = response.data;
 
     for (let i = solves.length - 1; i >= 0; i--) {
@@ -249,9 +263,7 @@ function getSolves(id) {
     for (let i = 0; i < data.length; i++) {
       const id = data[i].account_id;
       const name = data[i].name;
-      const date = Moment(data[i].date)
-        .local()
-        .fromNow();
+      const date = dayjs(data[i].date).fromNow();
       const account_url = data[i].account_url;
       box.append(
         '<tr><td><a href="{0}">{2}</td><td>{3}</td></tr>'.format(
@@ -269,6 +281,7 @@ $('select').on('change', function () {
   loadChals();
 });
 
+// todo ISEN : fix async issue with dependencies
 async function loadChals() {
   //Add loading spinner while fetching API
   $("#challenges-board").empty();
@@ -289,10 +302,8 @@ async function loadChals() {
   }
 
   loadUserSolves().then(async function () {
-
-
     const challengesBoard = $("<div></div>");
-    const orderValue = $("#challenges_filter option:selected").val();
+    let orderValue = $("#challenges_filter option:selected").val();
 
     //Set up default tag/challenge values.
     if (orderValue === undefined) {
@@ -300,7 +311,7 @@ async function loadChals() {
     }
 
     //Display tag/challenge sorted by values
-    else if (orderValue == "tag") {
+    else if (orderValue === "tag") {
       tagList.sort((a, b) => a.value.localeCompare(b.value))
       tagList.reverse();
       for (let i = tagList.length - 1; i >= 0; i--) {
@@ -331,7 +342,7 @@ async function loadChals() {
           );
           let chalbutton;
 
-          if (solves.indexOf(chalinfo.id) == -1) {
+          if (solves.indexOf(chalinfo.id) === -1) {
             chalbutton = $(
               "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
                 chalinfo.id
@@ -346,14 +357,12 @@ async function loadChals() {
           }
 
           const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-          const chalscore = $("<span>{0}</span>".format(chalinfo.value));
           for (let j = 0; j < chalinfo.tags.length; j++) {
             const tag = "tag-" + chalinfo.tags[j].value.replace(/ /g, "-");
             chalwrap.addClass(tag);
           }
 
           chalbutton.append(chalheader);
-          chalbutton.append(chalscore);
           chalwrap.append(chalbutton);
 
           challengesBoard
@@ -364,13 +373,13 @@ async function loadChals() {
     }
 
     //Display challenges sorted by name
-    else if (orderValue == "name") {
+    else if (orderValue === "name") {
       challenges.sort((a, b) => a.name.localeCompare(b.name))
       challenges.reverse();
       for (let i = challenges.length - 1; i >= 0; i--) {
         const chalinfo = challenges[i];
 
-        if (solves.indexOf(chalinfo.id) == -1) {
+        if (solves.indexOf(chalinfo.id) === -1) {
           const chalrow = $(
             "" +
             '<button class="btn btn-dark challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
@@ -397,7 +406,7 @@ async function loadChals() {
     }
 
     //Display challenges sorted by solved or not
-    else if (orderValue == "solved") {
+    else if (orderValue === "solved") {
       challenges.sort((a, b) => a.name.localeCompare(b.name))
       challenges.reverse();
       const chalrow = $(
@@ -421,7 +430,7 @@ async function loadChals() {
         );
         let chalbutton;
 
-        if (solves.indexOf(chalinfo.id) == -1) {
+        if (solves.indexOf(chalinfo.id) === -1) {
           chalbutton = $(
             "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
               chalinfo.id
@@ -438,9 +447,7 @@ async function loadChals() {
           classValue = ".solved-header";
         }
         const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-        const chalscore = $("<span>{0}</span>".format(chalinfo.value));
         chalbutton.append(chalheader);
-        chalbutton.append(chalscore);
         chalwrap.append(chalbutton);
         challengesBoard
           .find(classValue + " > .challenges-row")
@@ -457,7 +464,7 @@ async function loadChals() {
         );
         if (authorList.indexOf(challenges[i].authorId) === -1) {
           authorList.push(challenges[i].authorId);
-          user = (await CTFd.api.get_user_public({ userId: challenges[i].authorId })).data;
+          let user = (await CTFd.api.get_user_public({ userId: challenges[i].authorId })).data;
           const chalrow = $(
             "" +
             '<div id="{0}-row" class="pt-5">'.format(challenges[i].authorId) +
@@ -473,6 +480,7 @@ async function loadChals() {
             .append($("<h3>" + user.name + "</h3>"));
           challengesBoard.append(chalrow);
         }
+        let chalbutton;
         if (solves.indexOf(challenges[i].id) === -1) {
           chalbutton = $(
             "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
@@ -487,9 +495,7 @@ async function loadChals() {
           );
         }
         const chalheader = $("<p>{0}</p>".format(challenges[i].name));
-        const chalscore = $("<span>{0}</span>".format(challenges[i].value));
         chalbutton.append(chalheader);
-        chalbutton.append(chalscore);
         chalwrap.append(chalbutton);
         challengesBoard
           .find("#" + challenges[i].authorId + "-row > .author-challenge > .challenges-row")
@@ -505,8 +511,6 @@ async function loadChals() {
   });
 
 }
-
-
 
 function update() {
   return loadUserSolves() // Load the user's solved challenge ids
@@ -580,7 +584,7 @@ const displayUnlock = id => {
 
         ezAlert({
           title: "Error",
-          body: response.errors.score,
+          body: "",
           button: "Got it!"
         });
       });

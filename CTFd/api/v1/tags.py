@@ -40,7 +40,7 @@ class TagList(Resource):
         responses={
             200: ("Success", "TagListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -78,7 +78,7 @@ class TagList(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -92,7 +92,7 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        
+
         if is_admin() or is_teacher() or is_contributor():
             db.session.commit()
 
@@ -100,7 +100,7 @@ class TagList(Resource):
             db.session.close()
 
             return {"success": True, "data": response.data}
-        return {"success":False}
+        return {"success": False}
 
 
 @tags_namespace.route("/<tag_id>")
@@ -112,7 +112,7 @@ class Tag(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -133,7 +133,7 @@ class Tag(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -142,7 +142,7 @@ class Tag(Resource):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
         schema = TagSchema()
         req = request.get_json()
-        
+
         if is_admin() or is_teacher():
             tag.value = req["tagValue"]
 

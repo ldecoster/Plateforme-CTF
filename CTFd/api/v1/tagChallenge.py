@@ -40,7 +40,7 @@ class TagChallengeList(Resource):
         responses={
             200: ("Success", "TagChallengeListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -83,7 +83,7 @@ class TagChallengeList(Resource):
         responses={
             200: ("Success", "TagChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -115,7 +115,7 @@ class TagChal(Resource):
         responses={
             200: ("Success", "TagChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

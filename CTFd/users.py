@@ -1,12 +1,8 @@
 from flask import Blueprint, render_template, request, url_for
 
 from CTFd.models import Users
-from CTFd.utils import config
 from CTFd.utils.decorators import authed_only
-from CTFd.utils.decorators.visibility import (
-    check_account_visibility,
-    check_score_visibility,
-)
+from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.user import get_current_user
 
@@ -14,7 +10,6 @@ users = Blueprint("users", __name__)
 
 
 @users.route("/users")
-@check_account_visibility
 def listing():
     q = request.args.get("q")
     field = request.args.get("field", "name")
@@ -54,9 +49,6 @@ def private():
 
     user = get_current_user()
 
-    if config.is_scoreboard_frozen():
-        infos.append("Scoreboard has been frozen")
-
     return render_template(
         "users/private.html",
         user=user,
@@ -68,14 +60,10 @@ def private():
 
 @users.route("/users/<int:user_id>")
 @check_account_visibility
-@check_score_visibility
 def public(user_id):
     infos = get_infos()
     errors = get_errors()
     user = Users.query.filter_by(id=user_id, banned=False, hidden=False).first_or_404()
-
-    if config.is_scoreboard_frozen():
-        infos.append("Scoreboard has been frozen")
 
     return render_template(
         "users/public.html", user=user, account=user.account, infos=infos, errors=errors
