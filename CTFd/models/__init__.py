@@ -273,6 +273,7 @@ class Users(db.Model):
     website = db.Column(db.String(128))
     affiliation = db.Column(db.String(128))
     country = db.Column(db.String(32))
+    school = db.Column(db.String(32))
     bracket = db.Column(db.String(32))
     hidden = db.Column(db.Boolean, default=False)
     banned = db.Column(db.Boolean, default=False)
