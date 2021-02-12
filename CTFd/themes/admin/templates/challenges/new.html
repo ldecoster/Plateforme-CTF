@@ -73,12 +73,11 @@
 							<small class="form-text text-muted">Should the challenge be visible to users</small>
 						</label>
 						<select class="form-control custom-select" name="state">
-							<option value="voting" selected>Voting</option>
+							<option value="voting">Voting</option>
 							<option value="hidden" selected>Hidden</option>
 							{% if is_admin() or is_teacher()%}
 							<option value="visible">Visible</option>
 							{%endif %}
-							
 						</select>
 					</div>
 					<input id="challenge_id" type="hidden" name="challenge_id">

@@ -282,13 +282,13 @@ API.prototype.post_tag_list = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.patch_team_public = function(parameters, body) {
+API.prototype.post_tagChallenge_list = function(parameters, body) {
   if (parameters === undefined) {
     parameters = {};
   }
   let deferred = Q.defer();
   let domain = this.domain,
-    path = "/teams/{team_id}";
+    path = "/tagChallenge";
   let queryParameters = {},
     headers = {},
     form = {};
@@ -296,17 +296,10 @@ API.prototype.patch_team_public = function(parameters, body) {
   headers["Accept"] = ["application/json"];
   headers["Content-Type"] = ["application/json"];
 
-  path = path.replace("{team_id}", parameters["teamId"]);
-
-  if (parameters["teamId"] === undefined) {
-    deferred.reject(new Error("Missing required  parameter: teamId"));
-    return deferred.promise;
-  }
-
   queryParameters = mergeQueryParams(parameters, queryParameters);
 
   this.request(
-    "PATCH",
+    "POST",
     domain + path,
     parameters,
     body,

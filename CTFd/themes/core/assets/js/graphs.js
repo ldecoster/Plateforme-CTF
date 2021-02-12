@@ -1,11 +1,11 @@
 import $ from "jquery";
 import echarts from "echarts/dist/echarts-en.common";
-import Moment from "moment";
+import dayjs from "dayjs";
 import { cumulativeSum, colorHash } from "./utils";
 
 const graph_configs = {
   score_graph: {
-    format: (type, id, name, _account_id, responses) => {
+    format: (id, name, _account_id, responses) => {
       let option = {
         title: {
           left: "center",
@@ -44,11 +44,22 @@ const graph_configs = {
             type: "value"
           }
         ],
+        dataZoom: [
+          {
+            id: "dataZoomX",
+            type: "slider",
+            xAxisIndex: [0],
+            filterMode: "filter",
+            height: 20,
+            top: 35,
+            fillerColor: "rgba(233, 236, 241, 0.4)"
+          }
+        ],
         series: []
       };
 
       const times = [];
-      const scores = [];
+      const scores = [0];
       const solves = responses[0].data;
       const awards = responses[2].data;
       const total = solves.concat(awards);
@@ -58,13 +69,8 @@ const graph_configs = {
       });
 
       for (let i = 0; i < total.length; i++) {
-        const date = Moment(total[i].date);
+        const date = dayjs(total[i].date);
         times.push(date.toDate());
-        try {
-          scores.push(total[i].challenge.value);
-        } catch (e) {
-          scores.push(total[i].value);
-        }
       }
 
       times.forEach(time => {
@@ -97,7 +103,7 @@ const graph_configs = {
   },
 
   category_breakdown: {
-    format: (type, id, name, account_id, responses) => {
+    format: (id, name, account_id, responses) => {
       let option = {
         title: {
           left: "center",
@@ -113,8 +119,10 @@ const graph_configs = {
           }
         },
         legend: {
-          orient: "horizontal",
-          bottom: 0,
+          type: "scroll",
+          orient: "vertical",
+          top: "middle",
+          right: 0,
           data: []
         },
         series: [
@@ -132,7 +140,7 @@ const graph_configs = {
                 label: {
                   show: true,
                   formatter: function(data) {
-                    return `${data.name} - ${data.value} (${data.percent}%)`;
+                    return `${data.percent}% (${data.value})`;
                   }
                 },
                 labelLine: {
@@ -186,21 +194,22 @@ const graph_configs = {
         counts.push(count);
       }
 
-      keys.forEach((category, index) => {
-        option.legend.data.push(category);
-        option.series[0].data.push({
-          value: counts[index],
-          name: category,
-          itemStyle: { color: colorHash(category) }
-        });
-      });
+      // Todo : rebuild a new graph with tags
+      // keys.forEach((category, index) => {
+      //   option.legend.data.push(category);
+      //   option.series[0].data.push({
+      //     value: counts[index],
+      //     name: category,
+      //     itemStyle: { color: colorHash(category) }
+      //   });
+      // });
 
       return option;
     }
   },
 
   solve_percentages: {
-    format: (type, id, name, account_id, responses) => {
+    format: (id, name, account_id, responses) => {
       const solves_count = responses[0].data.length;
       const fails_count = responses[1].meta.count;
       let option = {
@@ -218,8 +227,9 @@ const graph_configs = {
           }
         },
         legend: {
-          orient: "horizontal",
-          bottom: 0,
+          orient: "vertical",
+          top: "middle",
+          right: 0,
           data: ["Fails", "Solves"]
         },
         series: [
@@ -290,14 +300,13 @@ export function createGraph(
   graph_type,
   target,
   data,
-  type,
   id,
   name,
   account_id
 ) {
   const cfg = graph_configs[graph_type];
   let chart = echarts.init(document.querySelector(target));
-  chart.setOption(cfg.format(type, id, name, account_id, data));
+  chart.setOption(cfg.format(id, name, account_id, data));
   $(window).on("resize", function() {
     if (chart != null && chart != undefined) {
       chart.resize();
@@ -309,14 +318,13 @@ export function updateGraph(
   graph_type,
   target,
   data,
-  type,
   id,
   name,
   account_id
 ) {
   const cfg = graph_configs[graph_type];
   let chart = echarts.init(document.querySelector(target));
-  chart.setOption(cfg.format(type, id, name, account_id, data));
+  chart.setOption(cfg.format(id, name, account_id, data));
 }
 
 export function disposeGraph(target) {

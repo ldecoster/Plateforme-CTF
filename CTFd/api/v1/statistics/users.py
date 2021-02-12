@@ -4,12 +4,12 @@ from sqlalchemy import func
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.models import Users
 from CTFd.utils.modes import get_model
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import teachers_admins_only
 
 
 @statistics_namespace.route("/users")
 class UserStatistics(Resource):
-    @admins_only
+    @teachers_admins_only
     def get(self):
         registered = Users.query.count()
         confirmed = Users.query.filter_by(verified=True).count()
@@ -19,7 +19,7 @@ class UserStatistics(Resource):
 
 @statistics_namespace.route("/users/<column>")
 class UserPropertyCounts(Resource):
-    @admins_only
+    @teachers_admins_only
     def get(self, column):
         if column in Users.__table__.columns.keys():
             prop = getattr(Users, column)
@@ -32,7 +32,7 @@ class UserPropertyCounts(Resource):
 
 """ @statistics_namespace.route("/users/percentages")
 class UserPercentages(Resource):
-    @admins_only
+    @teacehrs_admins_only
     def get(self):
         users = (
             Users.query.add_columns("id","school")

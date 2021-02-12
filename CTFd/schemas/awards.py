@@ -10,28 +10,17 @@ class AwardSchema(ma.ModelSchema):
 
     views = {
         "admin": [
-            "category",
             "user_id",
             "name",
-            "description",
-            "value",
-            "team_id",
             "user",
-            "team",
             "date",
-            "requirements",
             "id",
             "icon",
         ],
         "user": [
-            "category",
             "user_id",
             "name",
-            "description",
-            "value",
-            "team_id",
             "user",
-            "team",
             "date",
             "id",
             "icon",

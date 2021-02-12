@@ -3,8 +3,7 @@ from sqlalchemy.sql import not_
 
 from CTFd.admin import admin
 from CTFd.models import Challenges, Tracking, Users
-from CTFd.utils import get_config
-from CTFd.utils.decorators import admins_only,teachers_admins_only
+from CTFd.utils.decorators import teachers_admins_only
 
 
 @admin.route("/admin/users")
@@ -61,10 +60,10 @@ def users_detail(user_id):
     user = Users.query.filter_by(id=user_id).first_or_404()
 
     # Get the user's solves
-    solves = user.get_solves(admin=True)
+    solves = user.get_solves()
 
     # Get challenges that the user is missing
-    all_solves = user.get_solves(admin=True)
+    all_solves = user.get_solves()
 
     solve_ids = [s.challenge_id for s in all_solves]
     missing = Challenges.query.filter(not_(Challenges.id.in_(solve_ids))).all()
@@ -75,23 +74,17 @@ def users_detail(user_id):
     )
 
     # Get Fails
-    fails = user.get_fails(admin=True)
+    fails = user.get_fails()
 
     # Get Awards
-    awards = user.get_awards(admin=True)
-
-    # Get user properties
-  
-    place = user.get_place(admin=True)
+    awards = user.get_awards()
 
     return render_template(
         "admin/users/user.html",
         solves=solves,
         user=user,
         addrs=addrs,
-        score=0,
         missing=missing,
-        place=place,
         fails=fails,
         awards=awards,
     )

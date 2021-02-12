@@ -7,7 +7,7 @@
 <div class="jumbotron">
 	<div class="container">
 		<h1>Users
-			<span class="create-team" role="button" data-toggle="tooltip" title="Create User">
+			<span role="button" data-toggle="tooltip" title="Create User">
 				<a href="{{ url_for('admin.users_new') }}" style="color: inherit;">
 					<i class="btn-fa fas fa-plus-circle"></i>
 				</a>
@@ -65,7 +65,7 @@
 	</div>
 	<div class="row">
 		<div class="col-md-12">
-			<table id="teamsboard" class="table table-striped border">
+			<table class="table table-striped border">
 				<thead>
 					<tr>
 						<th class="border-right" data-checkbox>
@@ -78,7 +78,7 @@
 						<th class="d-md-table-cell d-lg-table-cell sort-col text-center"><b>Email</b></th>
 						<th class="sort-col text-center"><b>Country</b></th>
 						<th class="sort-col text-center"><b>School</b></th>
-						<th class="sort-col text-center px-0"><b>Admin</b></th>
+						<th class="sort-col text-center px-0"><b>Role</b></th>
 						<th class="sort-col text-center px-0"><b>Verified</b></th>
 						<th class="sort-col text-center px-0"><b>Hidden</b></th>
 						<th class="sort-col text-center px-0"><b>Banned</b></th>
@@ -92,16 +92,11 @@
 								<input type="checkbox" class="form-check-input" value="{{ user.id }}" data-user-id="{{ user.id }}">&nbsp;
 							</div>
 						</td>
-						<td class="team-id text-center" value="{{ user.id }}">{{ user.id }}</td>
-						<td class="team-name" value="{{ user.name }}">
+						<td class="text-center" value="{{ user.id }}">{{ user.id }}</td>
+						<td value="{{ user.name }}">
 							<a href="{{ url_for('admin.users_detail', user_id=user.id) }}">
 								{{ user.name | truncate(32) }}
 							</a>
-							{% if user.oauth_id %}
-								<a href="https://majorleaguecyber.org/u/{{ user.name }}">
-									<span class="badge badge-primary">Official</span>
-								</a>
-							{% endif %}
 							{% if user.website %}
 								<a href="{{ user.website }}" target="_blank" class="badge badge-info" rel="noopener">
 									<i class="btn-fa fas fa-external-link-alt" data-toggle="tooltip" data-placement="top"
@@ -112,12 +107,12 @@
 								<span class="d-block text-muted"><small>{{ user.affiliation | truncate(20) }}</small></span>
 							{% endif %}
 						</td>
-						<td class="team-email d-none d-md-table-cell d-lg-table-cell" value="{{ user.email }}">
+						<td class="d-none d-md-table-cell d-lg-table-cell" value="{{ user.email }}">
 							{% if user.email %}
 								<a href="mailto:{{ user.email }}" target="_blank">{{ user.email | truncate(32) }}</a>
 							{% endif %}
 						</td>
-						<td class="team-country text-center" value="{{ user.country if user.country is not none }}">
+						<td class="text-center" value="{{ user.country if user.country is not none }}">
 							<span>
 								{% if user.country %}
 									<i class="flag-{{ user.country.lower() }}"></i>
@@ -132,22 +127,28 @@
 								{% endif %}
 							</span>
 						</td>
-						<td class="team-admin d-md-table-cell d-lg-table-cell text-center" value="{{ user.type }}">
+						<td class="d-md-table-cell d-lg-table-cell text-center" value="{{ user.type }}">
 							{% if user.type == 'admin' %}
 								<span class="badge badge-primary">admin</span>
 							{% endif %}
+                            {% if user.type == 'teacher' %}
+								<span class="badge badge-primary">teacher</span>
+							{% endif %}
+                            {% if user.type == 'contributor' %}
+								<span class="badge badge-primary">contributor</span>
+							{% endif %}
 						</td>
-						<td class="team-verified d-md-table-cell d-lg-table-cell text-center" value="{{ user.verified }}">
+						<td class="d-md-table-cell d-lg-table-cell text-center" value="{{ user.verified }}">
 							{% if user.verified %}
 								<span class="badge badge-success">verified</span>
 							{% endif %}
 						</td>
-						<td class="team-hidden d-md-table-cell d-lg-table-cell text-center" value="{{ user.hidden }}">
+						<td class="d-md-table-cell d-lg-table-cell text-center" value="{{ user.hidden }}">
 							{% if user.hidden %}
 								<span class="badge badge-danger">hidden</span>
 							{% endif %}
 						</td>
-						<td class="team-banned d-md-table-cell d-lg-table-cell text-center" value="{{ user.banned }}">
+						<td class="d-md-table-cell d-lg-table-cell text-center" value="{{ user.banned }}">
 							{% if user.banned %}
 								<span class="badge badge-danger">banned</span>
 							{% endif %}

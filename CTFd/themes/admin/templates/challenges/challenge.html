@@ -5,12 +5,6 @@
 {% endblock %}
 
 {% block content %}
-	{% include "admin/modals/hints/edit.html" %}
-	{% include "admin/modals/flags/create.html" %}
-	{% include "admin/modals/flags/edit.html" %}
-	{% include "admin/modals/votes/create.html" %}
-	{% include "admin/modals/votes/edit.html" %}
-
 	<div class="modal fade" id="challenge-window" role="dialog">
 	</div>
 
@@ -21,13 +15,12 @@
 			<h2 class="text-center">{{ challenge.category }}</h2>
 			<h2 class="text-center">{{ challenge.type }}</h2>
 			{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-warning' if  challenge.state == 'voting' else 'badge-success'  %}
-			
+
 			<h5>
 				<span class="badge {{ badge_state }} challenge-state">
 					{{ challenge.state }}
 				</span>
 			</h5>
-			
 			<div class="pt-3">
 				<a class="preview-challenge">
 					<i class="btn-fa fas fa-file-alt fa-2x px-2" data-toggle="tooltip" data-placement="top"

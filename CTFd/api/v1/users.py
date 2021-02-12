@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import (
     APIDetailedSuccessResponse,
     PaginatedAPIListSuccessResponse,
 )
-from CTFd.cache import clear_standings, clear_user_session
+from CTFd.cache import clear_user_session
 from CTFd.constants import RawEnum
 from CTFd.models import (
     Awards,
@@ -25,11 +25,8 @@ from CTFd.schemas.awards import AwardSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
-from CTFd.utils.decorators import admins_only,teachers_admins_only, authed_only, ratelimit
-from CTFd.utils.decorators.visibility import (
-    check_account_visibility,
-    check_score_visibility,
-)
+from CTFd.utils.decorators import admins_only, teachers_admins_only, authed_only, ratelimit
+from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.email import sendmail, user_created_notification
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.security.auth import update_user
@@ -67,7 +64,7 @@ class UserList(Resource):
         responses={
             200: ("Success", "UserListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -141,7 +138,7 @@ class UserList(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -167,8 +164,6 @@ class UserList(Resource):
 
             user_created_notification(addr=email, name=name, password=password)
 
-        clear_standings()
-
         response = schema.dump(response.data)
 
         return {"success": True, "data": response.data}
@@ -183,7 +178,7 @@ class UserPublic(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -200,9 +195,6 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        response.data["place"] = user.place
-        response.data["score"] = user.score
-
         return {"success": True, "data": response.data}
 
     @teachers_admins_only
@@ -211,7 +203,7 @@ class UserPublic(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -235,16 +227,14 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        db.session.commit()
-
         response = schema.dump(response.data)
 
+        db.session.commit()
         db.session.close()
 
         clear_user_session(user_id=user_id)
-        clear_standings()
 
-        return {"success": True, "data": response}
+        return {"success": True, "data": response.data}
 
     @teachers_admins_only
     @users_namespace.doc(
@@ -263,7 +253,6 @@ class UserPublic(Resource):
         db.session.close()
 
         clear_user_session(user_id=user_id)
-        clear_standings()
 
         return {"success": True}
 
@@ -276,7 +265,7 @@ class UserPrivate(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -284,8 +273,6 @@ class UserPrivate(Resource):
     def get(self):
         user = get_current_user()
         response = UserSchema("self").dump(user).data
-        response["place"] = user.place
-        response["score"] = user.score
         return {"success": True, "data": response}
 
     @authed_only
@@ -294,7 +281,7 @@ class UserPrivate(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -315,8 +302,6 @@ class UserPrivate(Resource):
         response = schema.dump(response.data)
         db.session.close()
 
-        clear_standings()
-
         return {"success": True, "data": response.data}
 
 
@@ -325,7 +310,7 @@ class UserPrivateSolves(Resource):
     @authed_only
     def get(self):
         user = get_current_user()
-        solves = user.get_solves(admin=True)
+        solves = user.get_solves()
 
         view = "user" if not is_admin() else "admin"
         response = SubmissionSchema(view=view, many=True).dump(solves)
@@ -341,7 +326,7 @@ class UserPrivateFails(Resource):
     @authed_only
     def get(self):
         user = get_current_user()
-        fails = user.get_fails(admin=True)
+        fails = user.get_fails()
 
         view = "user" if not is_admin() else "admin"
         response = SubmissionSchema(view=view, many=True).dump(fails)
@@ -363,7 +348,7 @@ class UserPrivateAwards(Resource):
     @authed_only
     def get(self):
         user = get_current_user()
-        awards = user.get_awards(admin=True)
+        awards = user.get_awards()
 
         view = "user" if not is_admin() else "admin"
         response = AwardSchema(view=view, many=True).dump(awards)
@@ -378,14 +363,13 @@ class UserPrivateAwards(Resource):
 @users_namespace.param("user_id", "User ID")
 class UserPublicSolves(Resource):
     @check_account_visibility
-    @check_score_visibility
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
 
-        solves = user.get_solves(admin=is_admin())
+        solves = user.get_solves()
 
         view = "user" if not is_admin() else "admin"
         response = SubmissionSchema(view=view, many=True).dump(solves)
@@ -400,13 +384,12 @@ class UserPublicSolves(Resource):
 @users_namespace.param("user_id", "User ID")
 class UserPublicFails(Resource):
     @check_account_visibility
-    @check_score_visibility
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
-        fails = user.get_fails(admin=is_admin())
+        fails = user.get_fails()
 
         view = "user" if not is_admin() else "admin"
         response = SubmissionSchema(view=view, many=True).dump(fails)
@@ -426,13 +409,12 @@ class UserPublicFails(Resource):
 @users_namespace.param("user_id", "User ID or 'me'")
 class UserPublicAwards(Resource):
     @check_account_visibility
-    @check_score_visibility
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
         if (user.banned or user.hidden) and is_admin() is False:
             abort(404)
-        awards = user.get_awards(admin=is_admin())
+        awards = user.get_awards()
 
         view = "user" if not is_admin() else "admin"
         response = AwardSchema(view=view, many=True).dump(awards)

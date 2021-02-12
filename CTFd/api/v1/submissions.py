@@ -8,7 +8,6 @@ from CTFd.api.v1.schemas import (
     APIDetailedSuccessResponse,
     PaginatedAPIListSuccessResponse,
 )
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Submissions, db
 from CTFd.schemas.submissions import SubmissionSchema
@@ -48,7 +47,7 @@ class SubmissionsList(Resource):
         responses={
             200: ("Success", "SubmissionListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -57,7 +56,6 @@ class SubmissionsList(Resource):
         {
             "challenge_id": (int, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "ip": (str, None),
             "provided": (str, None),
             "type": (str, None),
@@ -68,7 +66,6 @@ class SubmissionsList(Resource):
                     {
                         "challenge_id": "challenge_id",
                         "user_id": "user_id",
-                        "team_id": "team_id",
                         "ip": "ip",
                         "provided": "provided",
                         "type": "type",
@@ -119,7 +116,7 @@ class SubmissionsList(Resource):
         responses={
             200: ("Success", "SubmissionListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -139,9 +136,6 @@ class SubmissionsList(Resource):
         response = schema.dump(response.data)
         db.session.close()
 
-        # Delete standings cache
-        clear_standings()
-
         return {"success": True, "data": response.data}
 
 
@@ -154,7 +148,7 @@ class Submission(Resource):
         responses={
             200: ("Success", "SubmissionDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -175,7 +169,7 @@ class Submission(Resource):
         responses={
             200: ("Success", "APISimpleSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -185,8 +179,5 @@ class Submission(Resource):
         db.session.delete(submission)
         db.session.commit()
         db.session.close()
-
-        # Delete standings cache
-        clear_standings()
 
         return {"success": True}

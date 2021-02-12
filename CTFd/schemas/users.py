@@ -8,15 +8,16 @@ from CTFd.schemas.fields import UserFieldEntriesSchema
 from CTFd.utils import get_config, string_types
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.email import check_email_is_whitelisted
-from CTFd.utils.user import get_current_user, is_admin
+from CTFd.utils.user import get_current_user, is_admin, is_teacher
 from CTFd.utils.validators import validate_country_code, validate_school_code
+from CTFd.utils.user import get_current_user, is_admin
 
 
 class UserSchema(ma.ModelSchema):
     class Meta:
         model = Users
         include_fk = True
-        dump_only = ("id", "oauth_id", "created")
+        dump_only = ("id", "created")
         load_only = ("password",)
 
     name = field_for(
@@ -52,7 +53,7 @@ class UserSchema(ma.ModelSchema):
     )
     country = field_for(Users, "country", validate=[validate_country_code])
     school = field_for(Users, "school", validate=[validate_school_code])
-    password = field_for(Users, "password")
+    password = field_for(Users, "password", required=True, allow_none=False)
     fields = Nested(
         UserFieldEntriesSchema, partial=True, many=True, attribute="field_entries"
     )
@@ -66,7 +67,7 @@ class UserSchema(ma.ModelSchema):
 
         existing_user = Users.query.filter_by(name=name).first()
         current_user = get_current_user()
-        if is_admin():
+        if is_admin() or is_teacher():
             user_id = data.get("id")
             if user_id:
                 if existing_user and existing_user.id != user_id:
@@ -107,7 +108,7 @@ class UserSchema(ma.ModelSchema):
 
         existing_user = Users.query.filter_by(email=email).first()
         current_user = get_current_user()
-        if is_admin():
+        if is_admin() or is_teacher:
             user_id = data.get("id")
             if user_id:
                 if existing_user and existing_user.id != user_id:
@@ -165,7 +166,7 @@ class UserSchema(ma.ModelSchema):
         confirm = data.get("confirm")
         target_user = get_current_user()
 
-        if is_admin():
+        if is_admin() or is_teacher():
             pass
         else:
             if password and (bool(confirm) is False):
@@ -188,6 +189,36 @@ class UserSchema(ma.ModelSchema):
                 data.pop("confirm", None)
 
     @pre_load
+    def validate_type(self, data):
+        user_type = data.get("type")
+
+        if user_type is not None:
+            if is_admin():
+                pass
+            elif is_teacher():
+                user_id = data.get("id")
+                if user_id:
+                    target_user = Users.query.filter_by(id=user_id).first()
+                    if target_user.type == "admin":
+                        raise ValidationError(
+                            "You can't change the type of an Admin", field_names=["type"]
+                        )
+                    if target_user.type == "teacher":
+                        raise ValidationError(
+                            "You can't change the type of a Teacher", field_names=["type"]
+                        )
+                if user_type == "user" or user_type == "contributor":
+                    pass
+                else:
+                    raise ValidationError(
+                        "Please choose a valid type", field_names=["type"]
+                    )
+            else:
+                raise ValidationError(
+                    "Please choose a valid type", field_names=["type"]
+                )
+
+    @pre_load
     def validate_fields(self, data):
         """
         This validator is used to only allow users to update the field entry for their user.
@@ -199,14 +230,14 @@ class UserSchema(ma.ModelSchema):
 
         current_user = get_current_user()
 
-        if is_admin():
+        if is_admin() or is_teacher():
             user_id = data.get("id")
             if user_id:
                 target_user = Users.query.filter_by(id=data["id"]).first()
             else:
                 target_user = current_user
 
-            # We are editting an existing user
+            # We are editing an existing user
             if self.view == "admin" and self.instance:
                 target_user = self.instance
                 provided_ids = []
@@ -214,7 +245,7 @@ class UserSchema(ma.ModelSchema):
                     f.pop("id", None)
                     field_id = f.get("field_id")
 
-                    # # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
+                    # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
                     field = UserFields.query.filter_by(id=field_id).first_or_404()
 
                     # Get the existing field entry if one exists
@@ -243,7 +274,7 @@ class UserSchema(ma.ModelSchema):
                 field_id = f.get("field_id")
                 value = f.get("value")
 
-                # # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
+                # Check that we have an existing field for this. May be unnecessary b/c the foriegn key should enforce
                 field = UserFields.query.filter_by(id=field_id).first_or_404()
 
                 if field.required is True and value.strip() == "":
@@ -316,7 +347,6 @@ class UserSchema(ma.ModelSchema):
             "affiliation",
             "bracket",
             "id",
-            "oauth_id",
             "fields",
         ],
         "self": [
@@ -328,7 +358,6 @@ class UserSchema(ma.ModelSchema):
             "affiliation",
             "bracket",
             "id",
-            "oauth_id",
             "password",
             "fields",
         ],
@@ -345,7 +374,6 @@ class UserSchema(ma.ModelSchema):
             "bracket",
             "hidden",
             "id",
-            "oauth_id",
             "password",
             "type",
             "verified",

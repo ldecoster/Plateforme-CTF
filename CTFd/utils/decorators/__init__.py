@@ -3,35 +3,9 @@ import functools
 from flask import abort, jsonify, redirect, request, url_for
 
 from CTFd.cache import cache
-from CTFd.utils import config, get_config
+from CTFd.utils import get_config
 from CTFd.utils import user as current_user
-from CTFd.utils.dates import ctf_ended, ctf_started, ctftime, view_after_ctf
 from CTFd.utils.user import authed, is_admin, is_contributor, is_teacher
-
-
-def during_ctf_time_only(f):
-    """
-    Decorator to restrict an endpoint to only be seen during a CTF
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def during_ctf_time_only_wrapper(*args, **kwargs):
-        if ctftime() or current_user.is_admin():
-            return f(*args, **kwargs)
-        else:
-            if ctf_ended():
-                if view_after_ctf():
-                    return f(*args, **kwargs)
-                else:
-                    error = "{} has ended".format(config.ctf_name())
-                    abort(403, description=error)
-            if ctf_started() is False:
-                error = "{} has not started yet".format(config.ctf_name())
-                abort(403, description=error)
-
-    return during_ctf_time_only_wrapper
 
 
 def require_authentication_if_config(config_key):
@@ -94,6 +68,29 @@ def authed_only(f):
                 abort(403)
 
     return authed_only_wrapper
+
+
+def registered_only(f):
+    """
+    Decorator that requires the user to have a registered account
+    :param f:
+    :return:
+    """
+
+    @functools.wraps(f)
+    def _registered_only(*args, **kwargs):
+        if authed():
+            return f(*args, **kwargs)
+        else:
+            if (
+                request.content_type == "application/json"
+                or request.accept_mimetypes.best == "text/event-stream"
+            ):
+                abort(403)
+            else:
+                return redirect(url_for("auth.register", next=request.full_path))
+
+    return _registered_only
 
 
 def admins_only(f):
