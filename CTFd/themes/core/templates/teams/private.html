@@ -126,14 +126,6 @@
 					</span>
 				</h3>
 			{% endif %}
-			{% if team.school %}
-				<h3 class="d-inline-block">
-					<span class="badge badge-primary">
-						<i class="flag-{{ team.school.lower() }}"></i>
-						{{ lookup_school_code(team.school) }}
-					</span>
-				</h3>
-			{% endif %}
 			{% for field in team.fields %}
 				<h3 class="d-block">
 					{{ field.name }}: {{ field.value }}
