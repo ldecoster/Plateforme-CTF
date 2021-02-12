@@ -122,7 +122,7 @@ function updateConfigs(event) {
   }
   
 
-  Object.keys(obj).forEach(function (x) {
+  Object.keys(obj).forEach(function(x) {
     if (obj[x] === "true") {
       params[x] = true;
     } else if (obj[x] === "false") {
@@ -140,7 +140,7 @@ function updateConfigs(event) {
 function uploadLogo(event) {
   event.preventDefault();
   let form = event.target;
-  helpers.files.upload(form, {}, function (response) {
+  helpers.files.upload(form, {}, function(response) {
     const f = response.data[0];
     const params = {
       value: f.location
@@ -149,10 +149,10 @@ function uploadLogo(event) {
       method: "PATCH",
       body: JSON.stringify(params)
     })
-      .then(function (response) {
+      .then(function(response) {
         return response.json();
       })
-      .then(function (response) {
+      .then(function(response) {
         if (response.success) {
           window.location.reload();
         } else {
@@ -170,7 +170,7 @@ function removeLogo() {
   ezQuery({
     title: "Remove logo",
     body: "Are you sure you'd like to remove the CTF logo?",
-    success: function () {
+    success: function() {
       const params = {
         value: null
       };
@@ -203,13 +203,13 @@ function importConfig(event) {
     processData: false,
     contentType: false,
     statusCode: {
-      500: function (resp) {
+      500: function(resp) {
         alert(resp.responseText);
       }
     },
-    xhr: function () {
+    xhr: function() {
       let xhr = $.ajaxSettings.xhr();
-      xhr.upload.onprogress = function (e) {
+      xhr.upload.onprogress = function(e) {
         if (e.lengthComputable) {
           let width = (e.loaded / e.total) * 100;
           pg = ezProgressBar({
@@ -220,15 +220,15 @@ function importConfig(event) {
       };
       return xhr;
     },
-    success: function (_data) {
+    success: function(_data) {
       pg = ezProgressBar({
         target: pg,
         width: 100
       });
-      setTimeout(function () {
+      setTimeout(function() {
         pg.modal("hide");
       }, 500);
-      setTimeout(function () {
+      setTimeout(function() {
         window.location.reload();
       }, 700);
     }
@@ -282,7 +282,7 @@ $(() => {
 
   // Handle refreshing codemirror when switching tabs.
   // Better than the autorefresh approach b/c there's no flicker
-  $("a[href='#theme']").on("shown.bs.tab", function (_e) {
+  $("a[href='#theme']").on("shown.bs.tab", function(_e) {
     theme_header_editor.refresh();
     theme_footer_editor.refresh();
     theme_settings_editor.refresh();
@@ -290,16 +290,16 @@ $(() => {
 
   $(
     "a[href='#legal'], a[href='#tos-config'], a[href='#privacy-policy-config']"
-  ).on("shown.bs.tab", function (_e) {
-    $("#tos-config .CodeMirror").each(function (i, el) {
+  ).on("shown.bs.tab", function(_e) {
+    $("#tos-config .CodeMirror").each(function(i, el) {
       el.CodeMirror.refresh();
     });
-    $("#privacy-policy-config .CodeMirror").each(function (i, el) {
+    $("#privacy-policy-config .CodeMirror").each(function(i, el) {
       el.CodeMirror.refresh();
     });
   });
 
-  $("#tagDeleteBtn").click(function (e) {
+  $("#tagDeleteBtn").click(function(e) {
     var selectedTag = $("#tag-selector :selected").text();
     CTFd.api.get_tag_list().then(response => {
       tagList = response.data;
@@ -317,7 +317,7 @@ $(() => {
 
   });
 
-  $("#theme-settings-modal form").submit(function (e) {
+  $("#theme-settings-modal form").submit(function(e) {
     e.preventDefault();
     theme_settings_editor
       .getDoc()
@@ -325,7 +325,7 @@ $(() => {
     $("#theme-settings-modal").modal("hide");
   });
 
-  $("#theme-settings-button").click(function () {
+  $("#theme-settings-button").click(function() {
     let form = $("#theme-settings-modal form");
     let data;
 
@@ -336,12 +336,12 @@ $(() => {
       data = {};
     }
 
-    $.each(data, function (key, value) {
+    $.each(data, function(key, value) {
       var ctrl = form.find(`[name='${key}']`);
       switch (ctrl.prop("type")) {
         case "radio":
         case "checkbox":
-          ctrl.each(function () {
+          ctrl.each(function() {
             if ($(this).attr("value") == value) {
               $(this).attr("checked", value);
             }
@@ -363,7 +363,7 @@ $(() => {
   $("#remove-logo").click(removeLogo);
   $("#export-button").click(exportConfig);
   $("#import-button").click(importConfig);
-  $("#config-color-update").click(function () {
+  $("#config-color-update").click(function() {
     const hex_code = $("#config-color-picker").val();
     const user_css = theme_header_editor.getValue();
     let new_css;
@@ -381,13 +381,13 @@ $(() => {
     theme_header_editor.getDoc().setValue(new_css);
   });
 
-  $(".start-date").change(function () {
+  $(".start-date").change(function() {
     loadDateValues("start");
   });
-  $(".end-date").change(function () {
+  $(".end-date").change(function() {
     loadDateValues("end");
   });
-  $(".freeze-date").change(function () {
+  $(".freeze-date").change(function() {
     loadDateValues("freeze");
   });
 
@@ -407,7 +407,7 @@ $(() => {
 
   // Toggle username and password based on stored value
   $("#mail_useauth")
-    .change(function () {
+    .change(function() {
       $("#mail_username_password").toggle(this.checked);
     })
     .change();
