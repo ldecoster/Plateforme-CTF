@@ -13,7 +13,7 @@ class ResetInstanceForm(BaseForm):
     )
     submissions = BooleanField(
         "Submissions",
-        description="Deletes all records that accounts gained points or took an action",
+        description="Deletes all records that accounts took an action",
     )
     challenges = BooleanField(
         "Challenges", description="Deletes all challenges and associated data"
