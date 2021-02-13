@@ -106,7 +106,10 @@ class ChallengeSolvePercentages(Resource):
                 .count()
             )
 
-            percentage = float(solve_count) / float(number_of_users)
+            if number_of_users == 0:
+                percentage = 0
+            else:
+                percentage = float(solve_count) / float(number_of_users)
 
             percentage_data.append(
                 {"id": challenge.id, "name": challenge.name, "percentage": percentage}
