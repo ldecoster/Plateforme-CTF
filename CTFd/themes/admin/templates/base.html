@@ -76,6 +76,10 @@
 					{% endif %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a></li>
 
+					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.badges_listing') }}">Badges</a></li>
+
+
+
 					{% set plugin_menu = get_admin_plugin_menu_bar() %}
 					{% set plugins = get_configurable_plugins() %}
 					{% if plugin_menu or plugins %}

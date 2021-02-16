@@ -164,7 +164,7 @@ def import_ctf(backup, erase=True):
         "db/flags.json",
         "db/hints.json",
         "db/unlocks.json",
-        "db/awards.json",
+        "db/badges.json",
         "db/tags.json",
         "db/submissions.json",
         "db/solves.json",
@@ -173,6 +173,7 @@ def import_ctf(backup, erase=True):
         "db/pages.json",
         "db/tracking.json",
         "db/config.json",
+        "db/exercices.json"
     ]
 
     # We want to insert certain database tables first so we are specifying
@@ -244,7 +245,7 @@ def import_ctf(backup, erase=True):
                         if member in (
                             "db/challenges.json",
                             "db/hints.json",
-                            "db/awards.json",
+                            "db/badges.json",
                         ):
                             requirements = entry.get("requirements")
                             if requirements and isinstance(requirements, string_types):

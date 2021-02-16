@@ -160,6 +160,7 @@ def create_app(config="CTFd.config.Config"):
 
         from CTFd.models import (  # noqa: F401
             db,
+            Badges,
             Solves,
             Challenges,
             Fails,
@@ -253,20 +254,23 @@ def create_app(config="CTFd.config.Config"):
         from CTFd.users import users
         from CTFd.challenges import challenges
         from CTFd.scoreboard import scoreboard
+        from CTFd.badges import badges
         from CTFd.auth import auth
         from CTFd.admin import admin
         from CTFd.api import api
         from CTFd.events import events
+        from CTFd.exercices import exercices
         from CTFd.errors import page_not_found, forbidden, general_error, gateway_error
 
         app.register_blueprint(views)
         app.register_blueprint(users)
         app.register_blueprint(challenges)
+        app.register_blueprint(badges)
         app.register_blueprint(scoreboard)
         app.register_blueprint(auth)
         app.register_blueprint(api)
         app.register_blueprint(events)
-
+        app.register_blueprint(exercices)
         app.register_blueprint(admin)
 
         app.register_error_handler(404, page_not_found)

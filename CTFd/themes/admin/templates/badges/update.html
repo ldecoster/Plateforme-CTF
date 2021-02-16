@@ -1,0 +1,51 @@
+{% block header %}
+{% endblock %}
+
+<form method="POST">
+	{% block name %}
+	<div class="form-group">
+		<label>
+			Name<br>
+			<small class="form-text text-muted">Badge Name</small>
+		</label>
+		<input type="text" class="form-control chal-name" name="name" value="{{ challenge.name }}">
+	</div>
+	{% endblock %}
+
+	{% block message %}
+	<div class="form-group">
+		<label>
+			Message<br>
+			<small class="form-text text-muted">
+				Use this to give a brief description of your badge.
+			</small>
+		</label>
+		<textarea id="desc-editor" class="form-control chal-desc-editor markdown" name="description" rows="10">{{ badge.description }}</textarea>
+	</div>
+	{% endblock %}
+    
+	{% block max_attempts %}
+	<div class="form-group">
+		<label>
+			Max Attempts<br>
+			<small class="form-text text-muted">Maximum amount of attempts users receive. Leave at 0 for unlimited.</small>
+		</label>
+
+		<input type="number" class="form-control chal-attempts" name="max_attempts" value="{{ challenge.max_attempts }}">
+	</div>
+	{% endblock %}
+
+
+
+	{% block submit %}
+	<div>
+		<button class="btn btn-success btn-outlined float-right" type="submit">
+			Update
+		</button>
+	</div>
+	{% endblock %}
+</form>
+{% endif %}
+
+{% block footer %}
+{% endblock %}

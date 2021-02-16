@@ -1,3 +1,4 @@
+
 from flask import url_for
 
 from CTFd.utils import get_config

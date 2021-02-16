@@ -33,6 +33,7 @@ from CTFd.forms import config  # noqa: I001 isort:skip
 from CTFd.forms import pages  # noqa: I001 isort:skip
 from CTFd.forms import badgesentries  # noqa: I001 isort:skip
 from CTFd.forms import email  # noqa: I001 isort:skip
+from CTFd.forms import badges
 
 Forms.auth = auth
 Forms.self = self
@@ -43,5 +44,6 @@ Forms.challenges = challenges
 Forms.notifications = notifications
 Forms.config = config
 Forms.pages = pages
-Forms.badges = badgesentries
+Forms.badgesentries = badgesentries
+Forms.badges = badges
 Forms.email = email

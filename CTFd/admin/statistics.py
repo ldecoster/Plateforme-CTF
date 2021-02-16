@@ -1,7 +1,7 @@
 from flask import render_template
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Fails, Solves, Tracking, Users, db
+from CTFd.models import Badges, Challenges, Fails, Solves, Tracking, Users, db
 from CTFd.utils.decorators import teachers_admins_only
 from CTFd.utils.modes import get_model
 from CTFd.utils.updates import update_check

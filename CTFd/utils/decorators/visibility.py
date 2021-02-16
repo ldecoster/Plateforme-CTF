@@ -8,6 +8,7 @@ from CTFd.constants.config import (
     ConfigTypes,
     RegistrationVisibilityTypes,
     ScoreVisibilityTypes,
+    ExerciceVisibilityTypes,
 )
 from CTFd.utils import get_config
 from CTFd.utils.user import authed, is_admin
@@ -78,6 +79,34 @@ def check_challenge_visibility(f):
                     return redirect(url_for("auth.login", next=request.full_path))
 
     return _check_challenge_visibility
+
+
+def check_exercices_visibility(f):
+    @functools.wraps(f)
+    def _check_exercice_visibility(*args, **kwargs):
+        v = get_config(ConfigTypes.EXERCICES_VISIBILITY)
+        if v == ExerciceVisibilityTypes.PUBLIC:
+            return f(*args, **kwargs)
+
+        elif v == ExerciceVisibilityTypes.PRIVATE:
+            if authed():
+                return f(*args, **kwargs)
+            else:
+                if request.content_type == "application/json":
+                    abort(403)
+                else:
+                    return redirect(url_for("auth.login", next=request.full_path))
+
+        elif v == ExerciceVisibilityTypes.ADMINS:
+            if is_admin():
+                return f(*args, **kwargs)
+            else:
+                if authed():
+                    abort(403)
+                else:
+                    return redirect(url_for("auth.login", next=request.full_path))
+
+    return _check_exercice_visibility()
 
 
 def check_account_visibility(f):

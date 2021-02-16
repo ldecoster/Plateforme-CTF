@@ -17,6 +17,7 @@ from flask import (
 admin = Blueprint("admin", __name__)
 
 # isort:imports-firstparty
+from CTFd.admin import badges
 from CTFd.admin import challenges  # noqa: F401
 from CTFd.admin import notifications  # noqa: F401
 from CTFd.admin import pages  # noqa: F401
@@ -27,6 +28,7 @@ from CTFd.admin import users  # noqa: F401
 from CTFd.cache import cache, clear_config, clear_pages, clear_standings
 from CTFd.models import (
     BadgesEntries,
+    Badges,
     Challenges,
     Configs,
     Notifications,
@@ -197,6 +199,13 @@ def reset():
                 for f in c.files:
                     delete_file(file_id=f.id)
             Challenges.query.delete()
+
+        if data.get("badges"):
+            _badges = Badges.query.all()
+            for c in _badges:
+                for f in c.files:
+                    delete_file(file_id=f.id)
+            Badges.query.delete()
 
         if data.get("accounts"):
             Users.query.delete()

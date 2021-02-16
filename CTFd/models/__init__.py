@@ -40,6 +40,7 @@ class Badges(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text)
     name = db.Column(db.String(80))
+    type = db.Column(db.String(80))
 
     def __init__(self, *args, **kwargs):
         super(Badges, self).__init__(**kwargs)
@@ -240,6 +241,7 @@ class TagChallenge(db.Model):
 
     def __init__(self, *args, **kwargs):
         super(TagChallenge, self).__init__(**kwargs)
+
 
 
 class Files(db.Model):
