@@ -194,12 +194,11 @@ class TagChallenge(db.Model):
     __tablename__ = "tagChallenge"
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"),
                              primary_key=True, nullable=False)
-    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"),
-                            primary_key=True, nullable=False)
+    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True, nullable=False)
 
     def __init__(self, *args, **kwargs):
         super(TagChallenge, self).__init__(**kwargs)
-    
+
 
 class Files(db.Model):
     __tablename__ = "files"
@@ -578,3 +577,40 @@ class UserFieldEntries(FieldEntries):
     __mapper_args__ = {"polymorphic_identity": "user"}
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     user = db.relationship("Users", foreign_keys="UserFieldEntries.user_id")
+
+
+class Permissions(db.Model):
+    __tablename__ = "permissions"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+
+    def __init__(self, *args, **kwargs):
+        super(Permissions, self).__init__(**kwargs)
+
+
+class Roles(db.Model):
+    __tablename__ = "roles"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+
+    def __init__(self, *args, **kwargs):
+        super(Roles, self).__init__(**kwargs)
+
+
+class RolePermissions(Permissions):
+    __tablename__ = "role_permissions"
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    permission_id = db.Column(db.Integer, db.ForeignKey("permissions.id", ondelete="CASCADE"),
+                              primary_key=True, nullable=False)
+
+    def __init__(self, *args, **kwargs):
+        super(RolePermissions, self).__init__(**kwargs)
+
+
+class UserRoles(Roles):
+    __tablename__ = "user_roles"
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+
+    def __init__(self, *args, **kwargs):
+        super(UserRoles, self).__init__(**kwargs)
