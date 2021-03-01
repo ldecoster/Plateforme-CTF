@@ -49,6 +49,7 @@ class Badges(db.Model):
         return "<Badges %r>" % self.name
 
 
+
 class Notifications(db.Model):
     __tablename__ = "notifications"
     id = db.Column(db.Integer, primary_key=True)

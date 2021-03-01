@@ -287,6 +287,7 @@ if __name__ == "__main__":
                             id = id,
                             description = "test desc",
                             name= gen_badge(),
+                            type="standard"
                         )
                         new_base = random_date(
                             base_time,

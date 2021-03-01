@@ -710,7 +710,11 @@ class ChallengeSolves(Resource):
                 }
             )
 
+
+
+
         return {"success": True, "data": response}
+
 
 
 @challenges_namespace.route("/<challenge_id>/files")
