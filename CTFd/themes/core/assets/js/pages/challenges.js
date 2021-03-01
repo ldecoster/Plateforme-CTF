@@ -297,11 +297,8 @@ async function loadChals() {
       '</div>' +
       '</div>'
     ));
-  console.log("challenge lenth : "+challenges.length);
-  console.log(challenges);
   if (challenges.length === 0) {
     challenges = (await CTFd.api.get_challenge_list()).data;
-    console.log("challenges reloaded");
   }
   if (tagList.length === 0) {
     tagList = (await CTFd.api.get_tag_list()).data;
