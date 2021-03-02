@@ -64,6 +64,11 @@ $.get(CTFd.config.urlRoot + "/api/v1/badges/types", function(response) {
   }
 });
 
+$("#badge-create-button").click(function() {
+
+});
+
+
 function createBadge(_event) {
   const badge = $(this)
     .find("option:selected")

@@ -55,7 +55,11 @@
 									Tags associés:<br>
 									<small class="form-text text-muted">the tags corresponding to your badge</small>
 								</label>
-								<input type="text" class="form-control" name="badge">
+								<select id="tag-selector" class="form-control custom-select">
+                                    {% for tag in tags %}
+                                        <option>{{ tag.value }}</option>
+                                    {% endfor %}
+                                </select>
 							</div>
 							<div class="col-md-4">
 								<label>
