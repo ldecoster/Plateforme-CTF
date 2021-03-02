@@ -3,27 +3,16 @@ import $ from "jquery";
 import CTFd from "../CTFd";
 import { createGraph, updateGraph } from "../graphs";
 
-const api_funcs = {
-  user: [
-    x => CTFd.api.get_user_solves({ userId: x }),
-    x => CTFd.api.get_user_fails({ userId: x }),
-    x => CTFd.api.get_user_badges({ userId: x })
-  ]
-};
-
-const createGraphs = (type, id, name, account_id) => {
-  let [solves_func, fails_func, badges_func] = api_funcs[type];
-
+const createGraphs = (id, name, account_id) => {
   Promise.all([
-    solves_func(account_id),
-    fails_func(account_id),
-    badges_func(account_id)
+    CTFd.api.get_user_solves({ userId: account_id }),
+    CTFd.api.get_user_fails({ userId: account_id }),
+    CTFd.api.get_user_awards({ userId: account_id })
   ]).then(responses => {
     createGraph(
       "score_graph",
       "#score-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -32,7 +21,6 @@ const createGraphs = (type, id, name, account_id) => {
       "category_breakdown",
       "#categories-pie-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -41,7 +29,6 @@ const createGraphs = (type, id, name, account_id) => {
       "solve_percentages",
       "#keys-pie-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -49,19 +36,16 @@ const createGraphs = (type, id, name, account_id) => {
   });
 };
 
-const updateGraphs = (type, id, name, account_id) => {
-  let [solves_func, fails_func, badges_func] = api_funcs[type];
-
+const updateGraphs = (id, name, account_id) => {
   Promise.all([
-    solves_func(account_id),
-    fails_func(account_id),
-    badges_func(account_id)
+    CTFd.api.get_user_solves({ userId: account_id }),
+    CTFd.api.get_user_fails({ userId: account_id }),
+    CTFd.api.get_user_awards({ userId: account_id })
   ]).then(responses => {
     updateGraph(
       "score_graph",
       "#score-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -70,7 +54,6 @@ const updateGraphs = (type, id, name, account_id) => {
       "category_breakdown",
       "#categories-pie-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -79,7 +62,6 @@ const updateGraphs = (type, id, name, account_id) => {
       "solve_percentages",
       "#keys-pie-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -88,11 +70,11 @@ const updateGraphs = (type, id, name, account_id) => {
 };
 
 $(() => {
-  let type, id, name, account_id;
-  ({ type, id, name, account_id } = window.stats_data);
+  let id, name, account_id;
+  ({ id, name, account_id } = window.stats_data);
 
-  createGraphs(type, id, name, account_id);
+  createGraphs(id, name, account_id);
   setInterval(() => {
-    updateGraphs(type, id, name, account_id);
+    updateGraphs(id, name, account_id);
   }, 300000);
 });

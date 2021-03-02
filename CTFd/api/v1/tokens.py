@@ -53,7 +53,7 @@ class TokenList(Resource):
         responses={
             200: ("Success", "TokenListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -77,7 +77,7 @@ class TokenList(Resource):
         responses={
             200: ("Success", "TokenDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -111,7 +111,7 @@ class TokenDetail(Resource):
         responses={
             200: ("Success", "ValuelessTokenDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

@@ -39,7 +39,7 @@ pages_namespace.schema_model(
 
 @pages_namespace.route("")
 @pages_namespace.doc(
-    responses={200: "Success", 400: "An error occured processing your data"}
+    responses={200: "Success", 400: "An error occurred processing your data"}
 )
 class PageList(Resource):
     @admins_only
@@ -48,7 +48,7 @@ class PageList(Resource):
         responses={
             200: ("Success", "PageListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -91,7 +91,7 @@ class PageList(Resource):
         responses={
             200: ("Success", "PageDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -122,7 +122,7 @@ class PageList(Resource):
     responses={
         200: ("Success", "PageDetailedSuccessResponse"),
         400: (
-            "An error occured processing the provided or stored data",
+            "An error occurred processing the provided or stored data",
             "APISimpleErrorResponse",
         ),
     },

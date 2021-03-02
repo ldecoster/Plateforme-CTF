@@ -44,7 +44,7 @@ class NotificantionList(Resource):
         responses={
             200: ("Success", "NotificationListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -54,7 +54,6 @@ class NotificantionList(Resource):
             "title": (str, None),
             "content": (str, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "q": (str, None),
             "field": (
                 RawEnum("NotificationFields", {"title": "title", "content": "content"}),
@@ -83,7 +82,7 @@ class NotificantionList(Resource):
         responses={
             200: ("Success", "NotificationDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -121,7 +120,7 @@ class Notification(Resource):
         responses={
             200: ("Success", "NotificationDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },

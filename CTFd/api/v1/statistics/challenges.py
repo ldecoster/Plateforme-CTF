@@ -3,7 +3,7 @@ from sqlalchemy import func
 from sqlalchemy.sql import and_
 
 from CTFd.api.v1.statistics import statistics_namespace
-from CTFd.models import Challenges, Solves, db
+from CTFd.models import Challenges, Solves, Users, db
 from CTFd.utils.decorators import admins_only
 from CTFd.utils.modes import get_model
 
@@ -85,12 +85,12 @@ class ChallengeSolvePercentages(Resource):
 
         Model = get_model()
 
-        # TODO ISEN : remove this code
-        teams_with_points = (
-            db.session.query(Solves.account_id)
-            .join(Model)
-            .filter(Model.banned == False, Model.hidden == False)
-            .group_by(Solves.account_id)
+        number_of_users = (
+            Users.query
+            .filter(
+                Model.banned == False,
+                Model.hidden == False,
+            )
             .count()
         )
 
@@ -106,10 +106,10 @@ class ChallengeSolvePercentages(Resource):
                 .count()
             )
 
-            if teams_with_points > 0:
-                percentage = float(solve_count) / float(teams_with_points)
+            if number_of_users == 0:
+                percentage = 0
             else:
-                percentage = 0.0
+                percentage = float(solve_count) / float(number_of_users)
 
             percentage_data.append(
                 {"id": challenge.id, "name": challenge.name, "percentage": percentage}

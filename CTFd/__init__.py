@@ -24,9 +24,8 @@ from CTFd.utils.initialization import (
 )
 from CTFd.utils.migrations import create_database, migrations, stamp_latest_revision
 from CTFd.utils.sessions import CachingSessionInterface
-from CTFd.utils.updates import update_check
 
-__version__ = "3.1.1"
+__version__ = "3.2.1"
 __channel__ = "oss"
 
 
@@ -242,8 +241,6 @@ def create_app(config="CTFd.config.Config"):
 
         if not utils.get_config("ctf_theme"):
             utils.set_config("ctf_theme", "core")
-
-        update_check(force=True)
 
         init_request_processors(app)
         init_template_filters(app)

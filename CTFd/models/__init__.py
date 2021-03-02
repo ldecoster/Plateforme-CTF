@@ -6,8 +6,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, validates
 
-from CTFd.cache import cache
-
 db = SQLAlchemy()
 ma = Marshmallow()
 
@@ -59,6 +57,13 @@ class Notifications(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     user = db.relationship("Users", foreign_keys="Notifications.user_id", lazy="select")
+
+    @property
+    def html(self):
+        from CTFd.utils.config.pages import build_html
+        from CTFd.utils.helpers import markup
+
+        return markup(build_html(self.content))
 
     def __init__(self, *args, **kwargs):
         super(Notifications, self).__init__(**kwargs)
@@ -158,7 +163,6 @@ class Hints(db.Model):
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
     )
     content = db.Column(db.Text)
-    cost = db.Column(db.Integer, default=0)
 
     __mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
 
@@ -198,7 +202,9 @@ class BadgesEntries(db.Model):
     user = db.relationship("Users", foreign_keys="BadgesEntries.user_id", lazy="select")
     badge = db.relationship("Badges", foreign_keys="BadgesEntries.badge_id", lazy="select")
 
-    #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
+    @hybrid_property
+    def account_id(self):
+        return self.user_id
 
     def __init__(self, *args, **kwargs):
         super(BadgesEntries, self).__init__(**kwargs)
@@ -301,12 +307,10 @@ class Flags(db.Model):
 
 class Users(db.Model):
     __tablename__ = "users"
-    __table_args__ = (db.UniqueConstraint("id", "oauth_id"), {})
+    __table_args__ = (db.UniqueConstraint("id"), {})
     # Core attributes
     id = db.Column(db.Integer, primary_key=True)
-    oauth_id = db.Column(db.Integer, unique=True)
-    # User names are not constrained to be unique to allow for official/unofficial teams.
-    name = db.Column(db.String(128))
+    name = db.Column(db.String(128), unique=True)
     password = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
     type = db.Column(db.String(80))
@@ -319,6 +323,7 @@ class Users(db.Model):
     website = db.Column(db.String(128))
     affiliation = db.Column(db.String(128))
     country = db.Column(db.String(32))
+    school = db.Column(db.String(32))
     bracket = db.Column(db.String(32))
     hidden = db.Column(db.Boolean, default=False)
     banned = db.Column(db.Boolean, default=False)
@@ -343,19 +348,11 @@ class Users(db.Model):
 
     @hybrid_property
     def account_id(self):
-        from CTFd.utils import get_config
-
-        user_mode = get_config("user_mode")
-        if user_mode == "users":
-            return self.id
+        return self.id
 
     @hybrid_property
     def account(self):
-        from CTFd.utils import get_config
-
-        user_mode = get_config("user_mode")
-        if user_mode == "users":
-            return self
+        return self
 
     @property
     def fields(self):
@@ -363,24 +360,17 @@ class Users(db.Model):
 
     @property
     def solves(self):
-        return self.get_solves(admin=False)
+        return self.get_solves()
 
     @property
     def fails(self):
-        return self.get_fails(admin=False)
+        return self.get_fails()
 
     @property
+    def awards(self):
+        return self.get_awards()
     def badgesentries(self):
         return self.get_badgesentries(admin=False)
-
-    @property
-    def place(self):
-        from CTFd.utils.config.visibility import scores_visible
-
-        if scores_visible():
-            return self.get_place(admin=False)
-        else:
-            return None
 
     def get_fields(self, admin=False):
         if admin:
@@ -390,24 +380,12 @@ class Users(db.Model):
             entry for entry in self.field_entries if entry.field.public and entry.value
         ]
 
-    def get_solves(self, admin=False):
-        from CTFd.utils import get_config
-
+    def get_solves(self):
         solves = Solves.query.filter_by(user_id=self.id)
-        freeze = get_config("freeze")
-        if freeze and admin is False:
-            dt = datetime.datetime.utcfromtimestamp(freeze)
-            solves = solves.filter(Solves.date < dt)
         return solves.all()
 
-    def get_fails(self, admin=False):
-        from CTFd.utils import get_config
-
+    def get_fails(self):
         fails = Fails.query.filter_by(user_id=self.id)
-        freeze = get_config("freeze")
-        if freeze and admin is False:
-            dt = datetime.datetime.utcfromtimestamp(freeze)
-            fails = fails.filter(Fails.date < dt)
         return fails.all()
 
     def get_badgesentries(self, admin=False):
@@ -419,30 +397,9 @@ class Users(db.Model):
             dt = datetime.datetime.utcfromtimestamp(freeze)
             badgesentries = badgesentries.filter(BadgesEntries.date < dt)
         return badgesentries.all()
-
-
-
-    @cache.memoize()
-    def get_place(self, admin=False, numeric=False):
-        """
-        This method is generally a clone of CTFd.scoreboard.get_standings.
-        The point being that models.py must be self-reliant and have little
-        to no imports within the CTFd application as importing from the
-        application itself will result in a circular import.
-        """
-        from CTFd.utils.scores import get_user_standings
-        from CTFd.utils.humanize.numbers import ordinalize
-
-        standings = get_user_standings(admin=admin)
-
-        for i, user in enumerate(standings):
-            if user.user_id == self.id:
-                n = i + 1
-                if numeric:
-                    return n
-                return ordinalize(n)
-        else:
-            return None
+    def get_awards(self):
+        awards = Awards.query.filter_by(user_id=self.id)
+        return awards.all()
 
 
 class Admins(Users):
@@ -482,19 +439,11 @@ class Submissions(db.Model):
 
     @hybrid_property
     def account_id(self):
-        from CTFd.utils import get_config
-
-        user_mode = get_config("user_mode")
-        if user_mode == "users":
-            return self.user_id
+        return self.user_id
 
     @hybrid_property
     def account(self):
-        from CTFd.utils import get_config
-
-        user_mode = get_config("user_mode")
-        if user_mode == "users":
-            return self.user
+        return self.user
 
     @staticmethod
     def get_child(type):
@@ -550,11 +499,7 @@ class Unlocks(db.Model):
 
     @hybrid_property
     def account_id(self):
-        from CTFd.utils import get_config
-
-        user_mode = get_config("user_mode")
-        if user_mode == "users":
-            return self.user_id
+        return self.user_id
 
     def __repr__(self):
         return "<Unlock %r>" % self.id

@@ -25,12 +25,6 @@
                     </li>
                 {% endif %}
 
-                {% if Configs.score_visibility != 'admins' %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('scoreboard.listing') }}">Scoreboard</a>
-                    </li>
-                {% endif %}
-
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('challenges.listing') }}">Challenges</a>
                 </li>

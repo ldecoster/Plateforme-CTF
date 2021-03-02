@@ -8,15 +8,13 @@ from itsdangerous.exc import BadSignature, BadTimeSignature, SignatureExpired
 
 from CTFd.cache import clear_user_session
 from CTFd.models import UserFieldEntries, UserFields, Users, db
-from CTFd.utils import config, email, get_app_config, get_config
+from CTFd.utils import config, email, get_config
 from CTFd.utils import user as current_user
 from CTFd.utils import validators
-from CTFd.utils.config.integrations import mlc_registration
-from CTFd.utils.config.visibility import registration_visible
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.decorators import ratelimit
 from CTFd.utils.decorators.visibility import check_registration_visibility
-from CTFd.utils.helpers import error_for, get_errors, markup
+from CTFd.utils.helpers import get_errors, markup
 from CTFd.utils.logging import log
 from CTFd.utils.security.auth import login_user, logout_user
 from CTFd.utils.security.signing import unserialize
@@ -119,13 +117,6 @@ def reset_password(data=None):
         if request.method == "POST":
             password = request.form.get("password", "").strip()
             user = Users.query.filter_by(email=email_address).first_or_404()
-            if user.oauth_id:
-                return render_template(
-                    "reset_password.html",
-                    infos=[
-                        "Your account was registered via an authentication provider and does not have an associated password. Please login via your authentication provider."
-                    ],
-                )
 
             pass_short = len(password) == 0
             if pass_short:
@@ -159,14 +150,6 @@ def reset_password(data=None):
                 ],
             )
 
-        if user.oauth_id:
-            return render_template(
-                "reset_password.html",
-                infos=[
-                    "The email address associated with this account was registered via an authentication provider and does not have an associated password. Please login via your authentication provider."
-                ],
-            )
-
         email.forgot_password(email_address)
 
         return render_template(
@@ -184,6 +167,9 @@ def reset_password(data=None):
 def register():
     errors = get_errors()
     if request.method == "POST":
+        if current_user.authed():
+            return redirect(url_for("challenges.listing"))
+
         name = request.form.get("name", "").strip()
         email_address = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "").strip()
@@ -191,6 +177,7 @@ def register():
         website = request.form.get("website")
         affiliation = request.form.get("affiliation")
         country = request.form.get("country")
+        school = request.form.get("school")
 
         name_len = len(name) == 0
         names = Users.query.add_columns("name", "id").filter_by(name=name).first()
@@ -237,6 +224,15 @@ def register():
         else:
             valid_country = True
 
+        if school:
+            try:
+                validators.validate_school_code(school)
+                valid_school = True
+            except ValidationError:
+                valid_school = False
+        else:
+            valid_school = True
+
         if website:
             valid_website = validators.validate_url(website)
         else:
@@ -269,6 +265,8 @@ def register():
             errors.append("Websites must be a proper URL starting with http or https")
         if valid_country is False:
             errors.append("Invalid country")
+        if valid_school is False:
+            errors.append("Invalid school")
         if valid_affiliation is False:
             errors.append("Please provide a shorter affiliation")
 
@@ -290,6 +288,8 @@ def register():
                     user.affiliation = affiliation
                 if country:
                     user.country = country
+                if school:
+                    user.school = school
 
                 db.session.add(user)
                 db.session.commit()
@@ -303,6 +303,11 @@ def register():
                 db.session.commit()
 
                 login_user(user)
+
+                if request.args.get("next") and validators.is_safe_url(
+                    request.args.get("next")
+                ):
+                    return redirect(request.args.get("next"))
 
                 if config.can_send_mail() and get_config(
                     "verify_emails"
@@ -373,122 +378,6 @@ def login():
     else:
         db.session.close()
         return render_template("login.html", errors=errors)
-
-
-@auth.route("/oauth")
-def oauth_login():
-    endpoint = (
-        get_app_config("OAUTH_AUTHORIZATION_ENDPOINT")
-        or get_config("oauth_authorization_endpoint")
-        or "https://auth.majorleaguecyber.org/oauth/authorize"
-    )
-
-    if get_config("user_mode") == "users":
-        scope = "profile"
-
-    client_id = get_app_config("OAUTH_CLIENT_ID") or get_config("oauth_client_id")
-
-    if client_id is None:
-        error_for(
-            endpoint="auth.login",
-            message="OAuth Settings not configured. "
-            "Ask your CTF administrator to configure MajorLeagueCyber integration.",
-        )
-        return redirect(url_for("auth.login"))
-
-    redirect_url = "{endpoint}?response_type=code&client_id={client_id}&scope={scope}&state={state}".format(
-        endpoint=endpoint, client_id=client_id, scope=scope, state=session["nonce"]
-    )
-    return redirect(redirect_url)
-
-
-@auth.route("/redirect", methods=["GET"])
-@ratelimit(method="GET", limit=10, interval=60)
-def oauth_redirect():
-    oauth_code = request.args.get("code")
-    state = request.args.get("state")
-    if session["nonce"] != state:
-        log("logins", "[{date}] {ip} - OAuth State validation mismatch")
-        error_for(endpoint="auth.login", message="OAuth State validation mismatch.")
-        return redirect(url_for("auth.login"))
-
-    if oauth_code:
-        url = (
-            get_app_config("OAUTH_TOKEN_ENDPOINT")
-            or get_config("oauth_token_endpoint")
-            or "https://auth.majorleaguecyber.org/oauth/token"
-        )
-
-        client_id = get_app_config("OAUTH_CLIENT_ID") or get_config("oauth_client_id")
-        client_secret = get_app_config("OAUTH_CLIENT_SECRET") or get_config(
-            "oauth_client_secret"
-        )
-        headers = {"content-type": "application/x-www-form-urlencoded"}
-        data = {
-            "code": oauth_code,
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "grant_type": "authorization_code",
-        }
-        token_request = requests.post(url, data=data, headers=headers)
-
-        if token_request.status_code == requests.codes.ok:
-            token = token_request.json()["access_token"]
-            user_url = (
-                get_app_config("OAUTH_API_ENDPOINT")
-                or get_config("oauth_api_endpoint")
-                or "https://api.majorleaguecyber.org/user"
-            )
-
-            headers = {
-                "Authorization": "Bearer " + str(token),
-                "Content-type": "application/json",
-            }
-            api_data = requests.get(url=user_url, headers=headers).json()
-
-            user_id = api_data["id"]
-            user_name = api_data["name"]
-            user_email = api_data["email"]
-
-            user = Users.query.filter_by(email=user_email).first()
-            if user is None:
-                # Check if we are allowing registration before creating users
-                if registration_visible() or mlc_registration():
-                    user = Users(
-                        name=user_name,
-                        email=user_email,
-                        oauth_id=user_id,
-                        verified=True,
-                    )
-                    db.session.add(user)
-                    db.session.commit()
-                else:
-                    log("logins", "[{date}] {ip} - Public registration via MLC blocked")
-                    error_for(
-                        endpoint="auth.login",
-                        message="Public registration is disabled. Please try again later.",
-                    )
-                    return redirect(url_for("auth.login"))
-
-            if user.oauth_id is None:
-                user.oauth_id = user_id
-                user.verified = True
-                db.session.commit()
-                clear_user_session(user_id=user.id)
-
-            login_user(user)
-
-            return redirect(url_for("challenges.listing"))
-        else:
-            log("logins", "[{date}] {ip} - OAuth token retrieval failure")
-            error_for(endpoint="auth.login", message="OAuth token retrieval failure.")
-            return redirect(url_for("auth.login"))
-    else:
-        log("logins", "[{date}] {ip} - Received redirect without OAuth code")
-        error_for(
-            endpoint="auth.login", message="Received redirect without OAuth code."
-        )
-        return redirect(url_for("auth.login"))
 
 
 @auth.route("/logout")

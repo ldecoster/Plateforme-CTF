@@ -7,12 +7,11 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Tags, db
+from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import is_admin, is_contributor, is_teacher
-from flask import session
 
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
@@ -41,7 +40,7 @@ class TagList(Resource):
         responses={
             200: ("Success", "TagListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -79,7 +78,7 @@ class TagList(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -93,14 +92,15 @@ class TagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id==session["id"]):
+
+        if is_admin() or is_teacher() or is_contributor():
             db.session.commit()
 
             response = schema.dump(response.data)
             db.session.close()
 
             return {"success": True, "data": response.data}
-        return {"success":False}
+        return {"success": False}
 
 
 @tags_namespace.route("/<tag_id>")
@@ -112,7 +112,7 @@ class Tag(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -133,7 +133,7 @@ class Tag(Resource):
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -142,6 +142,9 @@ class Tag(Resource):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
         schema = TagSchema()
         req = request.get_json()
+
+        if is_admin() or is_teacher():
+            tag.value = req["tagValue"]
 
         response = schema.load(req, session=db.session, instance=tag)
         if response.errors:
@@ -161,11 +164,16 @@ class Tag(Resource):
     )
     def delete(self, tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
-        challenge = Challenges.query.filter_by(id=tag.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        tag_challenges = TagChallenge.query.filter_by(tag_id=tag.id).all()
+
+        if is_admin() or is_teacher():
+
+            for t in tag_challenges:
+                db.session.delete(t)
+
             db.session.delete(tag)
             db.session.commit()
             db.session.close()
 
             return {"success": True}
-        return {"success":False}
+        return {"success": False}

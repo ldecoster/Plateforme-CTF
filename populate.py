@@ -7,7 +7,7 @@ import random
 import argparse
 
 from CTFd import create_app
-from CTFd.cache import clear_config, clear_standings, clear_pages
+from CTFd.cache import clear_config, clear_pages
 from CTFd.models import (
     Users,
     Challenges,
@@ -184,7 +184,6 @@ if __name__ == "__main__":
         # Generating Users
         print("GENERATING USERS")
         used = []
-        used_oauth_ids = []
         count = 0
         while count < USER_AMOUNT:
             name = gen_name()
@@ -205,12 +204,6 @@ if __name__ == "__main__":
                     user.verified = True
                     if random_chance():
                         user.affiliation = gen_affiliation()
-                    if random_chance():
-                        oauth_id = random.randint(1, 1000)
-                        while oauth_id in used_oauth_ids:
-                            oauth_id = random.randint(1, 1000)
-                        used_oauth_ids.append(oauth_id)
-                        user.oauth_id = oauth_id
                     db.session.add(user)
                     db.session.flush()
 
@@ -435,5 +428,4 @@ if __name__ == "__main__":
         db.session.close()
 
         clear_config()
-        clear_standings()
         clear_pages()

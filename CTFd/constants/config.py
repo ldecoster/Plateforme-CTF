@@ -8,7 +8,6 @@ from CTFd.utils import get_config
 
 class ConfigTypes(str, RawEnum):
     CHALLENGE_VISIBILITY = "challenge_visibility"
-    SCORE_VISIBILITY = "score_visibility"
     ACCOUNT_VISIBILITY = "account_visibility"
     REGISTRATION_VISIBILITY = "registration_visibility"
     EXERCICES_VISIBILITY = "exercice_visibility"
@@ -35,14 +34,6 @@ class BadgeVisibilityTypes(str, RawEnum):
 
 
 @JinjaEnum
-class ScoreVisibilityTypes(str, RawEnum):
-    PUBLIC = "public"
-    PRIVATE = "private"
-    HIDDEN = "hidden"
-    ADMINS = "admins"
-
-
-@JinjaEnum
 class AccountVisibilityTypes(str, RawEnum):
     PUBLIC = "public"
     PRIVATE = "private"
@@ -62,6 +53,13 @@ class _ConfigsWrapper:
     @property
     def ctf_name(self):
         return get_config("ctf_name", default="CTFd")
+
+    @property
+    def ctf_small_icon(self):
+        icon = get_config("ctf_small_icon")
+        if icon:
+            return url_for("views.files", path=icon)
+        return url_for("views.themes", path="img/favicon.ico")
 
     @property
     def theme_header(self):

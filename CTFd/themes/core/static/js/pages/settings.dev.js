@@ -147,7 +147,7 @@
 /******/
 /******/
 /******/ 	// add entry module to deferred list
-/******/ 	deferredModules.push(["./CTFd/themes/core/assets/js/pages/settings.js","helpers","vendor","default~pages/challenges~pages/main~pages/notifications~pages/scoreboard~pages/settings~pages/setup~~ebcc9ebe"]);
+/******/ 	deferredModules.push(["./CTFd/themes/core/assets/js/pages/settings.js","helpers","vendor","default~pages/challenges~pages/main~pages/notifications~pages/settings~pages/setup~pages/stats"]);
 /******/ 	// run deferred modules when ready
 /******/ 	return checkDeferredModules();
 /******/ })

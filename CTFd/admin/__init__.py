@@ -21,11 +21,10 @@ from CTFd.admin import badges
 from CTFd.admin import challenges  # noqa: F401
 from CTFd.admin import notifications  # noqa: F401
 from CTFd.admin import pages  # noqa: F401
-from CTFd.admin import scoreboard  # noqa: F401
 from CTFd.admin import statistics  # noqa: F401
 from CTFd.admin import submissions  # noqa: F401
 from CTFd.admin import users  # noqa: F401
-from CTFd.cache import cache, clear_config, clear_pages, clear_standings
+from CTFd.cache import cache, clear_config, clear_pages
 from CTFd.models import (
     BadgesEntries,
     Badges,
@@ -40,6 +39,7 @@ from CTFd.models import (
     Users,
     db,
     get_class_by_tablename,
+    Tags,
 )
 from CTFd.utils import config as ctf_config
 from CTFd.utils import get_config, set_config
@@ -169,7 +169,9 @@ def config():
     themes = ctf_config.get_themes()
     themes.remove(get_config("ctf_theme"))
 
-    return render_template("admin/config.html", themes=themes, **configs)
+    tags = Tags.query.all()
+
+    return render_template("admin/config.html", themes=themes, tags=tags, **configs)
 
 
 @admin.route("/admin/reset", methods=["GET", "POST"])
@@ -228,7 +230,6 @@ def reset():
         db.session.commit()
 
         clear_pages()
-        clear_standings()
         clear_config()
 
         if logout is True:

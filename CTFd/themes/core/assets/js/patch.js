@@ -311,42 +311,6 @@ API.prototype.post_tagChallenge_list = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.patch_team_public = function(parameters, body) {
-  if (parameters === undefined) {
-    parameters = {};
-  }
-  let deferred = Q.defer();
-  let domain = this.domain,
-    path = "/teams/{team_id}";
-  let queryParameters = {},
-    headers = {},
-    form = {};
-
-  headers["Accept"] = ["application/json"];
-  headers["Content-Type"] = ["application/json"];
-
-  path = path.replace("{team_id}", parameters["teamId"]);
-
-  if (parameters["teamId"] === undefined) {
-    deferred.reject(new Error("Missing required  parameter: teamId"));
-    return deferred.promise;
-  }
-
-  queryParameters = mergeQueryParams(parameters, queryParameters);
-
-  this.request(
-    "PATCH",
-    domain + path,
-    parameters,
-    body,
-    headers,
-    queryParameters,
-    form,
-    deferred
-  );
-
-  return deferred.promise;
-};
 API.prototype.post_challenge_attempt = function(parameters, body) {
   if (parameters === undefined) {
     parameters = {};

@@ -7,9 +7,9 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import db, TagChallenge
+from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tagChallenge import TagChallengeSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import contributors_teachers_admins_only
 from CTFd.utils.helpers.models import build_model_filters
 
 tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve TagChallenge")
@@ -34,13 +34,13 @@ tagChallenge_namespace.schema_model("TagChallengeListSuccessResponse", TagChalle
 
 @tagChallenge_namespace.route("")
 class TagChallengeList(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
             200: ("Success", "TagChallengeListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -77,13 +77,13 @@ class TagChallengeList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to create a TagChallenge object",
         responses={
             200: ("Success", "TagChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -109,18 +109,18 @@ class TagChallengeList(Resource):
 @tagChallenge_namespace.param("tag_id", "A Tag ID")
 @tagChallenge_namespace.param("challenge_id", "A challenge ID")
 class TagChal(Resource):
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to get a specific TagChallenge object",
         responses={
             200: ("Success", "TagChallengeDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
-    def get(self, tag_id,challenge_id):
+    def get(self, tag_id, challenge_id):
         tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
 
         response = TagChallengeSchema().dump(tag_challenge)
@@ -130,14 +130,23 @@ class TagChal(Resource):
 
         return {"success": True, "data": response.data}
     
-    @admins_only
+    @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
         description="Endpoint to delete a specific TagChallenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, tag_id, challenge_id):
         tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
-        db.session.delete(tag_challenge)
+        nb_of_challenges_belonging_to_tag = len(TagChallenge.query.filter_by(tag_id=tag_id).all())
+
+        if nb_of_challenges_belonging_to_tag == 1:
+            # If there is only one challenge linked to this tag ID,
+            # we delete it, and the link with the challenge will be 
+            # deleted too.
+            db.session.delete(Tags.query.filter_by(id=tag_id).first_or_404())
+        else:
+            db.session.delete(tag_challenge) 
+
         db.session.commit()
         db.session.close()
 
