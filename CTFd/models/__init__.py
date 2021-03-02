@@ -579,13 +579,13 @@ class UserFieldEntries(FieldEntries):
     user = db.relationship("Users", foreign_keys="UserFieldEntries.user_id")
 
 
-class Permissions(db.Model):
-    __tablename__ = "permissions"
+class Rights(db.Model):
+    __tablename__ = "rights"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
 
     def __init__(self, *args, **kwargs):
-        super(Permissions, self).__init__(**kwargs)
+        super(Rights, self).__init__(**kwargs)
 
 
 class Roles(db.Model):
@@ -597,20 +597,20 @@ class Roles(db.Model):
         super(Roles, self).__init__(**kwargs)
 
 
-class RolePermissions(Permissions):
-    __tablename__ = "role_permissions"
+class RoleRights(Rights):
+    __tablename__ = "role_rights"
     role_id = db.Column(db.Integer, db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True, nullable=False)
-    permission_id = db.Column(db.Integer, db.ForeignKey("permissions.id", ondelete="CASCADE"),
+    right_id = db.Column(db.Integer, db.ForeignKey("rights.id", ondelete="CASCADE"),
                               primary_key=True, nullable=False)
 
     def __init__(self, *args, **kwargs):
-        super(RolePermissions, self).__init__(**kwargs)
+        super(RoleRights, self).__init__(**kwargs)
 
 
-class UserRoles(Roles):
-    __tablename__ = "user_roles"
+class UserRights(Rights):
+    __tablename__ = "user_rights"
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, nullable=False)
-    role_id = db.Column(db.Integer, db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    right_id = db.Column(db.Integer, db.ForeignKey("rights.id", ondelete="CASCADE"), primary_key=True, nullable=False)
 
     def __init__(self, *args, **kwargs):
-        super(UserRoles, self).__init__(**kwargs)
+        super(UserRights, self).__init__(**kwargs)
