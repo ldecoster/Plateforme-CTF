@@ -20,15 +20,14 @@
 {% block content %}
 <div class="jumbotron">
 	<div class="container">
-		<h1>Create badge</h1>
+		<h1>Create new badge</h1>
 	</div>
 </div>
-
-<div class="modal fade bd-example-modal-lg" role="dialog" id="challenge-create-options">
+<div class="modal-content" role="dialog" id="badge-create-options">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Options</h5>
+				<h5 class="modal-title">Badge entries</h5>
 				<button type="button" class="close" data-dismiss="modal">
 					<span>&times;</span>
 				</button>
@@ -39,8 +38,22 @@
 						<div class="row">
 							<div class="col-md-8">
 								<label>
-									Flag:<br>
+									Name:<br>
 									<small class="form-text text-muted">the name of your badge</small>
+								</label>
+								<input type="text" class="form-control" name="badge">
+							</div>
+                            <div class="col-md-8">
+								<label>
+									Description:<br>
+									<small class="form-text text-muted">Add some description to your badge</small>
+								</label>
+								<input type="text" class="form-control" name="badge">
+							</div>
+                            <div class="col-md-8">
+								<label>
+									Tags associés:<br>
+									<small class="form-text text-muted">the tags corresponding to your badge</small>
 								</label>
 								<input type="text" class="form-control" name="badge">
 							</div>
@@ -53,9 +66,8 @@
 						</div>
 						<input type="hidden" name="flag_type" value="static">
 					</div>
-					<input id="challenge_id" type="hidden" name="challenge_id">
 					<div class="form-group">
-						<button class="btn btn-primary float-right create-challenge-submit" type="submit">Finish</button>
+						<button class="btn btn-primary float-right create-badge-select" type="submit">Create</button>
 					</div>
 				</form>
 			</div>
@@ -63,14 +75,7 @@
 	</div>
 </div>
 
-<div class="container-fluid">
-	<div class="row">
-		<div class="col-md-6 offset-md-3">
-			<div id="create-chal-entry-div">
-			</div>
-		</div>
-	</div>
-</div>
+
 
 {% endblock %}
 
@@ -78,5 +83,5 @@
 {% endblock %}
 
 {% block entrypoint %}
-	<script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/challenge.js') }}"></script>
+	<script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/badges.js') }}"></script>
 {% endblock %}

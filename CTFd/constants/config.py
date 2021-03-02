@@ -12,6 +12,7 @@ class ConfigTypes(str, RawEnum):
     ACCOUNT_VISIBILITY = "account_visibility"
     REGISTRATION_VISIBILITY = "registration_visibility"
     EXERCICES_VISIBILITY = "exercice_visibility"
+    BADGE_VISIBILITY = "badge_visibility"
 
 
 @JinjaEnum
@@ -22,6 +23,12 @@ class ExerciceVisibilityTypes(str, RawEnum):
 
 @JinjaEnum
 class ChallengeVisibilityTypes(str, RawEnum):
+    PUBLIC = "public"
+    PRIVATE = "private"
+    ADMINS = "admins"
+
+@JinjaEnum
+class BadgeVisibilityTypes(str, RawEnum):
     PUBLIC = "public"
     PRIVATE = "private"
     ADMINS = "admins"

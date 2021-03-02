@@ -60,3 +60,13 @@ def registration_visible():
         return False
     else:
         return False
+
+
+def badges_visible():
+    v = get_config(ConfigTypes.CHALLENGE_VISIBILITY)
+    if v == BadgeVisibilityTypes.PUBLIC:
+        return True
+    elif v == BadgeVisibilityTypes.PRIVATE:
+        return authed()
+    elif v == BadgeVisibilityTypes.ADMINS:
+        return is_admin()

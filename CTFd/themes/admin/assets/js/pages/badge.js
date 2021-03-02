@@ -12,23 +12,7 @@ import { addRequirement, deleteRequirement } from "../badges/requirements";
 import { bindMarkdownEditors } from "../styles";
 import Vue from "vue/dist/vue.esm.browser";
 import CommentBox from "../components/comments/CommentBox.vue";
-import {
-  showHintModal,
-  editHint,
-  deleteHint,
-  showEditHintModal
-} from "../badges/hints";
-import {
-  addFlagModal,
-  editFlagModal,
-  deleteFlag,
-  flagTypeSelect
-} from "../badges/flags";
-import {
-  addVoteModal,
-  editVoteModal,
-  deleteVote,
-} from "../badges/votes";
+
 
 const displayHint = data => {
   ezAlert({
@@ -134,17 +118,17 @@ function renderSubmissionResponse(response, cb) {
   }
 }
 
-function loadChalTemplate(badge) {
+function loadBadgeTemplate(badge) {
   CTFd._internal.badge = {};
   $.getScript(CTFd.config.urlRoot + badge.scripts.view, function() {
     let template_data = badge.create;
-    $("#create-chal-entry-div").html(template_data);
+    $("#create-badge-entry-div").html(template_data);
     bindMarkdownEditors();
 
     $.getScript(CTFd.config.urlRoot + badge.scripts.create, function() {
-      $("#create-chal-entry-div form").submit(function(event) {
+      $("#create-badge-entry-div form").submit(function(event) {
         event.preventDefault();
-        const params = $("#create-chal-entry-div form").serializeJSON();
+        const params = $("#create-badge-entry-div form").serializeJSON();
         CTFd.fetch("/api/v1/badges", {
           method: "POST",
           credentials: "same-origin",
@@ -322,7 +306,7 @@ $(() => {
 
   $(".delete-badge").click(function(_e) {
     ezQuery({
-      title: "Delete Challenge",
+      title: "Delete Badge",
       body: "Are you sure you want to delete {0}".format(
         "<strong>" + htmlEntities(window.BADGE_NAME) + "</strong>"
       ),
@@ -398,7 +382,7 @@ $(() => {
                 }
                 ezToast({
                   title: "Success",
-                  body: "The challenge has been updated!"
+                  body: "The Badge has been updated!"
                 });
               } else {
                 let body_message = "";
@@ -467,11 +451,11 @@ $(() => {
 
   $.get(CTFd.config.urlRoot + "/api/v1/badges/types", function(response) {
     const data = response.data;
-    loadChalTemplate(data["standard"]);
+    loadBadgeTemplate(data["standard"]);
 
-    $("#create-chals-select input[name=type]").change(function() {
+    $("#create-badges-select input[name=type]").change(function() {
       let badge = data[this.value];
-      loadChalTemplate(badge);
+      loadBadgeTemplate(badge);
     });
   });
 });
