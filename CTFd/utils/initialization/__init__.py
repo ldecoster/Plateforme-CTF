@@ -62,7 +62,6 @@ def init_template_globals(app):
         accounts_visible,
         challenges_visible,
         registration_visible,
-        scores_visible,
         exercices_visible,
     )
     from CTFd.utils.countries import get_countries, lookup_country_code

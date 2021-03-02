@@ -3,7 +3,6 @@ from flask import Blueprint, render_template
 from CTFd.utils import config
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctf_started
 from CTFd.utils.decorators import (
-    during_ctf_time_only,
     require_verified_emails,
 )
 from CTFd.utils.decorators.visibility import check_exercices_visibility
@@ -13,7 +12,6 @@ exercices = Blueprint("exercices", __name__)
 
 
 @exercices.route("/exercices", methods=["GET"])
-@during_ctf_time_only
 @require_verified_emails
 @check_exercices_visibility
 def listing():

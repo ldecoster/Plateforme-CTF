@@ -6,7 +6,6 @@ from flask_restx import Namespace, Resource
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import BadgesEntries, Users, db
 from CTFd.schemas.badgesentries import BadgesEntriesSchema
@@ -108,8 +107,6 @@ class BadgesList(Resource):
         response = schema.dump(response.data)
         db.session.close()
 
-        # Delete standings cache because awards can change scores
-        clear_standings()
 
         return {"success": True, "data": response.data}
 
@@ -147,7 +144,5 @@ class BadgesEntries(Resource):
         db.session.commit()
         db.session.close()
 
-        # Delete standings cache because awards can change scores
-        clear_standings()
 
         return {"success": True}

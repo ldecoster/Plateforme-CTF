@@ -24,7 +24,6 @@ Menu = namedtuple("Menu", ["title", "route"])
 def register_plugin_assets_directory(app, base_path, admins_only=False, endpoint=None):
     """
     Registers a directory to serve assets
-
     :param app: A CTFd application
     :param string base_path: The path to the directory
     :param boolean admins_only: Whether or not the assets served out of the directory should be accessible to the public
@@ -44,7 +43,6 @@ def register_plugin_assets_directory(app, base_path, admins_only=False, endpoint
 def register_plugin_asset(app, asset_path, admins_only=False, endpoint=None):
     """
     Registers an file path to be served by CTFd
-
     :param app: A CTFd application
     :param string asset_path: The path to the asset file
     :param boolean admins_only: Whether or not this file should be accessible to the public
@@ -66,7 +64,6 @@ def register_plugin_asset(app, asset_path, admins_only=False, endpoint=None):
 def override_template(*args, **kwargs):
     """
     Overrides a template with the provided html content.
-
     e.g. override_template('scoreboard.html', '<h1>scores</h1>')
     """
     utils_override_template(*args, **kwargs)
@@ -109,7 +106,6 @@ def register_admin_plugin_stylesheet(*args, **kwargs):
 def register_admin_plugin_menu_bar(title, route):
     """
     Registers links on the Admin Panel menubar/navbar
-
     :param name: A string that is shown on the navbar HTML
     :param route: A string that is the href used by the link
     :return:
@@ -121,7 +117,6 @@ def register_admin_plugin_menu_bar(title, route):
 def get_admin_plugin_menu_bar():
     """
     Access the list used to store the plugin menu bar
-
     :return: Returns a list of Menu namedtuples. They have name, and route attributes.
     """
     return app.admin_plugin_menu_bar
@@ -130,7 +125,6 @@ def get_admin_plugin_menu_bar():
 def register_user_page_menu_bar(title, route):
     """
     Registers links on the User side menubar/navbar
-
     :param name: A string that is shown on the navbar HTML
     :param route: A string that is the href used by the link
     :return:
@@ -142,7 +136,6 @@ def register_user_page_menu_bar(title, route):
 def get_user_page_menu_bar():
     """
     Access the list used to store the user page menu bar
-
     :return: Returns a list of Menu namedtuples. They have name, and route attributes.
     """
     return get_pages() + app.plugin_menu_bar
@@ -151,9 +144,7 @@ def get_user_page_menu_bar():
 def bypass_csrf_protection(f):
     """
     Decorator that allows a route to bypass the need for a CSRF nonce on POST requests.
-
     This should be considered beta and may change in future versions.
-
     :param f: A function that needs to bypass CSRF protection
     :return: Returns a function with the _bypass_csrf attribute set which tells CTFd to not require CSRF protection.
     """
@@ -163,7 +154,7 @@ def bypass_csrf_protection(f):
 
 def get_plugin_names():
     modules = sorted(glob.glob(app.plugins_dir + "/*"))
-    blacklist = {"__pycache__", ""}
+    blacklist = {"__pycache__"}
     plugins = []
     for module in modules:
         module_name = os.path.basename(module)
@@ -176,7 +167,6 @@ def init_plugins(app):
     """
     Searches for the load function in modules in the CTFd/plugins folder. This function is called with the current CTFd
     app as a parameter. This allows CTFd plugins to modify CTFd's behavior.
-
     :param app: A CTFd application
     :return:
     """

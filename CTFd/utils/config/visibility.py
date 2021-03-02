@@ -3,8 +3,7 @@ from CTFd.constants.config import (
     ChallengeVisibilityTypes,
     ConfigTypes,
     RegistrationVisibilityTypes,
-    ScoreVisibilityTypes,
-    ExerciceVisibilityTypes
+    ExerciceVisibilityTypes, BadgeVisibilityTypes
 )
 from CTFd.utils import get_config
 from CTFd.utils.user import authed, is_admin

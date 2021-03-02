@@ -7,7 +7,6 @@ from CTFd.constants.config import (
     ChallengeVisibilityTypes,
     ConfigTypes,
     RegistrationVisibilityTypes,
-    ScoreVisibilityTypes,
     ExerciceVisibilityTypes,
 )
 from CTFd.utils import get_config

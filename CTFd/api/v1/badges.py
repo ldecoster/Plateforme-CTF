@@ -8,7 +8,6 @@ from sqlalchemy.sql import and_
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import (
     Badges,
@@ -28,14 +27,13 @@ from CTFd.utils.config import get_votes_number
 from CTFd.utils.config.visibility import (
     accounts_visible,
     badges_visible,
-    scores_visible,
+
 )
-from CTFd.utils.dates import ctf_ended, ctf_paused, ctftime, isoformat, unix_time_to_utc
+from CTFd.utils.dates import  ctf_paused, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     admins_only,
     contributors_teachers_admins_only,
     teachers_admins_only,
-    during_ctf_time_only,
     require_verified_emails,
 )
 from CTFd.utils.decorators.visibility import (

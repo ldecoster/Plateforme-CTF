@@ -250,7 +250,6 @@ def create_app(config="CTFd.config.Config"):
         from CTFd.views import views
         from CTFd.users import users
         from CTFd.challenges import challenges
-        from CTFd.scoreboard import scoreboard
         from CTFd.badges import badges
         from CTFd.auth import auth
         from CTFd.admin import admin
@@ -263,7 +262,6 @@ def create_app(config="CTFd.config.Config"):
         app.register_blueprint(users)
         app.register_blueprint(challenges)
         app.register_blueprint(badges)
-        app.register_blueprint(scoreboard)
         app.register_blueprint(auth)
         app.register_blueprint(api)
         app.register_blueprint(events)
