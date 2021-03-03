@@ -6,6 +6,8 @@ from CTFd.cache import cache
 from CTFd.utils import get_config
 from CTFd.utils import user as current_user
 from CTFd.utils.user import authed, is_admin, is_contributor, is_teacher
+from CTFd.models import RoleRights,UserRights,Rights,UserRights
+from functools import wraps
 
 
 def require_authentication_if_config(config_key):
@@ -245,22 +247,35 @@ def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
 
     return ratelimit_decorator
 
-def has_permission(author_id,right):
-    """
-    Decorator that requires the user to have the right to access data
-    :param author_id int , right string:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def has_permission_wrapper(*args, **kwargs):
-        right=UserRights.query.filter_by(name=right,user_id=session["id"]).first()
-        if session["id"]==author_id or right!= None :
-            return f(*args, **kwargs)
-        else:
-            if request.content_type == "application/json":
-                abort(403)
+def has_permission(right):
+    def inner_function(function):
+        @wraps(function)
+        def has_permission_wrapper(*args, **kwargs):
+          
+            rights=UserRights.query.filter_by(name=right,user_id=session["id"]).first()
+            if rights is not None :
+                return function(*args, **kwargs)
             else:
-                abort(403)
+                if request.content_type == "application/json":
+                    abort(403)
+                else:
+                    abort(403)
+        return has_permission_wrapper
+    return inner_function
+ 
 
-    return has_permission_wrapper
+def has_permission_author(author_id, right):
+    def inner_function(function):
+        @wraps(function)
+        def has_permission_wrapper(*args, **kwargs):
+          
+            rights=UserRights.query.filter_by(name=right,user_id=session["id"]).first()
+            if author_id==session["id"] or rights is not None :
+                return function(*args, **kwargs)
+            else:
+                if request.content_type == "application/json":
+                    abort(403)
+                else:
+                    abort(403)
+        return has_permission_wrapper
+    return inner_function
