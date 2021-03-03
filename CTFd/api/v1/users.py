@@ -14,10 +14,13 @@ from CTFd.constants import RawEnum
 from CTFd.models import (
     Awards,
     Notifications,
+    Roles,
+    RoleRights,
     Solves,
     Submissions,
     Tracking,
     Unlocks,
+    UserRights,
     Users,
     db,
 )
@@ -154,20 +157,21 @@ class UserList(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-       
-        commit=[]
-        commit.append(response.data)
-        role=Roles.query.filter_by(name=responses.data.type).first()
-        rights=RolesRights.query.filter_by(id=role.id).all()
-        for right in rights:
-            r1=userRight()
-            r1.user_id=responses.data.id
-            r1.right_id=right.id
-            commit.append(r1)
-            
-        db.session.commit(commit)   
-       # switch(response.data.type)
-        
+        db.session.add(response.data)
+        db.session.commit()
+
+        rights = []
+        role = Roles.query.filter_by(name=response.data.type).first()
+        role_rights = RoleRights.query.filter_by(role_id=role.id).all()
+
+        for role_right in role_rights:
+            user_rights = UserRights()
+            user_rights.user_id = response.data.id
+            user_rights.right_id = role_right.right_id
+            rights.append(user_rights)
+
+        db.session.add_all(rights)
+        db.session.commit()
 
         if request.args.get("notify"):
             name = response.data.name
@@ -242,6 +246,23 @@ class UserPublic(Resource):
         response = schema.dump(response.data)
 
         db.session.commit()
+
+        UserRights.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+
+        rights = []
+        role = Roles.query.filter_by(name=response.data["type"]).first()
+        role_rights = RoleRights.query.filter_by(role_id=role.id).all()
+
+        for role_right in role_rights:
+            user_rights = UserRights()
+            user_rights.user_id = response.data["id"]
+            user_rights.right_id = role_right.right_id
+            rights.append(user_rights)
+
+        db.session.add_all(rights)
+        db.session.commit()
+
         db.session.close()
 
         clear_user_session(user_id=user_id)

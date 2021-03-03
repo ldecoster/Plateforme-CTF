@@ -597,17 +597,16 @@ class Roles(db.Model):
         super(Roles, self).__init__(**kwargs)
 
 
-class RoleRights(Rights):
+class RoleRights(db.Model):
     __tablename__ = "role_rights"
     role_id = db.Column(db.Integer, db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True, nullable=False)
-    right_id = db.Column(db.Integer, db.ForeignKey("rights.id", ondelete="CASCADE"),
-                              primary_key=True, nullable=False)
+    right_id = db.Column(db.Integer, db.ForeignKey("rights.id", ondelete="CASCADE"), primary_key=True, nullable=False)
 
     def __init__(self, *args, **kwargs):
         super(RoleRights, self).__init__(**kwargs)
 
 
-class UserRights(Rights):
+class UserRights(db.Model):
     __tablename__ = "user_rights"
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, nullable=False)
     right_id = db.Column(db.Integer, db.ForeignKey("rights.id", ondelete="CASCADE"), primary_key=True, nullable=False)
