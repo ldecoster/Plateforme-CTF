@@ -154,8 +154,20 @@ class UserList(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        db.session.add(response.data)
-        db.session.commit()
+       
+        commit=[]
+        commit.append(response.data)
+        role=Roles.query.filter_by(name=responses.data.type).first()
+        rights=RolesRights.query.filter_by(id=role.id).all()
+        for right in rights:
+            r1=userRight()
+            r1.user_id=responses.data.id
+            r1.right_id=right.id
+            commit.append(r1)
+            
+        db.session.commit(commit)   
+       # switch(response.data.type)
+        
 
         if request.args.get("notify"):
             name = response.data.name

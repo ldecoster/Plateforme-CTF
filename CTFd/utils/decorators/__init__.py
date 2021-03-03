@@ -1,6 +1,6 @@
 import functools
 
-from flask import abort, jsonify, redirect, request, url_for
+from flask import abort, jsonify, redirect, request, session, url_for
 
 from CTFd.cache import cache
 from CTFd.utils import get_config
@@ -244,3 +244,23 @@ def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
         return ratelimit_function
 
     return ratelimit_decorator
+
+def has_permission(author_id,right):
+    """
+    Decorator that requires the user to have the right to access data
+    :param author_id int , right string:
+    :return:
+    """
+
+    @functools.wraps(f)
+    def has_permission_wrapper(*args, **kwargs):
+        right=UserRights.query.filter_by(name=right,user_id=session["id"]).first()
+        if session["id"]==author_id or right!= None :
+            return f(*args, **kwargs)
+        else:
+            if request.content_type == "application/json":
+                abort(403)
+            else:
+                abort(403)
+
+    return has_permission_wrapper
