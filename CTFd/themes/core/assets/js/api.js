@@ -171,6 +171,7 @@ let API = (function() {
 
     return deferred.promise;
   };
+
   /**
    *
    * @method
@@ -215,6 +216,8 @@ let API = (function() {
 
     return deferred.promise;
   };
+
+
   /**
    *
    * @method

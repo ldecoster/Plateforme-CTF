@@ -5,6 +5,7 @@ import $ from "jquery";
 window.badge = new Object();
 
 function loadBadgeTemplate(badge) {
+  console.log("data")
   $.getScript(CTFd.config.urlRoot + badge.scripts.view, function() {
     $.get(CTFd.config.urlRoot + badge.templates.create, function(
       template_data
@@ -64,8 +65,22 @@ $.get(CTFd.config.urlRoot + "/api/v1/badges/types", function(response) {
   }
 });
 
+// Adds the name, description and associated tag to the database
 $("#badge-create-button").click(function() {
+  // eslint-disable-nex t-line no-console
+   console.log("yes");
+   const params = {
+        name : document.getElementsByName('badge_name'),
+        description : document.getElementsByName('badge_desc'),
+        type : "standard"
+      };
 
+  CTFd.api.post_award_list(params).then(response => //add an award to the database with api
+  {
+  if (response.success) {
+    loadBadgeTemplate()
+    }
+  });
 });
 
 

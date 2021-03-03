@@ -41,21 +41,21 @@
 									Name:<br>
 									<small class="form-text text-muted">the name of your badge</small>
 								</label>
-								<input type="text" class="form-control" name="badge">
+								<input type="text" class="form-control" id ="badge_name" name="badge_name">
 							</div>
                             <div class="col-md-8">
 								<label>
 									Description:<br>
 									<small class="form-text text-muted">Add some description to your badge</small>
 								</label>
-								<input type="text" class="form-control" name="badge">
+								<input type="text" class="form-control" id ="badge_desc" name="badge_desc">
 							</div>
                             <div class="col-md-8">
 								<label>
 									Tags associés:<br>
 									<small class="form-text text-muted">the tags corresponding to your badge</small>
 								</label>
-								<select id="tag-selector" class="form-control custom-select">
+								<select id="tag-selector" class="form-control custom-select" id="badge_tag" name="badge_tag">
                                     {% for tag in tags %}
                                         <option>{{ tag.value }}</option>
                                     {% endfor %}
@@ -63,7 +63,6 @@
 							</div>
 							<div class="col-md-4">
 								<label>
-									&nbsp;
 									<small class="form-text text-muted">&nbsp;</small>
 								</label>
 							</div>
@@ -71,7 +70,7 @@
 						<input type="hidden" name="flag_type" value="static">
 					</div>
 					<div class="form-group">
-						<button class="btn btn-primary float-right create-badge-select" type="submit">Create</button>
+						<button id="badge-create-button" class="btn btn-primary float-right create-badge-select" type="submit">Create</button>
 					</div>
 				</form>
 			</div>

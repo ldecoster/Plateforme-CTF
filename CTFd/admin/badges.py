@@ -16,6 +16,7 @@ def badges_listing():
     field = request.args.get("field")
     filters = []
 
+
     if q:
         # The field exists as an exposed column
         if Badges.__mapper__.has_property(field):
@@ -87,4 +88,5 @@ def badges_detail(badge_id):
 @contributors_teachers_admins_only
 def badges_new():
     types = BADGE_CLASSES.keys()
-    return render_template("admin/badges/new.html", types=types)
+    tags = Tags.query.all()
+    return render_template("admin/badges/new.html", types=types, tags=tags)

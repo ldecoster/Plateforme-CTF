@@ -36,11 +36,8 @@ from CTFd.utils.decorators import (
     teachers_admins_only,
     require_verified_emails,
 )
-from CTFd.utils.decorators.visibility import (
-    check_badge_visibility,
-    check_score_visibility,
-)
-from CTFd.utils.helpers.models import build_model_filters
+
+
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
@@ -75,8 +72,6 @@ badges_namespace.schema_model(
 
 @badges_namespace.route("")
 class BadgeList(Resource):
-    @check_badge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     @badges_namespace.doc(
         description="Endpoint to get badge objects in bulk",
@@ -213,7 +208,10 @@ class BadgeList(Resource):
         },
     )
     def post(self):
+        print("*"*64)
         data = request.form or request.get_json()
+        print(data)
+        print("*"*64)
         badge_type = data["type"]
         data["author_id"] = session["id"]
         badge_class = get_badge_class(badge_type)
@@ -244,8 +242,6 @@ class BadgeTypes(Resource):
 
 @badges_namespace.route("/<badge_id>")
 class Badge(Resource):
-    @check_badge_visibility
-    @during_ctf_time_only
     @require_verified_emails
     @badges_namespace.doc(
         description="Endpoint to get a specific badge object",
