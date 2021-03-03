@@ -60,7 +60,6 @@ def challenges_detail(challenge_id):
             .order_by(Solves.date.asc())
             .all()
         )
-
         flags = Flags.query.filter_by(challenge_id=challenge.id).all()
 
         votes = Votes.query.filter_by(challenge_id=challenge.id).all()
