@@ -23,7 +23,7 @@
 		<h1>Create new badge</h1>
 	</div>
 </div>
-<div class="modal-content" role="dialog" id="badge-create-options">
+<div class="modal-content" role="dialog" id="create-badge-entry-div">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -33,7 +33,7 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<form method="POST" enctype="multipart/form-data">
+				<form method="POST" id="create-badge" enctype="multipart/form-data">
 					<div class="form-group">
 						<div class="row">
 							<div class="col-md-8">
@@ -86,5 +86,5 @@
 {% endblock %}
 
 {% block entrypoint %}
-	<script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/badges.js') }}"></script>
+	<script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/badge.js') }}"></script>
 {% endblock %}

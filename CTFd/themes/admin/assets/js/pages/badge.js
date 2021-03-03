@@ -6,9 +6,6 @@ import CTFd from "core/CTFd";
 import { htmlEntities } from "core/utils";
 import { ezQuery, ezAlert, ezToast } from "core/ezq";
 import { default as helpers } from "core/helpers";
-import { addFile, deleteFile } from "../badges/files";
-import { setTagList, deleteTag, addClickedTag } from "../badges/tags";
-import { addRequirement, deleteRequirement } from "../badges/requirements";
 import { bindMarkdownEditors } from "../styles";
 import Vue from "vue/dist/vue.esm.browser";
 import CommentBox from "../components/comments/CommentBox.vue";
@@ -58,7 +55,7 @@ function renderSubmissionResponse(response, cb) {
 
     answer_input.removeClass("correct");
     answer_input.addClass("wrong");
-    setTimeout(function() {
+    setTimeout(function () {
       answer_input.removeClass("wrong");
     }, 3000);
   } else if (result.status === "correct") {
@@ -74,8 +71,8 @@ function renderSubmissionResponse(response, cb) {
           .text()
           .split(" ")[0]
       ) +
-        1 +
-        " Solves"
+      1 +
+      " Solves"
     );
 
     answer_input.val("");
@@ -103,11 +100,11 @@ function renderSubmissionResponse(response, cb) {
     result_notification.slideDown();
 
     answer_input.addClass("too-fast");
-    setTimeout(function() {
+    setTimeout(function () {
       answer_input.removeClass("too-fast");
     }, 3000);
   }
-  setTimeout(function() {
+  setTimeout(function () {
     $(".alert").slideUp();
     $("#badge-submit").removeClass("disabled-button");
     $("#badge-submit").prop("disabled", false);
@@ -120,13 +117,14 @@ function renderSubmissionResponse(response, cb) {
 
 function loadBadgeTemplate(badge) {
   CTFd._internal.badge = {};
-  $.getScript(CTFd.config.urlRoot + badge.scripts.view, function() {
+  $.getScript(CTFd.config.urlRoot + badge.scripts.view, function () {
     let template_data = badge.create;
     $("#create-badge-entry-div").html(template_data);
     bindMarkdownEditors();
 
-    $.getScript(CTFd.config.urlRoot + badge.scripts.create, function() {
-      $("#create-badge-entry-div form").submit(function(event) {
+    $.getScript(CTFd.config.urlRoot + badge.scripts.create, function () {
+      $("#create-badge-entry-div form").submit(function (event) {
+        console.log("create detecté");
         event.preventDefault();
         const params = $("#create-badge-entry-div form").serializeJSON();
         CTFd.fetch("/api/v1/badges", {
@@ -138,10 +136,10 @@ function loadBadgeTemplate(badge) {
           },
           body: JSON.stringify(params)
         })
-          .then(function(response) {
+          .then(function (response) {
             return response.json();
           })
-          .then(function(response) {
+          .then(function (response) {
             if (response.success) {
               $("#badge-create-options #badge_id").val(
                 response.data.id
@@ -154,6 +152,32 @@ function loadBadgeTemplate(badge) {
   });
 }
 
+function addBadge(event) {
+  console.log("create detecté");
+  event.preventDefault();
+  const params = $("#create-badge-entry-div form").serializeJSON();
+  CTFd.fetch("/api/v1/badges", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(params)
+  })
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (response) {
+      if (response.success) {
+        $("#badge-create-options #badge_id").val(
+          response.data.id
+        );
+        $("#badge-create-options").modal();
+      }
+    });
+}
+
 function handleBadgeOptions(event) {
   event.preventDefault();
   var params = $(event.target).serializeJSON(true);
@@ -164,7 +188,7 @@ function handleBadgeOptions(event) {
     data: params.flag_data ? params.flag_data : ""
   };
   // Define a save_challenge function
-  let save_badge = function() {
+  let save_badge = function () {
     CTFd.fetch("/api/v1/badges/" + params.badge_id, {
       method: "PATCH",
       credentials: "same-origin",
@@ -176,12 +200,12 @@ function handleBadgeOptions(event) {
         state: params.state
       })
     })
-      .then(function(response) {
+      .then(function (response) {
         return response.json();
       })
-      .then(function(data) {
+      .then(function (data) {
         if (data.success) {
-          setTimeout(function() {
+          setTimeout(function () {
             window.location =
               CTFd.config.urlRoot + "/admin/badges/" + params.badge_id;
           }, 700);
@@ -191,7 +215,7 @@ function handleBadgeOptions(event) {
 
   Promise.all([
     // Save flag
-    new Promise(function(resolve, _reject) {
+    new Promise(function (resolve, _reject) {
       if (flag_params.content.length == 0) {
         resolve();
         return;
@@ -204,12 +228,12 @@ function handleBadgeOptions(event) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(flag_params)
-      }).then(function(response) {
+      }).then(function (response) {
         resolve(response.json());
       });
     }),
     // Upload files
-    new Promise(function(resolve, _reject) {
+    new Promise(function (resolve, _reject) {
       let form = event.target;
       let data = {
         badge: params.badge_id,
@@ -227,18 +251,18 @@ function handleBadgeOptions(event) {
 }
 
 $(() => {
-  $(".preview-badge").click(function(_e) {
+  $(".preview-badge").click(function (_e) {
     CTFd._internal.badge = {};
     $.get(
       CTFd.config.urlRoot + "/api/v1/badges/" + window.BADGE_ID,
-      function(response) {
+      function (response) {
         // Preview should not show any solves
         const badge_data = response.data;
         badge_data["solves"] = null;
 
         $.getScript(
           CTFd.config.urlRoot + badge_data.type_data.scripts.view,
-          function() {
+          function () {
             const badge = CTFd._internal.badge;
 
             // Inject challenge data into the plugin
@@ -257,13 +281,13 @@ $(() => {
             );
 
             $(".badge-solves").hide();
-            $(".nav-tabs a").click(function(e) {
+            $(".nav-tabs a").click(function (e) {
               e.preventDefault();
               $(this).tab("show");
             });
 
             // Handle modal toggling
-            $("#badge-window").on("hide.bs.modal", function(_event) {
+            $("#badge-window").on("hide.bs.modal", function (_event) {
               $("#badge-input").removeClass("wrong");
               $("#badge-input").removeClass("correct");
               $("#incorrect-key").slideUp();
@@ -272,11 +296,11 @@ $(() => {
               $("#too-fast").slideUp();
             });
 
-            $(".load-hint").on("click", function(_event) {
+            $(".load-hint").on("click", function (_event) {
               loadHint($(this).data("hint-id"));
             });
 
-            $("#badge-submit").click(function(e) {
+            $("#badge-submit").click(function (e) {
               e.preventDefault();
               $("#badge-submit").addClass("disabled-button");
               $("#badge-submit").prop("disabled", true);
@@ -286,7 +310,7 @@ $(() => {
               // Preview passed as true
             });
 
-            $("#badge-input").keyup(function(event) {
+            $("#badge-input").keyup(function (event) {
               if (event.keyCode == 13) {
                 $("#badge-submit").click();
               }
@@ -304,20 +328,20 @@ $(() => {
     );
   });
 
-  $(".delete-badge").click(function(_e) {
+  $(".delete-badge").click(function (_e) {
     ezQuery({
       title: "Delete Badge",
       body: "Are you sure you want to delete {0}".format(
         "<strong>" + htmlEntities(window.BADGE_NAME) + "</strong>"
       ),
-      success: function() {
+      success: function () {
         CTFd.fetch("/api/v1/badges/" + window.BADGE_ID, {
           method: "DELETE"
         })
-          .then(function(response) {
+          .then(function (response) {
             return response.json();
           })
-          .then(function(response) {
+          .then(function (response) {
             if (response.success) {
               window.location = CTFd.config.urlRoot + "/admin/badges";
             }
@@ -326,7 +350,7 @@ $(() => {
     });
   });
 
-  $("#badge-update-container > form").submit(function(e) {
+  $("#badge-update-container > form").submit(function (e) {
     e.preventDefault();
     const params = $(e.target).serializeJSON(true);
 
@@ -338,11 +362,11 @@ $(() => {
         "Content-Type": "application/json"
       }
     })
-      .then(function(response) {
+      .then(function (response) {
         return response.json();
       })
-      .then(function(response) {
-        let update_badge = function() {
+      .then(function (response) {
+        let update_badge = function () {
           CTFd.fetch("/api/v1/badges/" + window.BADGE_ID, {
             method: "PATCH",
             credentials: "same-origin",
@@ -352,10 +376,10 @@ $(() => {
             },
             body: JSON.stringify(params)
           })
-            .then(function(response) {
+            .then(function (response) {
               return response.json();
             })
-            .then(function(response) {
+            .then(function (response) {
               if (response.success) {
                 $(".badge-state").text(response.data.state);
                 switch (response.data.state) {
@@ -412,16 +436,10 @@ $(() => {
       });
   });
 
-  $("#badge-create-options form").submit(handleBadgeOptions);
-  $("#tags-add-input").keyup(setTagList);
-  $(".delete-tag").click(deleteTag);
-  $('.list-group').on('click', 'a', addClickedTag);
+  $("#create-badge").submit(addBadge);
 
   $("#prerequisite-add-form").submit(addRequirement);
   $(".delete-requirement").click(deleteRequirement);
-
-  $("#file-add-form").submit(addFile);
-  $(".delete-file").click(deleteFile);
 
   $("#hint-add-button").click(showHintModal);
   $(".delete-hint").click(deleteHint);
@@ -429,7 +447,6 @@ $(() => {
   $("#hint-edit-form").submit(editHint);
 
   $("#flag-add-button").click(addFlagModal);
-  $(".delete-flag").click(deleteFlag);
   $("#flags-create-select").change(flagTypeSelect);
   $(".edit-flag").click(editFlagModal);
 
@@ -449,11 +466,11 @@ $(() => {
     }).$mount(vueContainer);
   }
 
-  $.get(CTFd.config.urlRoot + "/api/v1/badges/types", function(response) {
+  $.get(CTFd.config.urlRoot + "/api/v1/badges/types", function (response) {
     const data = response.data;
     loadBadgeTemplate(data["standard"]);
 
-    $("#create-badges-select input[name=type]").change(function() {
+    $("#create-badges-select input[name=type]").change(function () {
       let badge = data[this.value];
       loadBadgeTemplate(badge);
     });
