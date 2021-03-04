@@ -15,6 +15,7 @@ def badges_listing():
     q = request.args.get("q")
     field = request.args.get("field")
     filters = []
+    tags = Tags.query.all()
 
 
     if q:
@@ -45,6 +46,8 @@ def badges_listing():
         q=q,
         field=field,
         Votes=Votes,
+        tags= tags,
+
     )
 
 
@@ -84,9 +87,9 @@ def badges_detail(badge_id):
         abort(403)
 
 
-@admin.route("/admin/badges/new")
+@admin.route("/admin/badges/badges.html")
 @contributors_teachers_admins_only
 def badges_new():
     types = BADGE_CLASSES.keys()
     tags = Tags.query.all()
-    return render_template("admin/badges/new.html", types=types, tags=tags)
+    return render_template("admin/badges/badges.html", types=types, tags=tags)

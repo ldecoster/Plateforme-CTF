@@ -10,6 +10,7 @@ from CTFd.models import (
     TagChallenge,
     Votes,
     db,
+    Tags,
 
 )
 from CTFd.plugins import register_plugin_assets_directory
@@ -33,6 +34,8 @@ class BaseBadge(object):
         :param request:
         :return:
         """
+        print("*"*64)
+        print("badge create methode called")
         data = request.form or request.get_json()
 
         badge = cls.badge_model(**data)

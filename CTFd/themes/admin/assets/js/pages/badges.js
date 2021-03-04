@@ -28,6 +28,27 @@ function deleteSelectedBadges(_event) {
   });
 }
 
+
+function addBadge(_event){
+
+  let badge_name = document.getElementsByName("badge_name");
+  let badge_desc = document.getElementsByName("badge_desc");
+  //let badge_tag = document.getElementsByName("badge_tag");
+  let badge_type  = "Standard";
+  const params = {
+    description: "a description",
+    name:"badge name",
+    type: "standard",
+  };
+  console.log(params);
+  CTFd.api.post_badge_list(params).then(res => {
+    console.log(res);
+  });
+}
+
+
+
+
 function bulkEditBadges(_event) {
   let badgeIDs = $("input[data-badge-id]:checked").map(function() {
     return $(this).data("badge-id");
@@ -67,10 +88,15 @@ function bulkEditBadges(_event) {
   });
 }
 
+
+
+
 $("#edit-new-badge").on('click',function(event){
   console.log('click detected');
   $("#badge-create-options").modal();
 });
+
+$("#badge-create-button").click(addBadge);
 
 $(() => {
   $("#badges-delete-button").click(deleteSelectedBadges);

@@ -94,10 +94,10 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#post_award_list
+   * @name API#post_badge_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.post_award_list = function(parameters) {
+  API.prototype.post_badge_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
@@ -113,7 +113,8 @@ let API = (function() {
     headers["Content-Type"] = ["application/json"];
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
-
+    console.log("messafe from API :")
+    console.log(parameters);
     this.request(
       "POST",
       domain + path,
@@ -130,11 +131,11 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#delete_award
+   * @name API#delete_badge
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.awardId - An Award ID
+   * @param {string} parameters.badgeId - An Award ID
    */
-  API.prototype.delete_award = function(parameters) {
+  API.prototype.delete_badge = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }

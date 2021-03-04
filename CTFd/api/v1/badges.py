@@ -209,9 +209,11 @@ class BadgeList(Resource):
     )
     def post(self):
         print("*"*64)
-        data = request.form or request.get_json()
         print("post triggeredezafeza")
+        print(request)
+        data = request.form or request.get_json()
         print("*"*64)
+        print(data)
         badge_type = data["type"]
         data["author_id"] = session["id"]
         badge_class = get_badge_class(badge_type)
