@@ -88,6 +88,23 @@ def export():
 
     dfMixedChalSub.to_csv("chal&sub.csv", sep=',')
 
+    #Merge Submissions and Users
+
+    user = pd.read_csv("user.csv", sep=',', encoding = "ISO-8859-1")
+
+    user = user.rename(columns = {"('id',)":"('user_id',)"})
+
+    user = user.drop(columns = ["('type',)",], axis = 1)
+
+    submission = sub.set_index("('user_id',)")
+    users = user.set_index("('user_id',)")
+
+    dfMixedUserSub = submission.join(users)
+
+    dfMixedUserSub.to_csv("user&sub.csv", sep=',')
+    
+    #Connection ES
+
     es = Elasticsearch()
     with open('submission.csv') as f:
         reader = csv.DictReader(f)
@@ -118,6 +135,12 @@ def export():
         reader = csv.DictReader(f)
         es.indices.delete(index='chal&sub')
         helpers.bulk(es, reader, index='chal&sub', doc_type='my-type')
+
+    with open('user&sub.csv') as f:
+        reader = csv.DictReader(f)
+        es.indices.delete(index='user&sub')
+        helpers.bulk(es, reader, index='user&sub', doc_type='my-type')
+    
 
     print("Data updated")
 
