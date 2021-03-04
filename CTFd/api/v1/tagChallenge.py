@@ -10,6 +10,7 @@ from CTFd.constants import RawEnum
 from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tagChallenge import TagChallengeSchema
 from CTFd.utils.decorators import contributors_teachers_admins_only
+from CTFd.utils.user import is_contributor
 from CTFd.utils.helpers.models import build_model_filters
 
 tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve TagChallenge")
@@ -92,6 +93,17 @@ class TagChallengeList(Resource):
         req = request.get_json()
         schema = TagChallengeSchema()
         response = schema.load(req, session=db.session)
+        tags=TagChallenge.query.filter_by(challenge_id=response.data.challenge_id).all()
+         
+        if is_contributor(): ##TODO permission a mettre a jour 
+            if "ex" in response.data.value:
+                return {"success": False}
+        
+        for tagchallenge in tags:
+            tag=Tags.query.filter_by(id=tagchallenge.tag_id).first()
+            if "ex" in tag.value:
+                                            #TODO add popup 
+                return {"success": False}
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

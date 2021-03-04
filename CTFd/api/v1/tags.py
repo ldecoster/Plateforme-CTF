@@ -83,7 +83,7 @@ class TagList(Resource):
             ),
         },
     )
-    def post(self):
+    def post(self): ## TODO right 
         req = request.get_json()
         schema = TagSchema()
         response = schema.load(req, session=db.session)
