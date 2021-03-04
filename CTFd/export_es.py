@@ -91,26 +91,32 @@ def export():
     es = Elasticsearch()
     with open('submission.csv') as f:
         reader = csv.DictReader(f)
+        es.indices.delete(index='submission')
         helpers.bulk(es, reader, index='submission', doc_type='my-type')
 
     with open('solve.csv') as f:
         reader = csv.DictReader(f)
+        es.indices.delete(index='solve')
         helpers.bulk(es, reader, index='solve', doc_type='my-type')
 
     with open('challenge.csv') as f:
         reader = csv.DictReader(f)
+        es.indices.delete(index='challenge')
         helpers.bulk(es, reader, index='challenge', doc_type='my-type')
 
     with open('vote.csv') as f:
         reader = csv.DictReader(f)
+        es.indices.delete(index='vote')
         helpers.bulk(es, reader, index='vote', doc_type='my-type')
 
     with open('user.csv') as f:
         reader = csv.DictReader(f)
+        es.indices.delete(index='user')
         helpers.bulk(es, reader, index='user', doc_type='my-type')
     
     with open('chal&sub.csv') as f:
         reader = csv.DictReader(f)
+        es.indices.delete(index='chal&sub')
         helpers.bulk(es, reader, index='chal&sub', doc_type='my-type')
 
     print("Data updated")
