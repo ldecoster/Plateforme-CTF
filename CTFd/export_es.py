@@ -3,6 +3,7 @@ import csv
 import schedule
 import time
 from elasticsearch import helpers, Elasticsearch
+import pandas as pd
 
 
 def export():
@@ -70,29 +71,49 @@ def export():
     c.writerow(headerList)
     for x in result:
         c.writerow(x)
+    
+    # Merge Submissions and Challenges
 
-        es = Elasticsearch()
-        with open('submission.csv') as f:
-            reader = csv.DictReader(f)
-            helpers.bulk(es, reader, index='submission', doc_type='my-type')
+    sub = pd.read_csv("submission.csv", sep=',')
+    chal = pd.read_csv("challenge.csv", sep=',')
 
-        with open('solve.csv') as f:
-            reader = csv.DictReader(f)
-            helpers.bulk(es, reader, index='solve', doc_type='my-type')
+    challenge = chal.rename(columns = {"('id',)":"('challenge_id',)"})
 
-        with open('challenge.csv') as f:
-            reader = csv.DictReader(f)
-            helpers.bulk(es, reader, index='challenge', doc_type='my-type')
+    challenge = challenge.drop(columns = ["('type',)",], axis = 1)
 
-        with open('vote.csv') as f:
-            reader = csv.DictReader(f)
-            helpers.bulk(es, reader, index='vote', doc_type='my-type')
+    submission = sub.set_index("('challenge_id',)")
+    challenges = challenge.set_index("('challenge_id',)")
 
-        with open('user.csv') as f:
-            reader = csv.DictReader(f)
-            helpers.bulk(es, reader, index='user', doc_type='my-type')
+    dfMixedChalSub = submission.join(challenges)
 
-        print("Data updated")
+    dfMixedChalSub.to_csv("chal&sub.csv", sep=',')
+
+    es = Elasticsearch()
+    with open('submission.csv') as f:
+        reader = csv.DictReader(f)
+        helpers.bulk(es, reader, index='submission', doc_type='my-type')
+
+    with open('solve.csv') as f:
+        reader = csv.DictReader(f)
+        helpers.bulk(es, reader, index='solve', doc_type='my-type')
+
+    with open('challenge.csv') as f:
+        reader = csv.DictReader(f)
+        helpers.bulk(es, reader, index='challenge', doc_type='my-type')
+
+    with open('vote.csv') as f:
+        reader = csv.DictReader(f)
+        helpers.bulk(es, reader, index='vote', doc_type='my-type')
+
+    with open('user.csv') as f:
+        reader = csv.DictReader(f)
+        helpers.bulk(es, reader, index='user', doc_type='my-type')
+    
+    with open('chal&sub.csv') as f:
+        reader = csv.DictReader(f)
+        helpers.bulk(es, reader, index='chal&sub', doc_type='my-type')
+
+    print("Data updated")
 
 export()
 schedule.every(1).minutes.do(export)
