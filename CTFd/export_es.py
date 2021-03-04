@@ -2,7 +2,7 @@ import sqlite3
 import csv 
 from elasticsearch import helpers, Elasticsearch
 
-DB = "ctfd.db"
+DB = "CTFd/ctfd.db"
 ###Users
 conn = sqlite3.connect(DB)
 cur=conn.cursor()
@@ -11,7 +11,7 @@ result=cur.fetchall()
 cur.execute("SELECT name FROM pragma_table_info('users')")
 
 headerList = cur.fetchall()
-c = csv.writer(open('user.csv', 'w',newline=''), delimiter = ';')
+c = csv.writer(open('user.csv', 'w',newline=''), delimiter = ',')
 c.writerow(headerList)
 for x in result:
     c.writerow(x)
@@ -23,7 +23,7 @@ result=cur.fetchall()
 cur.execute("SELECT name FROM pragma_table_info('votes')")
 
 headerList = cur.fetchall()
-c = csv.writer(open('vote.csv', 'w',newline=''), delimiter = ';')
+c = csv.writer(open('vote.csv', 'w',newline=''), delimiter = ',')
 c.writerow(headerList)
 for x in result:
     c.writerow(x)
@@ -36,7 +36,7 @@ result=cur.fetchall()
 cur.execute("SELECT name FROM pragma_table_info('challenges')")
 
 headerList = cur.fetchall()
-c = csv.writer(open('challenge.csv', 'w',newline=''), delimiter = ';')
+c = csv.writer(open('challenge.csv', 'w',newline=''), delimiter = ',')
 c.writerow(headerList)
 for x in result:
     c.writerow(x)
