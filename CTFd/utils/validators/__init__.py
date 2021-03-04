@@ -7,7 +7,7 @@ from marshmallow import ValidationError
 from CTFd.models import Users
 from CTFd.utils.countries import lookup_country_code
 from CTFd.utils.schools import lookup_school_code
-from CTFd.utils.user import get_current_user, is_admin
+from CTFd.utils.user import get_current_user, has_right
 
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
 
@@ -28,7 +28,7 @@ def validate_email(email):
 
 def unique_email(email, model=Users):
     obj = model.query.filter_by(email=email).first()
-    if is_admin():
+    if has_right("utils_validators_unique_email"):
         if obj:
             raise ValidationError("Email address has already been used")
     if obj and obj.id != get_current_user().id:

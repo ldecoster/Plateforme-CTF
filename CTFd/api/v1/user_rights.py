@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import db, UserRights
 from CTFd.schemas.user_rights import UserRightsSchema
-from CTFd.utils.decorators import contributors_teachers_admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 user_rights_namespace = Namespace("user_rights", description="Endpoint to retrieve UserRights")
@@ -34,7 +34,7 @@ user_rights_namespace.schema_model("UserRightsListSuccessResponse", UserRightsLi
 
 @user_rights_namespace.route("")
 class UserRightsList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_user_rights_list_get")
     @user_rights_namespace.doc(
         description="Endpoint to list UserRights objects in bulk",
         responses={
@@ -77,7 +77,7 @@ class UserRightsList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_user_rights_list_post")
     @user_rights_namespace.doc(
         description="Endpoint to create a UserRights object",
         responses={
@@ -109,7 +109,7 @@ class UserRightsList(Resource):
 @user_rights_namespace.param("user_id", "A User ID")
 @user_rights_namespace.param("right_id", "A Right ID")
 class UserRights(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_user_rights_get")
     @user_rights_namespace.doc(
         description="Endpoint to get a specific UserRights object",
         responses={
@@ -130,7 +130,7 @@ class UserRights(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_user_rights_delete")
     @user_rights_namespace.doc(
         description="Endpoint to delete a specific UserRights object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

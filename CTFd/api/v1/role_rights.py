@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import db, RoleRights
 from CTFd.schemas.role_rights import RoleRightsSchema
-from CTFd.utils.decorators import contributors_teachers_admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 role_rights_namespace = Namespace("role_rights", description="Endpoint to retrieve RoleRights")
@@ -34,7 +34,7 @@ role_rights_namespace.schema_model("RoleRightsListSuccessResponse", RoleRightsLi
 
 @role_rights_namespace.route("")
 class RoleRightsList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_role_rights_list_get")
     @role_rights_namespace.doc(
         description="Endpoint to list RoleRights objects in bulk",
         responses={
@@ -77,7 +77,7 @@ class RoleRightsList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_role_rights_list_post")
     @role_rights_namespace.doc(
         description="Endpoint to create a RoleRights object",
         responses={
@@ -109,7 +109,7 @@ class RoleRightsList(Resource):
 @role_rights_namespace.param("role_id", "A Role ID")
 @role_rights_namespace.param("right_id", "A Right ID")
 class RoleRights(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_role_rights_get")
     @role_rights_namespace.doc(
         description="Endpoint to get a specific RoleRights object",
         responses={
@@ -130,7 +130,7 @@ class RoleRights(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_role_rights_delete")
     @role_rights_namespace.doc(
         description="Endpoint to delete a specific RoleRights object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

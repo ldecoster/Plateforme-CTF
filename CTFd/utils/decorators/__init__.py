@@ -1,12 +1,11 @@
 import functools
 
-from flask import abort, jsonify, redirect, request, session, url_for
+from flask import abort, jsonify, redirect, request, url_for
 
 from CTFd.cache import cache
 from CTFd.utils import get_config
 from CTFd.utils import user as current_user
-from CTFd.utils.user import authed, is_admin, is_contributor, is_teacher
-from CTFd.models import RoleRights,UserRights,Rights,UserRights
+from CTFd.utils.user import authed, has_right
 from functools import wraps
 
 
@@ -37,7 +36,7 @@ def require_verified_emails(f):
         if get_config("verify_emails"):
             if current_user.authed():
                 if (
-                    current_user.is_admin() is False
+                    current_user.has_right("utils_decorators_require_verified_emails") is False
                     and current_user.is_verified() is False
                 ):  # User is not confirmed
                     if request.content_type == "application/json":
@@ -95,126 +94,6 @@ def registered_only(f):
     return _registered_only
 
 
-def admins_only(f):
-    """
-    Decorator that requires the user to be authenticated and an admin
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def admins_only_wrapper(*args, **kwargs):
-        if is_admin():
-            return f(*args, **kwargs)
-        else:
-            if request.content_type == "application/json":
-                abort(403)
-            else:
-                abort(403)
-
-    return admins_only_wrapper
-
-
-def contributors_admins_only(f):
-    """
-    Decorator that requires the user to be authenticated and an admin or contributor
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def contributors_admins_only_wrapper(*args, **kwargs):
-        if is_admin() or is_contributor():
-            return f(*args, **kwargs)
-        else:
-            if request.content_type == "application/json":
-                abort(403)
-            else:
-                abort(403)
-
-    return contributors_admins_only_wrapper
-
-
-def contributors_only(f):
-    """
-    Decorator that requires the user to be authenticated and a contributor
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def contributors_only_wrapper(*args, **kwargs):
-        if is_contributor():
-            return f(*args, **kwargs)
-        else:
-            if request.content_type == "application/json":
-                abort(403)
-            else:
-                abort(403)
-
-    return contributors_only_wrapper
-
-
-def teachers_only(f):
-    """
-    Decorator that requires the user to be authenticated and a teacher
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def teachers_wrapper(*args, **kwargs):
-        if is_teacher():
-            return f(*args, **kwargs)
-        else:
-            if request.content_type == "application/json":
-                abort(403)
-            else:
-                abort(403)
-
-    return teachers_wrapper
-
-
-def teachers_admins_only(f):
-    """
-    Decorator that requires the user to be authenticated and a teacher or admin
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def teachers_admins_only_wrapper(*args, **kwargs):
-        if is_admin() or is_teacher():
-            return f(*args, **kwargs)
-        else:
-            if request.content_type == "application/json":
-                abort(403)
-            else:
-                abort(403)
-
-    return teachers_admins_only_wrapper
-
-
-def contributors_teachers_admins_only(f):
-    """
-    Decorator that requires the user to be authenticated and an admin or contributor or teachers
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def contributors_teachers_admins_only_wrapper(*args, **kwargs):
-        if is_admin() or is_contributor() or is_teacher():
-            return f(*args, **kwargs)
-        else:
-            if request.content_type == "application/json":
-                abort(403)
-            else:
-                abort(403)
-
-    return contributors_teachers_admins_only_wrapper
-
-
 def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
     def ratelimit_decorator(f):
         @functools.wraps(f)
@@ -247,35 +126,17 @@ def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
 
     return ratelimit_decorator
 
-def has_permission(right):
-    def inner_function(function):
-        @wraps(function)
-        def has_permission_wrapper(*args, **kwargs):
-          
-            rights=UserRights.query.filter_by(name=right,user_id=session["id"]).first()
-            if rights is not None :
-                return function(*args, **kwargs)
-            else:
-                if request.content_type == "application/json":
-                    abort(403)
-                else:
-                    abort(403)
-        return has_permission_wrapper
-    return inner_function
- 
 
-def has_permission_author(author_id, right):
-    def inner_function(function):
-        @wraps(function)
-        def has_permission_wrapper(*args, **kwargs):
-          
-            rights=UserRights.query.filter_by(name=right,user_id=session["id"]).first()
-            if author_id==session["id"] or rights is not None :
-                return function(*args, **kwargs)
+def access_granted_only(right):
+    def decorator(f):
+        @wraps(f)
+        def access_granted_only_wrapper(*args, **kwargs):
+            if has_right(right):
+                return f(*args, **kwargs)
             else:
                 if request.content_type == "application/json":
                     abort(403)
                 else:
                     abort(403)
-        return has_permission_wrapper
-    return inner_function
+        return access_granted_only_wrapper
+    return decorator

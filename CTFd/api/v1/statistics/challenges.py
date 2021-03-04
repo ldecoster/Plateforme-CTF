@@ -4,13 +4,13 @@ from sqlalchemy.sql import and_
 
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.models import Challenges, Solves, Users, db
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.modes import get_model
 
 
 @statistics_namespace.route("/challenges/<column>")
 class ChallengePropertyCounts(Resource):
-    @admins_only
+    @access_granted_only("api_statistics_challenge_property_counts_get")
     def get(self, column):
         if column in Challenges.__table__.columns.keys():
             prop = getattr(Challenges, column)
@@ -27,7 +27,7 @@ class ChallengePropertyCounts(Resource):
 
 @statistics_namespace.route("/challenges/solves")
 class ChallengeSolveStatistics(Resource):
-    @admins_only
+    @access_granted_only("api_statistics_challenge_solve_statistics_get")
     def get(self):
         chals = (
             Challenges.query.filter(
@@ -76,7 +76,7 @@ class ChallengeSolveStatistics(Resource):
 
 @statistics_namespace.route("/challenges/solves/percentages")
 class ChallengeSolvePercentages(Resource):
-    @admins_only
+    @access_granted_only("api_statistics_challenge_solve_percentages_get")
     def get(self):
         challenges = (
             Challenges.query.add_columns("id", "name", "state", "max_attempts")

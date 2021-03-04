@@ -9,9 +9,9 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Votes, db, Challenges
 from CTFd.schemas.votes import VoteSchema
-from CTFd.utils.decorators import contributors_teachers_admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_teacher
+from CTFd.utils.user import has_right
 from flask import session
 
 votes_namespace = Namespace("votes", description="Endpoint to retrieve Votes")
@@ -38,7 +38,7 @@ votes_namespace.schema_model(
 
 @votes_namespace.route("")
 class VoteList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_vote_list_get")
     @votes_namespace.doc(
         description="Endpoint to list Vote objects in bulk",
         responses={
@@ -76,7 +76,7 @@ class VoteList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_vote_list_post")
     @votes_namespace.doc(
         description="Endpoint to create a Vote object",
         responses={
@@ -100,20 +100,19 @@ class VoteList(Resource):
         response.data.user_id = session["id"]
         db.session.add(response.data)
 
-        if is_admin() or is_teacher() or is_contributor():
-            if challenge.state == "voting" and challenge.author_id != session["id"] and already_voted is None:
-                db.session.commit()
+        if challenge.state == "voting" and challenge.author_id != session["id"] and already_voted is None:
+            db.session.commit()
 
-                response = schema.dump(response.data)
-                db.session.close()
+            response = schema.dump(response.data)
+            db.session.close()
 
-                return {"success": True, "data": response.data}
+            return {"success": True, "data": response.data}
         return {"success": False}
 
 
 @votes_namespace.route("/<vote_id>")
 class Vote(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_vote_get")
     @votes_namespace.doc(
         description="Endpoint to get a specific Vote object",
         responses={
@@ -134,7 +133,7 @@ class Vote(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_vote_delete")
     @votes_namespace.doc(
         description="Endpoint to delete a specific Vote object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -142,7 +141,8 @@ class Vote(Resource):
     def delete(self, vote_id):
         vote = Votes.query.filter_by(id=vote_id).first_or_404()
         challenge = Challenges.query.filter_by(id=vote.challenge_id).first_or_404()
-        if challenge.state == "voting" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
+        if challenge.state == "voting" and (has_right("api_vote_delete_full") or
+                                            (has_right("api_vote_delete_partial") and vote.user_id == session["id"])):
             db.session.delete(vote)
             db.session.commit()
             db.session.close()
@@ -150,7 +150,7 @@ class Vote(Resource):
             return {"success": True}
         return{"success": False}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_vote_patch")
     @votes_namespace.doc(
         description="Endpoint to edit a specific Vote object",
         responses={
@@ -164,7 +164,8 @@ class Vote(Resource):
     def patch(self, vote_id):
         vote = Votes.query.filter_by(id=vote_id).first_or_404()
         challenge = Challenges.query.filter_by(id=vote.challenge_id).first_or_404()
-        if challenge.state == "voting" and (is_admin() or (is_contributor() and vote.user_id == session["id"])):
+        if challenge.state == "voting" and (has_right("api_vote_patch_full") or
+                                            (has_right("api_vote_patch_partial") and vote.user_id == session["id"])):
             schema = VoteSchema()
             req = request.get_json()
 

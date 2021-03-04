@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Roles, db
 from CTFd.schemas.roles import RoleSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 roles_namespace = Namespace("roles", description="Endpoint to retrieve Roles")
@@ -36,7 +36,7 @@ roles_namespace.schema_model(
 
 @roles_namespace.route("")
 class RoleList(Resource):
-    @admins_only
+    @access_granted_only("api_role_list_get")
     @roles_namespace.doc(
         description="Endpoint to list Role objects in bulk",
         responses={
@@ -69,7 +69,7 @@ class RoleList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_role_list_post")
     @roles_namespace.doc(
         description="Endpoint to create a Role object",
         responses={
@@ -100,7 +100,7 @@ class RoleList(Resource):
 @roles_namespace.route("/<role_id>")
 @roles_namespace.param("role_id", "A Role ID")
 class Role(Resource):
-    @admins_only
+    @access_granted_only("api_role_get")
     @roles_namespace.doc(
         description="Endpoint to get a specific Role object",
         responses={
@@ -119,7 +119,7 @@ class Role(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_role_delete")
     @roles_namespace.doc(
         description="Endpoint to delete a Role object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

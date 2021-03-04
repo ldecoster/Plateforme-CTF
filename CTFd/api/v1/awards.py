@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Awards, db
 from CTFd.schemas.awards import AwardSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 awards_namespace = Namespace("awards", description="Endpoint to retrieve Awards")
@@ -36,7 +36,7 @@ awards_namespace.schema_model(
 
 @awards_namespace.route("")
 class AwardList(Resource):
-    @admins_only
+    @access_granted_only("api_award_list_get")
     @awards_namespace.doc(
         description="Endpoint to list Award objects in bulk",
         responses={
@@ -79,7 +79,7 @@ class AwardList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_award_list_post")
     @awards_namespace.doc(
         description="Endpoint to create an Award object",
         responses={
@@ -110,7 +110,7 @@ class AwardList(Resource):
 @awards_namespace.route("/<award_id>")
 @awards_namespace.param("award_id", "An Award ID")
 class Award(Resource):
-    @admins_only
+    @access_granted_only("api_award_get")
     @awards_namespace.doc(
         description="Endpoint to get a specific Award object",
         responses={
@@ -129,7 +129,7 @@ class Award(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_award_delete")
     @awards_namespace.doc(
         description="Endpoint to delete an Award object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
