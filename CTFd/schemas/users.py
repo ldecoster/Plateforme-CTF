@@ -9,7 +9,7 @@ from CTFd.utils import get_config, string_types
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.email import check_email_is_whitelisted
 from CTFd.utils.user import get_current_user, is_admin, is_teacher
-from CTFd.utils.validators import validate_country_code, validate_school_code
+from CTFd.utils.validators import validate_country_code, validate_school_code, validate_cursus_code ,validate_specialisation_code
 from CTFd.utils.user import get_current_user, is_admin
 
 
@@ -53,6 +53,8 @@ class UserSchema(ma.ModelSchema):
     )
     country = field_for(Users, "country", validate=[validate_country_code])
     school = field_for(Users, "school", validate=[validate_school_code])
+    cursus = field_for(Users, "cursus", validate=[validate_cursus_code])
+    specialisation = field_for(Users, "specialisation", validate=[validate_specialisation_code])
     password = field_for(Users, "password", required=True, allow_none=False)
     fields = Nested(
         UserFieldEntriesSchema, partial=True, many=True, attribute="field_entries"
@@ -344,6 +346,8 @@ class UserSchema(ma.ModelSchema):
             "name",
             "country",
             "school",
+            "cursus",
+            "specialisation",
             "affiliation",
             "bracket",
             "id",
@@ -355,6 +359,8 @@ class UserSchema(ma.ModelSchema):
             "email",
             "country",
             "school",
+            "cursus",
+            "specialisation",
             "affiliation",
             "bracket",
             "id",
@@ -367,6 +373,8 @@ class UserSchema(ma.ModelSchema):
             "created",
             "country",
             "school",
+            "cursus",
+            "specialisation",
             "banned",
             "email",
             "affiliation",

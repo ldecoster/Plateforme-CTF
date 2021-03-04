@@ -264,9 +264,6 @@ class Users(db.Model):
     password = db.Column(db.String(128))
     email = db.Column(db.String(128), unique=True)
     type = db.Column(db.String(80))
-    school = db.Column(db.String(128))
-    promotion = db.Column(db.Integer)
-    speciality = db.Column(db.String(128))
     secret = db.Column(db.String(128))
 
     # Supplementary attributes
@@ -274,6 +271,9 @@ class Users(db.Model):
     affiliation = db.Column(db.String(128))
     country = db.Column(db.String(32))
     school = db.Column(db.String(32))
+    cursus = db.Column(db.String(128))
+    promotion = db.Column(db.Integer)
+    specialisation = db.Column(db.String(128))
     bracket = db.Column(db.String(32))
     hidden = db.Column(db.Boolean, default=False)
     banned = db.Column(db.Boolean, default=False)

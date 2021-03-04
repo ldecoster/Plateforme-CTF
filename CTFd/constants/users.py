@@ -12,6 +12,8 @@ UserAttrs = namedtuple(
         "affiliation",
         "country",
         "school",
+        "cursus",
+        "specialisation",
         "bracket",
         "hidden",
         "banned",

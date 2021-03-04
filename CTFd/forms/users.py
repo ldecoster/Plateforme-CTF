@@ -7,6 +7,8 @@ from CTFd.forms.fields import SubmitField
 from CTFd.models import UserFieldEntries, UserFields
 from CTFd.utils.countries import SELECT_COUNTRIES_LIST
 from CTFd.utils.schools import SELECT_SCHOOLS_LIST
+from CTFd.utils.specialisations import SELECT_SPECIALISATIONS_LIST
+from CTFd.utils.cursus import SELECT_CURSUS_LIST
 from CTFd.utils.user import is_admin, is_teacher
 
 
@@ -122,6 +124,8 @@ class UserBaseFormAdmin(BaseForm):
     affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
     school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
+    cursus = SelectField("Cursus", choices=SELECT_CURSUS_LIST)
+    specialisation = SelectField("Specialiastion", choices=SELECT_SPECIALISATIONS_LIST)
     type = SelectField("Type", choices=[
         ("user", "User"), ("contributor", "Contributor"), ("teacher", "Teacher"), ("admin", "Admin")
     ])
@@ -139,6 +143,8 @@ class UserBaseFormTeacher(BaseForm):
     affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
     school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
+    cursus = SelectField("Cursus", choices=SELECT_CURSUS_LIST)
+    specialisation = SelectField("Specialisation", choices=SELECT_SPECIALISATIONS_LIST)
     type = SelectField("Type", choices=[("user", "User"), ("contributor", "Contributor")])
     verified = BooleanField("Verified")
     hidden = BooleanField("Hidden")

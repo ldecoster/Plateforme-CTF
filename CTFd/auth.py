@@ -178,6 +178,8 @@ def register():
         affiliation = request.form.get("affiliation")
         country = request.form.get("country")
         school = request.form.get("school")
+        cursus = request.form.get("cursus")
+        specialisation = request.form.get("specialisation")
 
         name_len = len(name) == 0
         names = Users.query.add_columns("name", "id").filter_by(name=name).first()
@@ -232,6 +234,24 @@ def register():
                 valid_school = False
         else:
             valid_school = True
+        
+        if cursus:
+            try:
+                validators.validate_cursus_code(cursus)
+                valid_cursus = True
+            except ValidationError:
+                valid_cursus = False
+        else:
+            valid_cursus = True
+        
+        if specialisation:
+            try:
+                validators.validate_specialisation_code(specialisation)
+                valid_specialisation = True
+            except ValidationError:
+                valid_specialisation = False
+        else:
+            valid_cursus = True
 
         if website:
             valid_website = validators.validate_url(website)
@@ -290,6 +310,10 @@ def register():
                     user.country = country
                 if school:
                     user.school = school
+                if cursus:
+                    user.cursus = cursus
+                if specialisation:
+                    user.specialisation = specialisation
 
                 db.session.add(user)
                 db.session.commit()
