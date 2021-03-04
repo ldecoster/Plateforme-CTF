@@ -112,9 +112,7 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-    console.log("messafe from API :")
-    console.log(parameters);
+    queryParameters = mergeQueryParams(parameters, queryParameters);    
     this.request(
       "POST",
       domain + path,

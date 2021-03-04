@@ -31,23 +31,39 @@ function deleteSelectedBadges(_event) {
 
 function addBadge(_event){
 
-  let badge_name = document.getElementsByName("badge_name");
-  let badge_desc = document.getElementsByName("badge_desc");
-  //let badge_tag = document.getElementsByName("badge_tag");
-  let badge_type  = "Standard";
-  const params = {
-    description: "a description",
-    name:"badge name",
-    type: "standard",
-  };
-  console.log(params);
-  CTFd.api.post_badge_list(params).then(res => {
-    console.log(res);
+  let badge_name = document.getElementsByName("badge_name")[0].value;
+  let badge_desc = document.getElementsByName("badge_desc")[0].value;
+  let badge_tag = document.getElementsByName("badge_tag")[0].value;
+ 
+  CTFd.api.get_tag_list().then(response => {
+    let tagList = response.data;
+    let matches = tagList.filter(tag => {
+      return tag.value.match(badge_tag);
+    });
+    let tag_id = matches[0].id;
+    
+    const params = {
+      name: badge_name,
+      description: badge_desc,
+      tag_id:tag_id,
+    };
+
+    CTFd.fetch("/api/v1/badges", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(params)
+    }).then(response => {
+      if(response.success){
+        console.log("success");
+      }
+    });
   });
+
 }
-
-
-
 
 function bulkEditBadges(_event) {
   let badgeIDs = $("input[data-badge-id]:checked").map(function() {
@@ -87,9 +103,6 @@ function bulkEditBadges(_event) {
     }
   });
 }
-
-
-
 
 $("#edit-new-badge").on('click',function(event){
   console.log('click detected');

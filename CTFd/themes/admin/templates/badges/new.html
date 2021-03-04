@@ -20,68 +20,64 @@
 {% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-	<div class="container">
-		<h1>Create new badge</h1>
-	</div>
-</div>
 <div class="modal-content" role="dialog" id="create-badge-entry-div">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title">Badge entries</h5>
+				<h5 class="modal-title">Create a new Badge</h5>
 				<button type="button" class="close" data-dismiss="modal">
 					<span>&times;</span>
 				</button>
 			</div>
 			<div class="modal-body">
-					<div class="form-group">
-						<div class="row">
-							<div class="col-md-8">
-								<label>
-									Name:<br>
-									<small class="form-text text-muted">the name of your badge</small>
-								</label>
-								<input type="text" class="form-control" id ="badge_name" name="badge_name">
-							</div>
-                            <div class="col-md-8">
-								<label>
-									Description:<br>
-									<small class="form-text text-muted">Add some description to your badge</small>
-								</label>
-								<input type="text" class="form-control" id ="badge_desc" name="badge_desc">
-							</div>
-                            <div class="col-md-8">
-								<label>
-									Tags associés:<br>
-									<small class="form-text text-muted">the tags corresponding to your badge</small>
-								</label>
-								<select id="tag-selector" class="form-control custom-select" id="badge_tag" name="badge_tag">
-                                    {% for tag in tags %}
-                                        <option>{{ tag.value }}</option>
-                                    {% endfor %}
-                                </select>
-							</div>
-							<div class="col-md-4">
-								<label>
-									<small class="form-text text-muted">&nbsp;</small>
-								</label>
-							</div>
+				<div class="form-group">
+					<div class="row">
+
+						<div class="col-md-8">
+							<label>
+								Name:<br>
+								<small class="form-text text-muted">the name of your badge</small>
+							</label>
+							<input type="text" class="form-control" id="badge_name" name="badge_name">
 						</div>
-						<input type="hidden" name="flag_type" value="static">
+
+						<div class="col-md-8">
+							<label>
+								Description:<br>
+								<small class="form-text text-muted">Add some description to your badge</small>
+							</label>
+							<input type="text" class="form-control" id="badge_desc" name="badge_desc">
+						</div>
+
+						<div class="col-md-8">
+							<label>
+								Tags associés:<br>
+								<small class="form-text text-muted">the tags corresponding to your badge</small>
+							</label>
+							<select class="form-control custom-select" id="badge_tag"
+								name="badge_tag">
+								{% for tag in tags %}
+								<option>{{ tag.value }}</option>
+								{% endfor %}
+							</select>
+						</div>
+
+						<div class="col-md-4">
+							<label>
+								<small class="form-text text-muted">&nbsp;</small>
+							</label>
+						</div>
 					</div>
-					<div class="form-group">
-						<button id="badge-create-button" class="btn btn-primary float-right create-badge-select">Create</button>
-					</div>
+				</div>
+				<div class="form-group">
+					<button id="badge-create-button"
+						class="btn btn-primary float-right create-badge-select">Create</button>
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-{% endblock %}
-
 {% block entrypoint %}
-    <script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/badges.js') }}"></script>
 {% endblock %}

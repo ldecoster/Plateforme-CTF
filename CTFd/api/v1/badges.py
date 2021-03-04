@@ -11,15 +11,9 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import (
     Badges,
-    Solves,
-    Submissions,
-    Tags,
     db, Fails,
 )
-from CTFd.plugins.badges import BADGE_CLASSES, get_badge_class
-from CTFd.schemas.flags import FlagSchema
-from CTFd.schemas.hints import HintSchema
-from CTFd.schemas.tags import TagSchema
+from CTFd.schemas.badges import BadgeSchema
 from CTFd.utils import config, get_config
 from CTFd.utils import sessions
 from CTFd.utils import user as current_user
@@ -107,94 +101,18 @@ class BadgeList(Resource):
         location="query",
     )
     def get(self, query_args):
-        # Build filtering queries
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=Badges, query=q, field=field)
 
-        # This can return None (unauth) if visibility is set to public
-        user = get_current_user()
+        badges = Badges.query.filter_by(**query_args).filter(*filters).all()
+        schema = BadgeSchema(many=True)
+        response = schema.dump(badges)
 
-        # Admins can request to see everything
-        if is_admin() and request.args.get("view") == "admin":
-            badges = (
-                Badges.query.filter_by(**query_args)
-                .filter(*filters)
-                .all()
-            )
-            solve_ids = set([badge.id for badge in badges])
-        else:
-            badges = (
-                Badges.query.filter(
-                    and_(Badges.state != "hidden", Badges.state != "locked", Badges.state != "voting")
-                )
-                .filter_by(**query_args)
-                .filter(*filters)
-                .all()
-            )
+        if response.errors:
+            return {"success": False, "errors": response.errors}, 400
 
-            if user:
-                solve_ids = (
-                    Solves.query.with_entities(Solves.badge_id)
-                    .filter_by(account_id=user.account_id)
-                    .order_by(Solves.badge_id.asc())
-                    .all()
-                )
-                solve_ids = set([value for value, in solve_ids])
-
-                # TODO: Convert this into a re-useable decorator
-                if is_admin():
-                    pass
-            else:
-                solve_ids = set()
-
-        response = []
-        tag_schema = TagSchema(view="user", many=True)
-        for badge in badges:
-            if badge.requirements:
-                requirements = badge.requirements.get("prerequisites", [])
-                anonymize = badge.requirements.get("anonymize")
-                prereqs = set(requirements)
-                if solve_ids >= prereqs:
-                    pass
-                else:
-                    if anonymize:
-                        response.append(
-                            {
-                                "id": badge.id,
-                                "type": "hidden",
-                                "name": "???",
-                                "value": 0,
-                                "tags": [],
-                                "template": "",
-                                "script": "",
-                            }
-                        )
-                    # Fallthrough to continue
-                    continue
-
-            try:
-                badge_type = get_badge_class(badge.type)
-            except KeyError:
-                # Badge type does not exist. Fall through to next badge.
-                continue
-
-            # Badge passes all checks, add it to response
-            # TODO ISEN : remove unused "value" and "category"
-            response.append(
-                {
-                    "id": badge.id,
-                    "type": badge_type.name,
-                    "name": badge.name,
-                    "value": 0,
-                    "tags": tag_schema.dump(badge.tags).data,
-                    "template": badge_type.templates["view"],
-                    "script": badge_type.scripts["view"],
-                }
-            )
-
-        db.session.close()
-        return {"success": True, "data": response}
+        return {"success": True, "data": response.data}
 
     @contributors_teachers_admins_only
     @badges_namespace.doc(
@@ -208,38 +126,23 @@ class BadgeList(Resource):
         },
     )
     def post(self):
-        print("*"*64)
-        print("post triggeredezafeza")
-        print(request)
-        data = request.form or request.get_json()
-        print("*"*64)
-        print(data)
-        badge_type = data["type"]
-        data["author_id"] = session["id"]
-        badge_class = get_badge_class(badge_type)
-        badge = badge_class.create(request)
-        response = badge_class.read(badge)
-        return {"success": True, "data": response}
+        req = request.get_json()
+        schema = BadgeSchema()
+        response = schema.load(req, session=db.session)
 
+        if response.errors:
+            return {"success": False, "errors": response.errors}, 400
 
-@badges_namespace.route("/types")
-class BadgeTypes(Resource):
-    @contributors_teachers_admins_only
-    def get(self):
-        response = {}
+        db.session.add(response.data)
 
-        for class_id in BADGE_CLASSES:
-            badge_class = BADGE_CLASSES.get(class_id)
-            response[badge_class.id] = {
-                "id": badge_class.id,
-                "name": badge_class.name,
-                "templates": badge_class.templates,
-                "scripts": badge_class.scripts,
-                "create": render_template(
-                    badge_class.templates["create"].lstrip("/")
-                ),
-            }
-        return {"success": True, "data": response}
+        if is_admin() or is_teacher() or is_contributor():
+            db.session.commit()
+
+            response = schema.dump(response.data)
+            db.session.close()
+
+            return {"success": True, "data": response.data}
+        return {"success": False}
 
 
 @badges_namespace.route("/<badge_id>")
@@ -272,81 +175,9 @@ class Badge(Resource):
                 f"The underlying badge type ({badge.type}) is not installed. This badge can not be loaded.",
             )
 
-        if badge.requirements:
-            requirements = badge.requirements.get("prerequisites", [])
-            anonymize = badge.requirements.get("anonymize")
-            if badges_visible():
-                user = get_current_user()
-                if user:
-                    solve_ids = (
-                        Solves.query.with_entities(Solves.badge_id)
-                            .filter_by(account_id=user.account_id)
-                            .order_by(Solves.badge_id.asc())
-                            .all()
-                    )
-                else:
-                    # We need to handle the case where a user is viewing badges anonymously
-                    solve_ids = []
-                solve_ids = set([value for value, in solve_ids])
-                prereqs = set(requirements)
-                if solve_ids >= prereqs or is_admin():
-                    pass
-                else:
-                    if anonymize:
-                        return {
-                            "success": True,
-                            "data": {
-                                "id": badge.id,
-                                "type": "hidden",
-                                "name": "???",
-                                "value": 0,
-                                "tags": [],
-                                "template": "",
-                                "script": "",
-                            },
-                        }
-                    abort(403)
-            else:
-                abort(403)
-
-        tags = [
-            tag["value"] for tag in TagSchema("user", many=True).dump(badge.tags).data
-        ]
-
         response = badge_class.read(badge=badge)
 
         Model = get_model()
-
-        if scores_visible() is True and accounts_visible() is True:
-            solves = Solves.query.join(Model, Solves.account_id == Model.id).filter(
-                Solves.badge_id == badge.id,
-                Model.banned == False,
-                Model.hidden == False,
-                )
-
-            # Only show solves that happened before freeze time if configured
-            freeze = get_config("freeze")
-            if not is_admin() and freeze:
-                solves = solves.filter(Solves.date < unix_time_to_utc(freeze))
-
-            solves = solves.count()
-            response["solves"] = solves
-        else:
-            response["solves"] = None
-            solves = None
-
-        if authed():
-            # Get current attempts for the user
-            attempts = Submissions.query.filter_by(
-                account_id=user.account_id, badge_id=badge_id
-            ).count()
-        else:
-            attempts = 0
-
-        response["attempts"] = attempts
-        response["files"] = files
-        response["tags"] = tags
-        response["hints"] = hints
 
         response["view"] = render_template(
             badge_class.templates["view"].lstrip("/"),
