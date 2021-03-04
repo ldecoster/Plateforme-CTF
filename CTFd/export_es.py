@@ -1,89 +1,102 @@
 import sqlite3
-import csv 
+import csv
+import schedule
+import time
 from elasticsearch import helpers, Elasticsearch
 
-DB = "CTFd/ctfd.db"
-###Users
-conn = sqlite3.connect(DB)
-cur=conn.cursor()
-cur.execute("SELECT * from Users")
-result=cur.fetchall()
-cur.execute("SELECT name FROM pragma_table_info('users')")
 
-headerList = cur.fetchall()
-c = csv.writer(open('user.csv', 'w',newline=''), delimiter = ',')
-c.writerow(headerList)
-for x in result:
-    c.writerow(x)
-###Votes
-conn = sqlite3.connect(DB)
-cur=conn.cursor()
-cur.execute("SELECT * from Votes")
-result=cur.fetchall()
-cur.execute("SELECT name FROM pragma_table_info('votes')")
+def export():
+    DB = "CTFd/ctfd.db"
+    # Users
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute("SELECT * from Users")
+    result = cur.fetchall()
+    cur.execute("SELECT name FROM pragma_table_info('users')")
 
-headerList = cur.fetchall()
-c = csv.writer(open('vote.csv', 'w',newline=''), delimiter = ',')
-c.writerow(headerList)
-for x in result:
-    c.writerow(x)
+    headerList = cur.fetchall()
+    c = csv.writer(open('user.csv', 'w', newline=''), delimiter=',')
+    c.writerow(headerList)
+    for x in result:
+        c.writerow(x)
+    # Votes
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute("SELECT * from Votes")
+    result = cur.fetchall()
+    cur.execute("SELECT name FROM pragma_table_info('votes')")
 
-###Challenges
-conn = sqlite3.connect(DB)
-cur=conn.cursor()
-cur.execute("SELECT * from Challenges")
-result=cur.fetchall()
-cur.execute("SELECT name FROM pragma_table_info('challenges')")
+    headerList = cur.fetchall()
+    c = csv.writer(open('vote.csv', 'w', newline=''), delimiter=',')
+    c.writerow(headerList)
+    for x in result:
+        c.writerow(x)
 
-headerList = cur.fetchall()
-c = csv.writer(open('challenge.csv', 'w',newline=''), delimiter = ',')
-c.writerow(headerList)
-for x in result:
-    c.writerow(x)
+    # Challenges
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute("SELECT * from Challenges")
+    result = cur.fetchall()
+    cur.execute("SELECT name FROM pragma_table_info('challenges')")
 
-###Solves
-conn = sqlite3.connect(DB)
-cur=conn.cursor()
-cur.execute("SELECT * from Solves")
-result=cur.fetchall()
-cur.execute("SELECT name FROM pragma_table_info('solves')")
+    headerList = cur.fetchall()
+    c = csv.writer(open('challenge.csv', 'w', newline=''), delimiter=',')
+    c.writerow(headerList)
+    for x in result:
+        c.writerow(x)
 
-headerList = cur.fetchall()
-c = csv.writer(open('solve.csv', 'w',newline=''), delimiter = ',')
-c.writerow(headerList)
-for x in result:
-    c.writerow(x)
+    # Solves
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute("SELECT * from Solves")
+    result = cur.fetchall()
+    cur.execute("SELECT name FROM pragma_table_info('solves')")
 
-###Submission
-conn = sqlite3.connect(DB)
-cur=conn.cursor()
-cur.execute("SELECT * from Submissions")
-result=cur.fetchall()
-cur.execute("SELECT name FROM pragma_table_info('submissions')")
+    headerList = cur.fetchall()
+    c = csv.writer(open('solve.csv', 'w', newline=''), delimiter=',')
+    c.writerow(headerList)
+    for x in result:
+        c.writerow(x)
 
-headerList = cur.fetchall()
-c = csv.writer(open('submission.csv', 'w',newline=''), delimiter = ',')
-c.writerow(headerList)
-for x in result:
-    c.writerow(x)
+    # Submission
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute("SELECT * from Submissions")
+    result = cur.fetchall()
+    cur.execute("SELECT name FROM pragma_table_info('submissions')")
 
-es = Elasticsearch()
-with open('submission.csv') as f:
-    reader = csv.DictReader(f)
-    helpers.bulk(es, reader, index='submission', doc_type='my-type')
+    headerList = cur.fetchall()
+    c = csv.writer(open('submission.csv', 'w', newline=''), delimiter=',')
+    c.writerow(headerList)
+    for x in result:
+        c.writerow(x)
 
-with open('solve.csv') as f:
-    reader = csv.DictReader(f)
-    helpers.bulk(es, reader, index='solve', doc_type='my-type')
+        es = Elasticsearch()
+        with open('submission.csv') as f:
+            reader = csv.DictReader(f)
+            helpers.bulk(es, reader, index='submission', doc_type='my-type')
 
-with open('challenge.csv') as f:
-    reader = csv.DictReader(f)
-    helpers.bulk(es, reader, index='challenge', doc_type='my-type')
+        with open('solve.csv') as f:
+            reader = csv.DictReader(f)
+            helpers.bulk(es, reader, index='solve', doc_type='my-type')
 
-with open('vote.csv') as f:
-    reader = csv.DictReader(f)
-    helpers.bulk(es, reader, index='vote', doc_type='my-type')
+        with open('challenge.csv') as f:
+            reader = csv.DictReader(f)
+            helpers.bulk(es, reader, index='challenge', doc_type='my-type')
 
-with open('user.csv') as f:
-    reader = csv.DictReader(f)
-    helpers.bulk(es, reader, index='user', doc_type='my-type')
+        with open('vote.csv') as f:
+            reader = csv.DictReader(f)
+            helpers.bulk(es, reader, index='vote', doc_type='my-type')
+
+        with open('user.csv') as f:
+            reader = csv.DictReader(f)
+            helpers.bulk(es, reader, index='user', doc_type='my-type')
+
+        print("Data updated")
+
+export()
+schedule.every(1).minutes.do(export)
+
+while 1:
+    schedule.run_pending()
+    time.sleep(1)
