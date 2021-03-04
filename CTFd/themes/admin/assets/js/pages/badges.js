@@ -67,6 +67,11 @@ function bulkEditBadges(_event) {
   });
 }
 
+$("#edit-new-badge").on('click',function(event){
+  console.log('click detected');
+  $("#badge-create-options").modal();
+});
+
 $(() => {
   $("#badges-delete-button").click(deleteSelectedBadges);
   $("#badges-edit-button").click(bulkEditBadges);

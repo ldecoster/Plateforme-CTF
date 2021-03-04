@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 
 {% block stylesheets %}
-	<link rel="stylesheet" href="{{ url_for('views.themes', theme='admin', path='css/challenge-board.css') }}">
+<link rel="stylesheet" href="{{ url_for('views.themes', theme='admin', path='css/challenge-board.css') }}">
 {% endblock %}
 
 
@@ -9,14 +9,18 @@
 <div class="jumbotron">
 	<div class="container">
 		<h1>Badges
-			<a class="no-decoration" href="{{ url_for('admin.badges_new') }}">
-				<span role="button" data-toggle="tooltip" title="Create badge">
-					<i class="btn-fa fas fa-plus-circle"></i>
-				</span>
-			</a>
+			<button type="button" class="btn btn-outline-primary" data-toggle="tooltip" title="Add new badge"
+				id="edit-new-badge">
+				<i class="btn-fa fas fa-plus-circle"></i>
+			</button>
 		</h1>
 	</div>
 </div>
+
+<div class="modal fade bd-example-modal-lg" role="dialog" id="badge-create-options">
+	{% include "admin/badges/new.html" %}
+</div>
+
 <div class="container">
 	<div class="row">
 		<div class="col-md-12">
@@ -71,33 +75,36 @@
 			<div>
 				<table id="challenges" class="table table-striped border">
 					<thead>
-					<tr>
-						<td class="d-block border-right border-bottom text-center" data-checkbox>
-							<div class="form-check">
-								<input type="checkbox" class="form-check-input" data-checkbox-all>&nbsp;
-							</div>
-						</td>
-						<th class="sort-col text-center"><b>ID</b></th>
-						<th class="sort-col"><b>Name</b></th>
+						<tr>
+							<td class="d-block border-right border-bottom text-center" data-checkbox>
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" data-checkbox-all>&nbsp;
+								</div>
+							</td>
+							<th class="sort-col text-center"><b>ID</b></th>
+							<th class="sort-col"><b>Name</b></th>
 
-					</tr>
+						</tr>
 					</thead>
 					<tbody>
-					{% for badge in badges %}
+						{% for badge in badges %}
 						<tr data-href="{{ url_for('admin.badges_detail', badge_id=badge.id) }}">
 							<td class="d-block border-right text-center" data-checkbox>
 								<div class="form-check">
-									<input type="checkbox" class="form-check-input" value="{{ badge.id }}" data-badge-id="{{ badge.id }}">&nbsp;
+									<input type="checkbox" class="form-check-input" value="{{ badge.id }}"
+										data-badge-id="{{ badge.id }}">&nbsp;
 								</div>
 							</td>
 							<td class="text-center">{{ badge.id }}</td>
-							<td><a href="{{ url_for('admin.badges_detail', badge_id=badge.id) }}">{{ badge.name }}</a></td>
+							<td><a href="{{ url_for('admin.badges_detail', badge_id=badge.id) }}">{{ badge.name }}</a>
+							</td>
 
 
 						</tr>
-					{% endfor %}
+						{% endfor %}
 					</tbody>
 				</table>
+
 			</div>
 		</div>
 	</div>
@@ -108,5 +115,5 @@
 {% endblock %}
 
 {% block entrypoint %}
-	<script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/badges.js') }}"></script>
+<script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/badges.js') }}"></script>
 {% endblock %}
