@@ -33,6 +33,7 @@
 <script>
 import $ from "jquery";
 import CTFd from "core/CTFd";
+import { ezBadge } from "core/ezq"
 
 export default {
   props: {
@@ -106,11 +107,28 @@ export default {
       this.outputHtml();
 
       CTFd.api.post_tagChallenge_list({}, params).then(res => {
+
+        if (res.error==="notRight"){
+            ezBadge({
+            type: "error",
+            body: "You do not have the Right to create an exercice"
+            });
+        }
+        else if (res.error==="alreadyAssigned"){
+          ezBadge({
+            type: "error",
+            body: "This task is already assigned to an exercice"
+            });
+         
+        }
+        else {
+        
         CTFd.api.get_tag({ tagId: res.data.tag_id, }).then(response => {
           if (response.success) {
             this.loadTags();
           }
         });
+        }
       });
     },
     addTag: function() {

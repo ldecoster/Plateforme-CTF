@@ -94,16 +94,17 @@ class TagChallengeList(Resource):
         schema = TagChallengeSchema()
         response = schema.load(req, session=db.session)
         tags = TagChallenge.query.filter_by(challenge_id=response.data.challenge_id).all()
-         
+        addedTag=Tags.query.filter_by(id=response.data.tag_id).first() 
+
         if has_right("api_tag_challenge_list_post_restricted"):
-            if "ex" in response.data.value:
-                return {"success": False}
+            if "ex" in addedTag.value:
+                return {"success": False, "error":"notAllowed"}
         
         for tagchallenge in tags:
             tag = Tags.query.filter_by(id=tagchallenge.tag_id).first()
             if "ex" in tag.value:
-                # TODO ISEN add popup
-                return {"success": False}
+                return {"success": False, "error":"alreadyAssigned"}
+
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

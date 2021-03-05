@@ -87,6 +87,15 @@ class TagList(Resource):
         req = request.get_json()
         schema = TagSchema()
         response = schema.load(req, session=db.session)
+        if is_contributor(): ##TODO permission a mettre a jour 
+            if "ex" in response.data.value:
+                return {"success": False, "error":"notRight"}
+        
+        for tagchallenge in tags:
+            tag=Tags.query.filter_by(id=tagchallenge.tag_id).first()
+            if "ex" in tag.value:
+                                            #TODO add popup 
+                return {"success": False, "error":"alreadyAssigned"}
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
