@@ -11,6 +11,7 @@ from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
+from CTFd.utils.user import has_right
 
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
@@ -87,15 +88,20 @@ class TagList(Resource):
         req = request.get_json()
         schema = TagSchema()
         response = schema.load(req, session=db.session)
-        if is_contributor(): ##TODO permission a mettre a jour 
+
+        tag_challenges = TagChallenge.query.filter_by(challenge_id=req.get("challenge_id")).all()
+
+        # Only for contributors
+        if has_right("api_tag_list_post_restricted"):
             if "ex" in response.data.value:
-                return {"success": False, "error":"notRight"}
-        
-        for tagchallenge in tags:
-            tag=Tags.query.filter_by(id=tagchallenge.tag_id).first()
-            if "ex" in tag.value:
-                                            #TODO add popup 
-                return {"success": False, "error":"alreadyAssigned"}
+                return {"success": False, "error": "notAllowed"}
+
+        # Check if the challenge already has an exercise tag
+        if "ex" in response.data.value:
+            for tag_challenge in tag_challenges:
+                tag = Tags.query.filter_by(id=tag_challenge.tag_id).first()
+                if "ex" in tag.value:
+                    return {"success": False, "error": "alreadyAssigned"}
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

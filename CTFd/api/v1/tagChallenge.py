@@ -93,18 +93,20 @@ class TagChallengeList(Resource):
         req = request.get_json()
         schema = TagChallengeSchema()
         response = schema.load(req, session=db.session)
-        tags = TagChallenge.query.filter_by(challenge_id=response.data.challenge_id).all()
-        addedTag=Tags.query.filter_by(id=response.data.tag_id).first() 
+
+        tag_challenges = TagChallenge.query.filter_by(challenge_id=response.data.challenge_id).all()
+        tag = Tags.query.filter_by(id=response.data.tag_id).first()
 
         if has_right("api_tag_challenge_list_post_restricted"):
-            if "ex" in addedTag.value:
-                return {"success": False, "error":"notAllowed"}
-        
-        for tagchallenge in tags:
-            tag = Tags.query.filter_by(id=tagchallenge.tag_id).first()
             if "ex" in tag.value:
-                return {"success": False, "error":"alreadyAssigned"}
+                return {"success": False, "error": "notAllowed"}
 
+        # Check if the challenge already has an exercise tag
+        if "ex" in tag.value:
+            for tag_challenge in tag_challenges:
+                tag = Tags.query.filter_by(id=tag_challenge.tag_id).first()
+                if "ex" in tag.value:
+                    return {"success": False, "error": "alreadyAssigned"}
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
