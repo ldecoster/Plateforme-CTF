@@ -45,7 +45,6 @@ class TagList(Resource):
             ),
         },
     )
-    @access_granted_only("api_tag_list_get")
     @validate_args(
         {
             "value": (str, None),
