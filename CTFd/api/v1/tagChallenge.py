@@ -105,9 +105,8 @@ class TagChallengeList(Resource):
         return {"success": True, "data": response.data}
 
 
-@tagChallenge_namespace.route("/<tag_id>/<challenge_id>")
+@tagChallenge_namespace.route("/<tag_id>")
 @tagChallenge_namespace.param("tag_id", "A Tag ID")
-@tagChallenge_namespace.param("challenge_id", "A challenge ID")
 class TagChal(Resource):
     @contributors_teachers_admins_only
     @tagChallenge_namespace.doc(
@@ -120,11 +119,12 @@ class TagChal(Resource):
             ),
         },
     )
-    def get(self, tag_id, challenge_id):
-        tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
+    def get(self, tag_id):
+        tag_challenge = TagChallenge.query.filter_by(tag_id=int(tag_id)).all()
 
-        response = TagChallengeSchema().dump(tag_challenge)
-
+        schema = TagChallengeSchema(many=True)
+        response = schema.dump(tag_challenge)
+       
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
@@ -135,8 +135,8 @@ class TagChal(Resource):
         description="Endpoint to delete a specific TagChallenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
-    def delete(self, tag_id, challenge_id):
-        tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id, challenge_id=challenge_id).first_or_404()
+    def delete(self, tag_id):
+        tag_challenge = TagChallenge.query.filter_by(tag_id=tag_id).first_or_404()
         nb_of_challenges_belonging_to_tag = len(TagChallenge.query.filter_by(tag_id=tag_id).all())
 
         if nb_of_challenges_belonging_to_tag == 1:

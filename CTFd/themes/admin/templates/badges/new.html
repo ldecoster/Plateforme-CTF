@@ -56,7 +56,7 @@
 							</label>
 							<select class="form-control custom-select" id="badge_tag"
 								name="badge_tag">
-								{% for tag in tags %}
+								{% for tag in Tags.query.all() %}
 								<option>{{ tag.value }}</option>
 								{% endfor %}
 							</select>

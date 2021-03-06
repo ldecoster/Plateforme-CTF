@@ -44,8 +44,6 @@ badges_namespace = Namespace(
 )
 
 BadgeModel = sqlalchemy_to_pydantic(Badges)
-TransientBadgeModel = sqlalchemy_to_pydantic(Badges, exclude=["id"])
-
 
 class BadgeDetailedSuccessResponse(APIDetailedSuccessResponse):
     data: BadgeModel
@@ -89,10 +87,9 @@ class BadgeList(Resource):
                 RawEnum(
                     "BadgeFields",
                     {
-                        "name": "name",
                         "description": "description",
-                        "type": "type",
-                        "state": "state",
+                        "name": "name",
+                        "tag_id": "tagId",
                     },
                 ),
                 None,
@@ -101,14 +98,11 @@ class BadgeList(Resource):
         location="query",
     )
     def get(self, query_args):
-        q = query_args.pop("q", None)
-        field = str(query_args.pop("field", None))
-        filters = build_model_filters(model=Badges, query=q, field=field)
 
-        badges = Badges.query.filter_by(**query_args).filter(*filters).all()
+        badges = Badges.query.all()
         schema = BadgeSchema(many=True)
         response = schema.dump(badges)
-
+        
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 

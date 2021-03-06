@@ -126,6 +126,41 @@ let API = (function() {
 
     return deferred.promise;
   };
+    /**
+   *
+   * @method
+   * @name API#post_badge_list
+   * @param {object} parameters - method options and parameters
+   */
+  API.prototype.get_badge_list = function(parameters) {
+    if (parameters === undefined) {
+      parameters = {};
+    }
+    let deferred = Q.defer();
+    let domain = this.domain,
+      path = "/badges";
+    let body = {},
+      queryParameters = {},
+      headers = {},
+      form = {};
+
+    headers["Accept"] = ["application/json"];
+    headers["Content-Type"] = ["application/json"];
+
+    queryParameters = mergeQueryParams(parameters, queryParameters);    
+    this.request(
+      "GET",
+      domain + path,
+      parameters,
+      body,
+      headers,
+      queryParameters,
+      form,
+      deferred
+    );
+
+    return deferred.promise;
+  };
   /**
    *
    * @method
@@ -2675,15 +2710,14 @@ let API = (function() {
    * @name API#get_tagChallenge
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.tagId - A Tag ID
-   * @param {string} parameters.challengeId - A Challenge ID
    */
-  API.prototype.get_tagChallenge = function(parameters) {
+  API.prototype.get_tagChallenge_byTagId = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/tagChallenge/<tag_id>/<challenge_id>";
+      path = "/tagChallenge/<tag_id>";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2696,12 +2730,8 @@ let API = (function() {
       deferred.reject(new Error("Missing required  parameter: tagId"));
       return deferred.promise;
     }
-    if (parameters["challengeId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: tagId"));
-      return deferred.promise;
-    }
+    
     path = path.replace("<tag_id>", parameters["tagId"]);
-    path = path.replace("<challenge_id>", parameters["challengeId"]);
     
     queryParameters = mergeQueryParams(parameters, queryParameters);
 

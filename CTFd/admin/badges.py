@@ -13,8 +13,6 @@ from sqlalchemy.sql import and_, or_
 def badges_listing():
     q = request.args.get("q")
     field = request.args.get("field")
-    tags = Tags.query.all()
-
     badges = Badges.query.all()
 
     return render_template(
@@ -22,9 +20,7 @@ def badges_listing():
         badges=badges,
         q=q,
         field=field,
-        Votes=Votes,
-        tags= tags,
-
+        Tags= Tags,
     )
 
 

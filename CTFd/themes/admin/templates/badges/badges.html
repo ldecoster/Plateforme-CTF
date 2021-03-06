@@ -83,7 +83,8 @@
 							</td>
 							<th class="sort-col text-center"><b>ID</b></th>
 							<th class="sort-col"><b>Name</b></th>
-
+							<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Exercise</b></th>
+							<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Progress</b></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -98,8 +99,12 @@
 							<td class="text-center">{{ badge.id }}</td>
 							<td><a href="{{ url_for('admin.badges_detail', badge_id=badge.id) }}">{{ badge.name }}</a>
 							</td>
-
-
+							<td  id="{{badge.id}}-tag" class="d-none d-md-table-cell d-lg-table-cell text-center">
+							</td>
+							<td>
+								<div class="progress" id="{{badge.id}}-progress">
+								</div>
+							</td>
 						</tr>
 						{% endfor %}
 					</tbody>
