@@ -32,7 +32,6 @@
           name="prerequisite"
           v-model="selectedRequirement"
         >
-          <option value=""> -- </option>
           <option
             :value="challenge.id"
             v-for="challenge in otherChallenges"

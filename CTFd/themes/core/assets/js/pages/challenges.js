@@ -174,7 +174,9 @@ function renderSubmissionResponse(response) {
       "alert alert-success alert-dismissable text-center"
     );
     result_notification.slideDown();
-
+    
+    // We clear the challenge list to force a reload and get the unlocked chals
+    challenges = [];
     if (
       $(".challenge-solves")
         .text()
