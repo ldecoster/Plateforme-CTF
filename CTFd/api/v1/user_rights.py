@@ -40,8 +40,8 @@ class UserRightsList(Resource):
         responses={
             200: ("Success", "UserRightsListSuccessResponse"),
             400: (
-                    "An error occurred processing the provided or stored data",
-                    "APISimpleErrorResponse",
+                "An error occurred processing the provided or stored data",
+                "APISimpleErrorResponse",
             ),
         },
     )
@@ -51,14 +51,14 @@ class UserRightsList(Resource):
             "right_id": (int, None),
             "q": (str, None),
             "field": (
-                    RawEnum(
-                        "UserRightsFields",
-                        {
-                            "user_id": "user_id",
-                            "right_id": "right_id"
-                        }
-                    ),
-                    None,
+                RawEnum(
+                    "UserRightsFields",
+                    {
+                        "user_id": "user_id",
+                        "right_id": "right_id"
+                    }
+                ),
+                None,
             ),
         },
         location="query",
@@ -83,8 +83,8 @@ class UserRightsList(Resource):
         responses={
             200: ("Success", "UserRightsDetailedSuccessResponse"),
             400: (
-                    "An error occurred processing the provided or stored data",
-                    "APISimpleErrorResponse",
+                "An error occurred processing the provided or stored data",
+                "APISimpleErrorResponse",
             ),
         },
     )
@@ -115,8 +115,8 @@ class UserRights(Resource):
         responses={
             200: ("Success", "UserRightsDetailedSuccessResponse"),
             400: (
-                    "An error occurred processing the provided or stored data",
-                    "APISimpleErrorResponse",
+                "An error occurred processing the provided or stored data",
+                "APISimpleErrorResponse",
             ),
         },
     )

@@ -42,8 +42,8 @@ class RoleList(Resource):
         responses={
             200: ("Success", "RoleListSuccessResponse"),
             400: (
-                    "An error occurred processing the provided or stored data",
-                    "APISimpleErrorResponse",
+                "An error occurred processing the provided or stored data",
+                "APISimpleErrorResponse",
             ),
         },
     )
@@ -75,8 +75,8 @@ class RoleList(Resource):
         responses={
             200: ("Success", "RoleListSuccessResponse"),
             400: (
-                    "An error occurred processing the provided or stored data",
-                    "APISimpleErrorResponse",
+                "An error occurred processing the provided or stored data",
+                "APISimpleErrorResponse",
             ),
         },
     )
@@ -106,8 +106,8 @@ class Role(Resource):
         responses={
             200: ("Success", "RoleDetailedSuccessResponse"),
             400: (
-                    "An error occurred processing the provided or stored data",
-                    "APISimpleErrorResponse",
+                "An error occurred processing the provided or stored data",
+                "APISimpleErrorResponse",
             ),
         },
     )
