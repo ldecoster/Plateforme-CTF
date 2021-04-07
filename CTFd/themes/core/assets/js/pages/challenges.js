@@ -175,8 +175,7 @@ function renderSubmissionResponse(response) {
     );
     result_notification.slideDown();
     
-    // we clear the challenge list to force a reload
-    // and get the unlocked chals
+    // We clear the challenge list to force a reload and get the unlocked chals
     challenges = [];
     if (
       $(".challenge-solves")
