@@ -34,26 +34,14 @@
 
             <ul class="navbar-nav ml-md-auto d-block d-sm-flex d-md-flex">
                 {% if authed() %}
-                    {% if is_admin() or is_contributor() or is_teacher() %}
+                    {% if has_right("admin_view") %}
                         <li class="nav-item">
-                            {% if is_admin() %}
                             <a class="nav-link" href="{{ url_for('admin.view') }}">
-                            {% elif is_contributor() or is_teacher() %}
-                            <a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">
-                            {%endif %}
-                                <span class="d-block" data-toggle="tooltip" data-placement="bottom" {% if is_admin() %} title="Admin Panel" {% elif is_teacher() %} title="Teacher Panel" {% else %} title="Contributor Panel" {% endif %}>
+                                <span class="d-block" data-toggle="tooltip" data-placement="bottom" title="Admin Panel">
                                     <i class="fas fa-wrench d-none d-md-block d-lg-none"></i>
                                 </span>
                                 <span class="d-sm-block d-md-none d-lg-block">
-                                    <i class="fas fa-wrench pr-1"></i>
-                                    {% if is_admin() %}
-                                    Admin
-                                    {% elif is_teacher() %}
-                                    Teacher
-                                    {% else %}
-                                    Contributor
-                                    {% endif %}
-                                     Panel
+                                    <i class="fas fa-wrench pr-1"></i>Admin Panel
                                 </span>
                             </a>
                         </li>

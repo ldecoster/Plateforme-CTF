@@ -24,7 +24,6 @@ from CTFd.models import (
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
-from CTFd.schemas.votes import VoteSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config
 from CTFd.utils import user as current_user
@@ -35,7 +34,7 @@ from CTFd.utils.config.visibility import (
 )
 from CTFd.utils.dates import ctf_paused, isoformat
 from CTFd.utils.decorators import (
-    contributors_teachers_admins_only,
+    access_granted_only,
     require_verified_emails,
 )
 from CTFd.utils.decorators.visibility import check_challenge_visibility
@@ -43,7 +42,7 @@ from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_teacher
+from CTFd.utils.user import authed, get_current_user, has_right, has_right_or_is_author
 from flask import session
 
 challenges_namespace = Namespace(
@@ -93,7 +92,7 @@ class ChallengeList(Resource):
             "type": (str, None),
             "state": (str, None),
             "q": (str, None),
-            "author_id":(str,None),
+            "author_id": (str, None),
             "field": (
                 RawEnum(
                     "ChallengeFields",
@@ -102,7 +101,7 @@ class ChallengeList(Resource):
                         "description": "description",
                         "type": "type",
                         "state": "state",
-                        "author_id":"author_id",
+                        "author_id": "author_id",
                     },
                 ),
                 None,
@@ -120,7 +119,7 @@ class ChallengeList(Resource):
         user = get_current_user()
 
         # Admins can request to see everything
-        if is_admin() and request.args.get("view") == "admin":
+        if access_granted_only("api_challenge_list_get_full"):
             challenges = (
                 Challenges.query.filter_by(**query_args)
                 .filter(*filters)
@@ -145,10 +144,6 @@ class ChallengeList(Resource):
                     .all()
                 )
                 solve_ids = set([value for value, in solve_ids])
-
-                # TODO: Convert this into a re-useable decorator
-                if is_admin():
-                    pass
             else:
                 solve_ids = set()
 
@@ -199,7 +194,7 @@ class ChallengeList(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_list_post")
     @challenges_namespace.doc(
         description="Endpoint to create a Challenge object",
         responses={
@@ -222,7 +217,7 @@ class ChallengeList(Resource):
 
 @challenges_namespace.route("/types")
 class ChallengeTypes(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_types_get")
     def get(self):
         response = {}
 
@@ -255,7 +250,7 @@ class Challenge(Resource):
         },
     )
     def get(self, challenge_id):
-        if is_admin():
+        if access_granted_only("api_challenge_get_not_hidden"):
             chal = Challenges.query.filter(Challenges.id == challenge_id).first_or_404()
         else:
             chal = Challenges.query.filter(
@@ -288,7 +283,7 @@ class Challenge(Resource):
                     solve_ids = []
                 solve_ids = set([value for value, in solve_ids])
                 prereqs = set(requirements)
-                if solve_ids >= prereqs or is_admin():
+                if solve_ids >= prereqs or access_granted_only("api_challenge_get"):
                     pass
                 else:
                     if anonymize:
@@ -316,10 +311,6 @@ class Challenge(Resource):
         hints = []
         if authed():
             user = get_current_user()
-
-            # TODO: Convert this into a re-useable decorator
-            if is_admin():
-                pass
 
             unlocked_hints = set(
                 [
@@ -393,7 +384,7 @@ class Challenge(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_patch")
     @challenges_namespace.doc(
         description="Endpoint to edit a specific Challenge object",
         responses={
@@ -405,7 +396,6 @@ class Challenge(Resource):
         },
     )
     def patch(self, challenge_id):
-        author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         data = request.form or request.get_json()
         challenge_new_state = None
@@ -416,12 +406,12 @@ class Challenge(Resource):
             if challenge_new_state != "visible" and challenge_new_state != "voting" and challenge_new_state != "hidden":
                 return {"success": False}
 
-        if is_admin() or is_teacher():
+        if has_right("api_challenge_patch_full"):
             challenge_class = get_chal_class(challenge.type)
             challenge = challenge_class.update(challenge, request)
             response = challenge_class.read(challenge)
             return {"success": True, "data": response}
-        elif is_contributor() and challenge.author_id == author_id:
+        elif has_right_or_is_author("api_challenge_patch_partial", challenge.author_id):
             challenge_class = get_chal_class(challenge.type)
 
             # Check the number of votes before changing the state of the challenge
@@ -438,15 +428,14 @@ class Challenge(Resource):
             return {"success": True, "data": response}
         return {"success": False}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_delete")
     @challenges_namespace.doc(
         description="Endpoint to delete a specific Challenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, challenge_id):
-        author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==author_id):
+        if has_right_or_is_author("api_challenge_delete", challenge.author_id):
             chal_class = get_chal_class(challenge.type)
             chal_class.delete(challenge)
 
@@ -469,7 +458,7 @@ class ChallengeAttempt(Resource):
 
         challenge_id = request_data.get("challenge_id")
 
-        if current_user.is_admin():
+        if current_user.has_right("api_challenge_attempt_post_full"):
             preview = request.args.get("preview", False)
             if preview:
                 challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
@@ -653,7 +642,7 @@ class ChallengeSolves(Resource):
 
         # TODO: Need a generic challenge visibility call.
         # However, it should be stated that a solve on a gated challenge is not considered private.
-        if challenge.state == "hidden" and is_admin() is False:
+        if challenge.state == "hidden" and access_granted_only("api_challenge_solves_get") is False:
             abort(404)
 
         Model = get_model()
@@ -683,7 +672,7 @@ class ChallengeSolves(Resource):
 
 @challenges_namespace.route("/<challenge_id>/files")
 class ChallengeFiles(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_files_get")
     def get(self, challenge_id):
         response = []
         challenge_files = ChallengeFilesModel.query.filter_by(
@@ -697,7 +686,7 @@ class ChallengeFiles(Resource):
 
 @challenges_namespace.route("/<challenge_id>/tags")
 class ChallengeTags(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_tags_get")
     def get(self, challenge_id):
         response = []
         tags = []
@@ -716,7 +705,7 @@ class ChallengeTags(Resource):
 
 @challenges_namespace.route("/<challenge_id>/hints")
 class ChallengeHints(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_hints_get")
     def get(self, challenge_id):
         hints = Hints.query.filter_by(challenge_id=challenge_id).all()
         schema = HintSchema(many=True)
@@ -730,7 +719,7 @@ class ChallengeHints(Resource):
 
 @challenges_namespace.route("/<challenge_id>/votes")
 class ChallengeVotes(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_votes_get")
     def get(self, challenge_id):
         response_votes = []
         response_message = "Add vote"
@@ -749,7 +738,7 @@ class ChallengeVotes(Resource):
 
         for v in votes:
             # An admin or the voter can edit or delete the vote
-            if challenge.state == "voting" and (is_admin() or session["id"] == v.user_id):
+            if challenge.state == "voting" and (access_granted_only("api_challenge_votes_get_edit_vote") or session["id"] == v.user_id):
                 response_votes.append(
                     {
                         "id": v.id,
@@ -777,7 +766,7 @@ class ChallengeVotes(Resource):
 
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_flags_get")
     def get(self, challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)
@@ -791,7 +780,7 @@ class ChallengeFlags(Resource):
 
 @challenges_namespace.route("/<challenge_id>/requirements")
 class ChallengeRequirements(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_requirements_get")
     def get(self, challenge_id):
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         return {"success": True, "data": challenge.requirements}
