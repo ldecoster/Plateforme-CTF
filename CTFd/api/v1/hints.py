@@ -93,8 +93,10 @@ class HintList(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
+        challenge = Challenges.query.filter_by(id=response.data.challenge_id).first_or_404()
         db.session.add(response.data)
-        if has_right_or_is_author("api_hint_list_post", response.data.challenge.author_id):
+
+        if has_right_or_is_author("api_hint_list_post", challenge.author_id):
             db.session.commit()
 
             response = schema.dump(response.data)
