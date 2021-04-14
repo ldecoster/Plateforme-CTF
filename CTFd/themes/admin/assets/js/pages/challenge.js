@@ -150,6 +150,18 @@ function loadChalTemplate(challenge) {
                 response.data.id
               );
               $("#challenge-create-options").modal();
+            } else {
+              let body = "";
+              for (const k in response.errors) {
+                body += response.errors[k].join("\n");
+                body += "\n";
+              }
+
+              ezAlert({
+                title: "Error",
+                body: body,
+                button: "OK"
+              });
             }
           });
       });
@@ -395,15 +407,19 @@ $(() => {
                   body: "The challenge has been updated!"
                 });
               } else {
-                let body_message = "";
+                let body = "";
                 if (response.errors === "votes") {
-                  body_message = "Not enough positive votes for this challenge!";
+                  body = "Not enough positive votes for this challenge!";
                 } else {
-                  body_message = "The challenge can't be updated!";
+                  for (const k in response.errors) {
+                    body += response.errors[k].join("\n");
+                    body += "\n";
+                  }
                 }
-                ezToast({
+                ezAlert({
                   title: "Error",
-                  body: body_message
+                  body: body,
+                  button: "OK"
                 });
               }
             });

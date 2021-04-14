@@ -134,7 +134,6 @@ class UserList(Resource):
             "data": response.data,
         }
 
-    @users_namespace.doc()
     @access_granted_only("api_user_list_post")
     @users_namespace.doc(
         description="Endpoint to create a User object",
@@ -243,6 +242,10 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
+        # This generates the response first before actually changing the type
+        # This avoids an error during User type changes where we change
+        # the polymorphic identity resulting in an ObjectDeletedError
+        # https://github.com/CTFd/CTFd/issues/1794
         response = schema.dump(response.data)
 
         db.session.commit()
@@ -275,6 +278,13 @@ class UserPublic(Resource):
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, user_id):
+        # Admins should not be able to delete themselves
+        if user_id == session["id"]:
+            return (
+                {"success": False, "errors": {"id": "You cannot delete yourself"}},
+                400,
+            )
+
         Notifications.query.filter_by(user_id=user_id).delete()
         Awards.query.filter_by(user_id=user_id).delete()
         Unlocks.query.filter_by(user_id=user_id).delete()
