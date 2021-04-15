@@ -667,6 +667,7 @@ def setup():
                     "schemas_user_schema_validate_name",
                     "schemas_user_schema_validate_email",
                     "schemas_user_schema_validate_password_confirmation",
+                    "schemas_user_schema_validate_type_partial",
                     "schemas_user_schema_validate_fields",
                     "theme_admin_templates_base_partial",
                     "theme_admin_templates_challenges_challenge",
