@@ -743,6 +743,8 @@ def setup():
                 db.session.add(teacher_role)
                 contributor_role = Roles(name="contributor")
                 db.session.add(contributor_role)
+                user_role = Roles(name="user")
+                db.session.add(user_role)
                 db.session.commit()
 
                 # Link rights and roles together
