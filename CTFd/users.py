@@ -10,6 +10,7 @@ users = Blueprint("users", __name__)
 
 
 @users.route("/users")
+@check_account_visibility
 def listing():
     q = request.args.get("q")
     field = request.args.get("field", "name")
