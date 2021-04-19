@@ -48,7 +48,7 @@
     </table>
     <div class="col-md-12">
       <button
-          class="btn btn-primary float-right"
+          class="btn btn-success float-right"
           v-if="message === 'Add vote'"
           @click="addVote"
       >
