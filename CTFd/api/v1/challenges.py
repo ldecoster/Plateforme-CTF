@@ -504,7 +504,6 @@ class Challenge(Resource):
             return {"success": True, "data": response}
         return {"success": False}
 
-    @access_granted_only("api_challenge_delete")
     @challenges_namespace.doc(
         description="Endpoint to delete a specific Challenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

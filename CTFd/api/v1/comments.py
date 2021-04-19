@@ -142,14 +142,13 @@ class CommentList(Resource):
 
 @comments_namespace.route("/<comment_id>")
 class Comment(Resource):
-    @access_granted_only("api_comment_delete")
     @comments_namespace.doc(
         description="Endpoint to delete a specific Comment object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, comment_id):
-        if has_right_or_is_author("api_comment_delete", self.author_id):
-            comment = Comments.query.filter_by(id=comment_id).first_or_404()
+        comment = Comments.query.filter_by(id=comment_id).first_or_404()
+        if has_right_or_is_author("api_comment_delete", comment.author_id):
             db.session.delete(comment)
             db.session.commit()
             db.session.close()

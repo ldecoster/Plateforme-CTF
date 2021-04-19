@@ -144,7 +144,7 @@ export default {
         $("#results").append(
           ezBadge({
             type: "error",
-            body: "You do not have the Right to create an exercice"
+            body: "You do not have the right to create an exercice"
           })
         );
       } else if (res.error === "alreadyAssigned") {
