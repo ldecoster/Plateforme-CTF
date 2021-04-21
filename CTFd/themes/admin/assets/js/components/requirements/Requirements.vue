@@ -32,6 +32,7 @@
           name="prerequisite"
           v-model="selectedRequirement"
         >
+          <option value=""> -- </option>
           <option
             :value="challenge.id"
             v-for="challenge in otherChallenges"
@@ -42,7 +43,12 @@
         </select>
       </div>
       <div class="form-group">
-        <button class="btn btn-success float-right">Add Prerequisite</button>
+        <button
+          class="btn btn-success float-right"
+          :disabled="!selectedRequirement"
+        >
+          Add Prerequisite
+        </button>
       </div>
     </form>
   </div>
@@ -120,6 +126,11 @@ export default {
       let newRequirements = this.requirements.prerequisites
         ? this.requirements.prerequisites
         : [];
+
+      if (!this.selectedRequirement) {
+        return;
+      }
+
       newRequirements.push(this.selectedRequirement);
       this.requirements["prerequisites"] = newRequirements;
       const params = {
@@ -139,6 +150,7 @@ export default {
         })
         .then(data => {
           if (data.success) {
+            this.selectedRequirement = null;
             this.loadRequirements();
           }
         });

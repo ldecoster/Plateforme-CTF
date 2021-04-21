@@ -86,12 +86,12 @@
 						</td>
 						<td id="{{ sub.account_id }}">
 							<a href="{{ generate_account_url(sub.account_id, admin=True) }}">
-								{{ sub.account_name }}
+								{{ sub.account.name }}
 							</a>
 						</td>
 						<td class="chal" id="{{ sub.challenge_id }}">
 							<a href="{{ url_for('admin.challenges_detail', challenge_id=sub.challenge_id) }}">
-								{{ sub.challenge_name }}
+								{{ sub.challenge.name }}
 							</a>
 						</td>
 						<td>

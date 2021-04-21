@@ -13,6 +13,7 @@ from CTFd.constants.config import (
     ConfigTypes,
     RegistrationVisibilityTypes,
 )
+from CTFd.constants.themes import DEFAULT_THEME
 from CTFd.models import (
     Admins,
     Files,
@@ -81,7 +82,7 @@ def setup():
                 f = upload_file(file=ctf_small_icon)
                 set_config("ctf_small_icon", f.location)
 
-            theme = request.form.get("ctf_theme", "core")
+            theme = request.form.get("ctf_theme", DEFAULT_THEME)
             set_config("ctf_theme", theme)
             theme_color = request.form.get("theme_color")
             theme_header = get_config("theme_header")
@@ -658,7 +659,9 @@ def setup():
                     "api_vote_list_post",
                     "api_vote_get",
                     "api_vote_delete",
+                    "api_vote_delete_partial",
                     "api_vote_patch",
+                    "api_vote_patch_partial",
                     "api_statistics_user_statistics_get",
                     "api_statistics_user_property_counts_get",
                     "forms_user_edit_form_partial",
@@ -666,6 +669,7 @@ def setup():
                     "schemas_user_schema_validate_name",
                     "schemas_user_schema_validate_email",
                     "schemas_user_schema_validate_password_confirmation",
+                    "schemas_user_schema_validate_type_partial",
                     "schemas_user_schema_validate_fields",
                     "theme_admin_templates_base_partial",
                     "theme_admin_templates_challenges_challenge",
@@ -742,6 +746,8 @@ def setup():
                 db.session.add(teacher_role)
                 contributor_role = Roles(name="contributor")
                 db.session.add(contributor_role)
+                user_role = Roles(name="user")
+                db.session.add(user_role)
                 db.session.commit()
 
                 # Link rights and roles together
@@ -951,8 +957,12 @@ def themes(theme, path):
     :param path:
     :return:
     """
-    filename = safe_join(app.root_path, "themes", theme, "static", path)
-    if os.path.isfile(filename):
-        return send_file(filename)
-    else:
-        abort(404)
+    for cand_path in (
+            safe_join(app.root_path, "themes", cand_theme, "static", path)
+            # The `theme` value passed in may not be the configured one, e.g. for
+            # admin pages, so we check that first
+            for cand_theme in (theme, *config.ctf_theme_candidates())
+    ):
+        if os.path.isfile(cand_path):
+            return send_file(cand_path)
+    abort(404)

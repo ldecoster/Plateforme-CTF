@@ -97,7 +97,7 @@ class FlagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        # TODO ISEN : Vérifier l'utilité du premier IF (response.data.challenge est-il égal à None à un moment ?)
+        # When a challenge is not completely created yet
         if response.data.challenge is None:
             db.session.commit()
 
@@ -105,6 +105,7 @@ class FlagList(Resource):
             db.session.close()
 
             return {"success": True, "data": response.data}
+        # When a challenge is already created
         elif has_right_or_is_author("api_flag_list_post", response.data.challenge.author_id):
             db.session.commit()
 

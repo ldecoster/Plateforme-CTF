@@ -65,7 +65,7 @@ def authed():
 
 def has_right(right_name):
     right = Rights.query.filter_by(name=right_name).first()
-    if right is not None:
+    if right is not None and session.get("id"):
         user_rights = UserRights.query.filter_by(right_id=right.id, user_id=session["id"]).first()
         if user_rights is not None:
             return True
@@ -74,7 +74,7 @@ def has_right(right_name):
 
 def has_right_or_is_author(right_name, author_id):
     right = Rights.query.filter_by(name=right_name).first()
-    if right is not None:
+    if right is not None and session.get("id"):
         user_rights = UserRights.query.filter_by(right_id=right.id, user_id=session["id"]).first()
         if user_rights is not None or author_id == session["id"]:
             return True
@@ -132,7 +132,7 @@ def get_user_recent_ips(user_id):
         .filter(Tracking.user_id == user_id, Tracking.date >= hour_ago)
         .all()
     )
-    return set([ip for (ip,) in addrs])
+    return {ip for (ip,) in addrs}
 
 
 def get_wrong_submissions_per_minute(account_id):
