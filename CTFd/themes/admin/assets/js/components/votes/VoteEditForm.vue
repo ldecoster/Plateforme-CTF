@@ -55,6 +55,7 @@
 </template>
 
 <script>
+import { ezAlert } from "core/ezq";
 import CTFd from "core/CTFd";
 export default {
   name: "VoteEditForm",
@@ -119,6 +120,12 @@ export default {
         .then(response => {
           if (response.success) {
             this.$emit("refreshVotes", this.$options.name);
+          } else {
+            ezAlert({
+              title: "Error!",
+              body: "You do not have the right to edit this vote",
+              button: "Okay"
+            });
           }
         });
     }

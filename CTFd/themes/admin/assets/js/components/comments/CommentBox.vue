@@ -123,7 +123,6 @@ import { default as helpers } from "core/helpers";
 import dayjs from "dayjs";
 import hljs from "highlight.js";
 import { ezAlert } from "core/ezq";
-
 export default {
   props: {
     // These props are passed to the api via query string.
