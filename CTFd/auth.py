@@ -287,6 +287,10 @@ def register():
             errors.append("Invalid country")
         if valid_school is False:
             errors.append("Invalid school")
+        if valid_cursus is False:
+            errors.append("Invalid cursus")
+        if valid_specialisation is False:
+            errors.append("Invalid specialisation")
         if valid_affiliation is False:
             errors.append("Please provide a shorter affiliation")
 

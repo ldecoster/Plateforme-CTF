@@ -50,15 +50,16 @@ def validate_school_code(school_code):
     if lookup_school_code(school_code) is None:
         raise ValidationError("Invalid school")
 
+
 def validate_cursus_code(cursus_code):
     if cursus_code.strip() == "":
         return
     if lookup_cursus_code(cursus_code) is None:
         raise ValidationError("Invalid cursus")
 
+
 def validate_specialisation_code(specialisation_code):
     if specialisation_code.strip() == "":
         return
     if lookup_specialisation_code(specialisation_code) is None:
         raise ValidationError("Invalid specialisation")
-    

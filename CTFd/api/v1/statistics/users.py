@@ -30,7 +30,9 @@ class UserPropertyCounts(Resource):
         else:
             return {"success": False, "message": "That could not be found"}, 404
 
-""" @statistics_namespace.route("/users/percentages") #TODO si pas suprimé ajouter cursus et ecole
+
+# TODO ISEN If not deleted, add cursus and school
+""" @statistics_namespace.route("/users/percentages")
 class UserPercentages(Resource):
     @teacehrs_admins_only
     def get(self):

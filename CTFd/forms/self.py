@@ -11,7 +11,6 @@ from CTFd.utils.cursus import SELECT_CURSUS_LIST
 from CTFd.utils.specialisations import SELECT_SPECIALISATIONS_LIST
 
 
-
 def SettingsForm(*args, **kwargs):
     class _SettingsForm(BaseForm):
         name = StringField("User Name")
