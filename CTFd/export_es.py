@@ -108,37 +108,44 @@ def export():
     es = Elasticsearch()
     with open('submission.csv') as f:
         reader = csv.DictReader(f)
-        es.indices.delete(index='submission')
+        if es.indices.exists(index="submission"):
+            es.indices.delete(index='submission')
         helpers.bulk(es, reader, index='submission', doc_type='my-type')
 
     with open('solve.csv') as f:
         reader = csv.DictReader(f)
-        es.indices.delete(index='solve')
+        if es.indices.exists(index="solve"):
+            es.indices.delete(index='solve')
         helpers.bulk(es, reader, index='solve', doc_type='my-type')
 
     with open('challenge.csv') as f:
         reader = csv.DictReader(f)
-        es.indices.delete(index='challenge')
+        if es.indices.exists(index="challenge"):
+            es.indices.delete(index='challenge')
         helpers.bulk(es, reader, index='challenge', doc_type='my-type')
 
     with open('vote.csv') as f:
         reader = csv.DictReader(f)
-        es.indices.delete(index='vote')
+        if es.indices.exists(index="vote"):
+            es.indices.delete(index='vote')
         helpers.bulk(es, reader, index='vote', doc_type='my-type')
 
     with open('user.csv') as f:
         reader = csv.DictReader(f)
-        es.indices.delete(index='user')
+        if es.indices.exists(index="user"):
+            es.indices.delete(index='user')
         helpers.bulk(es, reader, index='user', doc_type='my-type')
     
     with open('chal&sub.csv') as f:
         reader = csv.DictReader(f)
-        es.indices.delete(index='chal&sub')
+        if es.indices.exists(index="chal&sub"):
+            es.indices.delete(index='chal&sub')
         helpers.bulk(es, reader, index='chal&sub', doc_type='my-type')
 
     with open('user&sub.csv') as f:
         reader = csv.DictReader(f)
-        es.indices.delete(index='user&sub')
+        if es.indices.exists(index="user&sub"):
+            es.indices.delete(index='user&sub')
         helpers.bulk(es, reader, index='user&sub', doc_type='my-type')
     
 
