@@ -75,7 +75,7 @@
 						<select class="form-control custom-select" name="state">
 							<option value="voting">Voting</option>
 							<option value="hidden" selected>Hidden</option>
-							{% if is_admin() or is_teacher()%}
+							{% if has_right("theme_admin_templates_challenges_new") %}
 							<option value="visible">Visible</option>
 							{%endif %}
 						</select>

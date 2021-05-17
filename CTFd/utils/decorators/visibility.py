@@ -10,7 +10,7 @@ from CTFd.constants.config import (
     ExerciceVisibilityTypes,
 )
 from CTFd.utils import get_config
-from CTFd.utils.user import authed, is_admin
+from CTFd.utils.user import authed, has_right
 
 
 def check_challenge_visibility(f):
@@ -30,7 +30,7 @@ def check_challenge_visibility(f):
                     return redirect(url_for("auth.login", next=request.full_path))
 
         elif v == ChallengeVisibilityTypes.ADMINS:
-            if is_admin():
+            if has_right("utils_decorators_visibility_check_challenge_visibility"):
                 return f(*args, **kwargs)
             else:
                 if authed():
@@ -86,7 +86,7 @@ def check_account_visibility(f):
                     return redirect(url_for("auth.login", next=request.full_path))
 
         elif v == AccountVisibilityTypes.ADMINS:
-            if is_admin():
+            if has_right("utils_decorators_visibility_check_account_visibility"):
                 return f(*args, **kwargs)
             else:
                 abort(404)

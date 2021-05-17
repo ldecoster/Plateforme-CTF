@@ -8,9 +8,8 @@ from CTFd.schemas.fields import UserFieldEntriesSchema
 from CTFd.utils import get_config, string_types
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.email import check_email_is_whitelisted
-from CTFd.utils.user import get_current_user, is_admin, is_teacher
+from CTFd.utils.user import get_current_user, has_right
 from CTFd.utils.validators import validate_country_code, validate_school_code
-from CTFd.utils.user import get_current_user, is_admin
 
 
 class UserSchema(ma.ModelSchema):
@@ -67,7 +66,7 @@ class UserSchema(ma.ModelSchema):
 
         existing_user = Users.query.filter_by(name=name).first()
         current_user = get_current_user()
-        if is_admin() or is_teacher():
+        if has_right("schemas_user_schema_validate_name"):
             user_id = data.get("id")
             if user_id:
                 if existing_user and existing_user.id != user_id:
@@ -108,7 +107,7 @@ class UserSchema(ma.ModelSchema):
 
         existing_user = Users.query.filter_by(email=email).first()
         current_user = get_current_user()
-        if is_admin() or is_teacher:
+        if has_right("schemas_user_schema_validate_email"):
             user_id = data.get("id")
             if user_id:
                 if existing_user and existing_user.id != user_id:
@@ -166,7 +165,7 @@ class UserSchema(ma.ModelSchema):
         confirm = data.get("confirm")
         target_user = get_current_user()
 
-        if is_admin() or is_teacher():
+        if has_right("schemas_user_schema_validate_password_confirmation"):
             pass
         else:
             if password and (bool(confirm) is False):
@@ -193,9 +192,9 @@ class UserSchema(ma.ModelSchema):
         user_type = data.get("type")
 
         if user_type is not None:
-            if is_admin():
+            if has_right("schemas_user_schema_validate_type_full"):
                 pass
-            elif is_teacher():
+            elif has_right("schemas_user_schema_validate_type_partial"):
                 user_id = data.get("id")
                 if user_id:
                     target_user = Users.query.filter_by(id=user_id).first()
@@ -230,7 +229,7 @@ class UserSchema(ma.ModelSchema):
 
         current_user = get_current_user()
 
-        if is_admin() or is_teacher():
+        if has_right("schemas_user_schema_validate_fields"):
             user_id = data.get("id")
             if user_id:
                 target_user = Users.query.filter_by(id=data["id"]).first()

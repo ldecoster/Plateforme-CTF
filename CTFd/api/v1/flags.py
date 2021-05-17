@@ -10,10 +10,9 @@ from CTFd.constants import RawEnum
 from CTFd.models import Challenges, Flags, db
 from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
 from CTFd.schemas.flags import FlagSchema
-from CTFd.utils.decorators import contributors_teachers_admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_teacher
-from flask import session
+from CTFd.utils.user import has_right_or_is_author
 
 flags_namespace = Namespace("flags", description="Endpoint to retrieve Flags")
 
@@ -39,7 +38,7 @@ flags_namespace.schema_model(
 
 @flags_namespace.route("")
 class FlagList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_flag_list_get")
     @flags_namespace.doc(
         description="Endpoint to list Flag objects in bulk",
         responses={
@@ -78,7 +77,7 @@ class FlagList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_flag_list_post")
     @flags_namespace.doc(
         description="Endpoint to create a Flag object",
         responses={
@@ -98,14 +97,16 @@ class FlagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        if response.data.challenge==None:
+        # When a challenge is not completely created yet
+        if response.data.challenge is None:
             db.session.commit()
 
             response = schema.dump(response.data)
             db.session.close()
 
             return {"success": True, "data": response.data}
-        elif is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id == session["id"]):
+        # When a challenge is already created
+        elif has_right_or_is_author("api_flag_list_post", response.data.challenge.author_id):
             db.session.commit()
 
             response = schema.dump(response.data)
@@ -118,7 +119,7 @@ class FlagList(Resource):
 @flags_namespace.route("/types", defaults={"type_name": None})
 @flags_namespace.route("/types/<type_name>")
 class FlagTypes(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_flag_types_get")
     def get(self, type_name):
         if type_name:
             flag_class = get_flag_class(type_name)
@@ -137,7 +138,7 @@ class FlagTypes(Resource):
 
 @flags_namespace.route("/<flag_id>")
 class Flag(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_flag_get")
     @flags_namespace.doc(
         description="Endpoint to get a specific Flag object",
         responses={
@@ -160,7 +161,7 @@ class Flag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_flag_delete")
     @flags_namespace.doc(
         description="Endpoint to delete a specific Flag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -168,7 +169,7 @@ class Flag(Resource):
     def delete(self, flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
         challenge = Challenges.query.filter_by(id=flag.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        if has_right_or_is_author("api_flag_delete", challenge.author_id):
             db.session.delete(flag)
             db.session.commit()
             db.session.close()
@@ -176,7 +177,7 @@ class Flag(Resource):
             return {"success": True}
         return{"success": False}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_flag_post")
     @flags_namespace.doc(
         description="Endpoint to edit a specific Flag object",
         responses={
@@ -190,7 +191,7 @@ class Flag(Resource):
     def patch(self, flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
         challenge = Challenges.query.filter_by(id=flag.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        if has_right_or_is_author("api_flag_post", challenge.author_id):
             schema = FlagSchema()
             req = request.get_json()
 

@@ -14,10 +14,13 @@ from CTFd.constants import RawEnum
 from CTFd.models import (
     BadgesEntries,
     Notifications,
+    Roles,
+    RoleRights,
     Solves,
     Submissions,
     Tracking,
     Unlocks,
+    UserRights,
     Users,
     db,
 )
@@ -25,12 +28,12 @@ from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
-from CTFd.utils.decorators import admins_only, teachers_admins_only, authed_only, ratelimit
+from CTFd.utils.decorators import access_granted_only, authed_only, ratelimit
 from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.email import sendmail, user_created_notification
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.security.auth import update_user
-from CTFd.utils.user import get_current_user, get_current_user_type, is_admin
+from CTFd.utils.user import get_current_user, get_current_user_type, has_right
 
 users_namespace = Namespace("users", description="Endpoint to retrieve Users")
 
@@ -98,7 +101,7 @@ class UserList(Resource):
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=Users, query=q, field=field)
 
-        if is_admin() and request.args.get("view") == "admin":
+        if has_right("api_user_list_get_full") and request.args.get("view") == "admin":
             users = (
                 Users.query.filter_by(**query_args)
                 .filter(*filters)
@@ -131,8 +134,7 @@ class UserList(Resource):
             "data": response.data,
         }
 
-    @users_namespace.doc()
-    @teachers_admins_only
+    @access_granted_only("api_user_list_post")
     @users_namespace.doc(
         description="Endpoint to create a User object",
         responses={
@@ -155,6 +157,19 @@ class UserList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
+        db.session.commit()
+
+        rights = []
+        role = Roles.query.filter_by(name=response.data.type).first()
+        role_rights = RoleRights.query.filter_by(role_id=role.id).all()
+
+        for role_right in role_rights:
+            user_rights = UserRights()
+            user_rights.user_id = response.data.id
+            user_rights.right_id = role_right.right_id
+            rights.append(user_rights)
+
+        db.session.add_all(rights)
         db.session.commit()
 
         if request.args.get("notify"):
@@ -186,7 +201,7 @@ class UserPublic(Resource):
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
-        if (user.banned or user.hidden) and is_admin() is False:
+        if (user.banned or user.hidden) and has_right("api_user_public_get_full") is False:
             abort(404)
 
         user_type = get_current_user_type(fallback="user")
@@ -197,7 +212,7 @@ class UserPublic(Resource):
 
         return {"success": True, "data": response.data}
 
-    @teachers_admins_only
+    @access_granted_only("api_user_public_patch")
     @users_namespace.doc(
         description="Endpoint to edit a specific User object",
         responses={
@@ -227,21 +242,49 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
+        # This generates the response first before actually changing the type
+        # This avoids an error during User type changes where we change
+        # the polymorphic identity resulting in an ObjectDeletedError
+        # https://github.com/CTFd/CTFd/issues/1794
         response = schema.dump(response.data)
 
         db.session.commit()
+
+        UserRights.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+
+        rights = []
+        role = Roles.query.filter_by(name=response.data["type"]).first()
+        role_rights = RoleRights.query.filter_by(role_id=role.id).all()
+
+        for role_right in role_rights:
+            user_rights = UserRights()
+            user_rights.user_id = response.data["id"]
+            user_rights.right_id = role_right.right_id
+            rights.append(user_rights)
+
+        db.session.add_all(rights)
+        db.session.commit()
+
         db.session.close()
 
         clear_user_session(user_id=user_id)
 
         return {"success": True, "data": response.data}
 
-    @teachers_admins_only
+    @access_granted_only("api_user_public_delete")
     @users_namespace.doc(
         description="Endpoint to delete a specific User object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, user_id):
+        # Admins should not be able to delete themselves
+        if user_id == session["id"]:
+            return (
+                {"success": False, "errors": {"id": "You cannot delete yourself"}},
+                400,
+            )
+
         Notifications.query.filter_by(user_id=user_id).delete()
         BadgesEntries.query.filter_by(user_id=user_id).delete()
         Unlocks.query.filter_by(user_id=user_id).delete()
@@ -312,7 +355,7 @@ class UserPrivateSolves(Resource):
         user = get_current_user()
         solves = user.get_solves()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_private_solves_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(solves)
 
         if response.errors:
@@ -328,12 +371,12 @@ class UserPrivateFails(Resource):
         user = get_current_user()
         fails = user.get_fails()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_private_fails_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(fails)
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        if is_admin():
+        if has_right("api_user_private_fails_get_full"):
             data = response.data
         else:
             data = []
@@ -366,12 +409,12 @@ class UserPublicSolves(Resource):
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
-        if (user.banned or user.hidden) and is_admin() is False:
+        if (user.banned or user.hidden) and has_right("api_user_public_solves_get_full") is False:
             abort(404)
 
         solves = user.get_solves()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_public_solves_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(solves)
 
         if response.errors:
@@ -387,16 +430,16 @@ class UserPublicFails(Resource):
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
-        if (user.banned or user.hidden) and is_admin() is False:
+        if (user.banned or user.hidden) and has_right("api_user_public_fails_get_full") is False:
             abort(404)
         fails = user.get_fails()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_public_fails_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(fails)
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        if is_admin():
+        if has_right("api_user_public_fails_get_full"):
             data = response.data
         else:
             data = []
@@ -412,7 +455,7 @@ class UserPublicBadges(Resource):
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
-        if (user.banned or user.hidden) and is_admin() is False:
+        if (user.banned or user.hidden) and has_right("api_user_public_awards_get_full") is False:
             abort(404)
         badges_entries = user.get_awards(admin=is_admin())
 
@@ -428,7 +471,7 @@ class UserPublicBadges(Resource):
 @users_namespace.route("/<int:user_id>/email")
 @users_namespace.param("user_id", "User ID")
 class UserEmails(Resource):
-    @admins_only
+    @access_granted_only("api_user_emails_post")
     @users_namespace.doc(
         description="Endpoint to email a User object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

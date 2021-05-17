@@ -46,7 +46,7 @@
             <div class="container">
               <div class="row">
                 <div class="col-md-12">
-                  <button class="btn btn-primary float-right">Submit</button>
+                  <button class="btn btn-success float-right">Submit</button>
                 </div>
               </div>
             </div>

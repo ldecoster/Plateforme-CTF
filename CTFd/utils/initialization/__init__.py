@@ -37,9 +37,8 @@ from CTFd.utils.user import (
     get_current_user_attrs,
     get_current_user_recent_ips,
     get_ip,
-    is_admin,
-    is_contributor,
-    is_teacher
+    has_right,
+    has_right_or_is_author
 )
 
 
@@ -96,9 +95,8 @@ def init_template_globals(app):
     app.jinja_env.globals.update(registration_visible=registration_visible)
     app.jinja_env.globals.update(get_mode_as_word=get_mode_as_word)
     app.jinja_env.globals.update(authed=authed)
-    app.jinja_env.globals.update(is_admin=is_admin)
-    app.jinja_env.globals.update(is_contributor=is_contributor)
-    app.jinja_env.globals.update(is_teacher=is_teacher)
+    app.jinja_env.globals.update(has_right=has_right)
+    app.jinja_env.globals.update(has_right_or_is_author=has_right_or_is_author)
     app.jinja_env.globals.update(get_current_user_attrs=get_current_user_attrs)
     app.jinja_env.globals.update(get_ip=get_ip)
     app.jinja_env.globals.update(Configs=Configs)
@@ -255,7 +253,7 @@ def init_request_processors(app):
             except UserNotFoundException:
                 abort(401)
             except UserTokenExpiredException:
-                abort(401)
+                abort(401, description="Your access token has expired")
             except Exception:
                 abort(401)
             else:

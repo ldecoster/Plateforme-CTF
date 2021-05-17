@@ -11,7 +11,7 @@ from CTFd.models import Unlocks, db, get_class_by_tablename
 from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.schemas.unlocks import UnlockSchema
 from CTFd.utils.decorators import (
-    admins_only,
+    access_granted_only,
     authed_only,
     require_verified_emails,
 )
@@ -43,7 +43,7 @@ unlocks_namespace.schema_model(
 
 @unlocks_namespace.route("")
 class UnlockList(Resource):
-    @admins_only
+    @access_granted_only("api_unlock_list_get")
     @unlocks_namespace.doc(
         description="Endpoint to get unlock objects in bulk",
         responses={

@@ -4,10 +4,9 @@ import os
 from collections import namedtuple
 
 from flask import current_app as app
-from flask import send_file, send_from_directory
+from flask import send_file, send_from_directory, url_for
 
 from CTFd.utils.config.pages import get_pages
-from CTFd.utils.decorators import admins_only as admins_only_wrapper
 from CTFd.utils.plugins import override_template as utils_override_template
 from CTFd.utils.plugins import (
     register_admin_script as utils_register_admin_plugin_script,
@@ -21,12 +20,11 @@ from CTFd.utils.plugins import register_stylesheet as utils_register_plugin_styl
 Menu = namedtuple("Menu", ["title", "route"])
 
 
-def register_plugin_assets_directory(app, base_path, admins_only=False, endpoint=None):
+def register_plugin_assets_directory(app, base_path, endpoint=None):
     """
     Registers a directory to serve assets
     :param app: A CTFd application
     :param string base_path: The path to the directory
-    :param boolean admins_only: Whether or not the assets served out of the directory should be accessible to the public
     :return:
     """
     base_path = base_path.strip("/")
@@ -40,12 +38,11 @@ def register_plugin_assets_directory(app, base_path, admins_only=False, endpoint
     app.add_url_rule(rule=rule, endpoint=endpoint, view_func=assets_handler)
 
 
-def register_plugin_asset(app, asset_path, admins_only=False, endpoint=None):
+def register_plugin_asset(app, asset_path, endpoint=None):
     """
     Registers an file path to be served by CTFd
     :param app: A CTFd application
     :param string asset_path: The path to the asset file
-    :param boolean admins_only: Whether or not this file should be accessible to the public
     :return:
     """
     asset_path = asset_path.strip("/")
@@ -55,8 +52,6 @@ def register_plugin_asset(app, asset_path, admins_only=False, endpoint=None):
     def asset_handler():
         return send_file(asset_path)
 
-    if admins_only:
-        asset_handler = admins_only_wrapper(asset_handler)
     rule = "/" + asset_path
     app.add_url_rule(rule=rule, endpoint=endpoint, view_func=asset_handler)
 
@@ -138,7 +133,14 @@ def get_user_page_menu_bar():
     Access the list used to store the user page menu bar
     :return: Returns a list of Menu namedtuples. They have name, and route attributes.
     """
-    return get_pages() + app.plugin_menu_bar
+    pages = []
+    for p in get_pages() + app.plugin_menu_bar:
+        if p.route.startswith("http"):
+            route = p.route
+        else:
+            route = url_for("views.static_html", route=p.route)
+        pages.append(Menu(title=p.title, route=route))
+    return pages
 
 
 def bypass_csrf_protection(f):

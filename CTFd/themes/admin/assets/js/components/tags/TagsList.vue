@@ -1,5 +1,6 @@
 <template>
   <div class="col-md-12">
+    <div id="results"></div>
     <div id="challenge-tags" class="my-3">
       <span
         class="badge mx-1 challenge-tag"
@@ -45,6 +46,7 @@
 <script>
 import $ from "jquery";
 import CTFd from "core/CTFd";
+import { ezBadge } from "core/ezq"
 
 export default {
   props: {
@@ -122,8 +124,9 @@ export default {
 
       this.outputHtml();
 
-      CTFd.api.post_tagChallenge_list({}, params).then((res) => {
-        CTFd.api.get_tag({ tagId: res.data.tag_id }).then((response) => {
+      CTFd.api.post_tagChallenge_list({}, params).then(res => {
+        this.errorTag(res);
+        CTFd.api.get_tag({ tagId: res.data.tag_id, }).then(response => {
           if (response.success) {
             this.loadTags();
           }
@@ -134,14 +137,17 @@ export default {
       const params = {
         value: this.tagValue,
         exercise: this.checked,
+        challenge_id: window.CHALLENGE_ID
       };
       CTFd.api.post_tag_list({}, params).then((res) => {
+        this.errorTag(response);
         CTFd.api
           .post_tagChallenge_list(
             {},
             { tag_id: res.data.id, challenge_id: window.CHALLENGE_ID }
           )
           .then((response) => {
+            this.errorTag(response);
             if (response.success) {
               this.tagValue = "";
               this.loadTags();
@@ -158,7 +164,24 @@ export default {
           }
         });
     },
-    outputHtml: function () {
+    errorTag: function(res) {
+      if (res.error === "notAllowed") {
+        $("#results").append(
+          ezBadge({
+            type: "error",
+            body: "You do not have the right to create an exercice"
+          })
+        );
+      } else if (res.error === "alreadyAssigned") {
+        $("#results").append(
+          ezBadge({
+            type: "error",
+            body: "This task is already assigned to an exercice"
+          })
+        );
+      }
+    },
+    outputHtml: function() {
       if (this.matches.length > 0) {
         const html = this.matches
           .map(

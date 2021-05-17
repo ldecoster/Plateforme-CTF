@@ -1,6 +1,5 @@
 import "./main";
 import "bootstrap/js/dist/tab";
-import regeneratorRuntime from "regenerator-runtime";
 import { ezQuery, ezAlert } from "../ezq";
 import { htmlEntities } from "../utils";
 import dayjs from "dayjs";
@@ -17,6 +16,9 @@ let challenges = [];
 let solves = [];
 let tagList = [];
 let badgeList = {};
+
+const $challenges_board = $("#challenges-board");
+const $spinner_content = $challenges_board.children().detach();
 
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
@@ -175,7 +177,9 @@ function renderSubmissionResponse(response) {
       "alert alert-success alert-dismissable text-center"
     );
     result_notification.slideDown();
-
+    
+    // We clear the challenge list to force a reload and get the unlocked chals
+    challenges = [];
     if (
       $(".challenge-solves")
         .text()
@@ -230,27 +234,11 @@ function renderSubmissionResponse(response) {
 }
 
 function markSolves() {
-  return CTFd.api.get_user_solves({ userId: "me" }).then(function (response) {
-    const solves = response.data;
-    for (let i = solves.length - 1; i >= 0; i--) {
-      const btn = $('button[value="' + solves[i].challenge_id + '"]');
+  challenges.map(challenge => {
+    if (challenge.solved_by_me) {
+      const btn = $(`button[value="${challenge.id}"]`);
       btn.addClass("solved-challenge");
       btn.prepend("<i class='fas fa-check corner-button-check'></i>");
-    }
-  });
-}
-
-function loadUserSolves() {
-  if (CTFd.user.id == 0) {
-    return Promise.resolve();
-  }
-
-  return CTFd.api.get_user_solves({ userId: "me" }).then(function (response) {
-    solves = response.data;
-
-    for (let i = solves.length - 1; i >= 0; i--) {
-      const chal_id = solves[i].challenge_id;
-      solves.push(chal_id);
     }
   });
 }
@@ -279,27 +267,26 @@ function getSolves(id) {
 }
 
 $('select').on('change', function () {
-  loadChals();
+  update();
 });
 
-// todo ISEN : fix async issue with dependencies
-async function loadChals() {
-  //Add loading spinner while fetching API
-  $("#challenges-board").empty();
-  $("#challenges-board").append(
-    $(
-      "" +
-      '<div class="min-vh-50 d-flex align-items-center">' +
-      '<div class="text-center w-100">' +
-      '<i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>' +
-      '</div>' +
-      '</div>'
-    ));
-  if (challenges.length === 0) {
-    challenges = (await CTFd.api.get_challenge_list()).data;
-  }
-  if (tagList.length === 0) {
-    tagList = (await CTFd.api.get_tag_list()).data;
+function createChalWrapper(chalinfo, catid) {
+  const chalid = catid + '_' + chalinfo.name.replace(/ /g, "-").hashCode();
+  const chalwrap = $("<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid));
+  let chalbutton;
+
+  if (solves.indexOf(chalinfo.id) === -1) {
+    chalbutton = $(
+        "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
+            chalinfo.id
+        )
+    );
+  } else {
+    chalbutton = $(
+        "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
+            chalinfo.id
+        )
+    );
   }
   if (badgeList.length === 0) {
     console.log("get badge list");
@@ -310,233 +297,196 @@ async function loadChals() {
     console.log(badgeList);
   }
 
-  loadUserSolves().then(async function () {
-    const challengesBoard = $("<div></div>");
-    let orderValue = $("#challenges_filter option:selected").val();
+  const chalheader = $("<p>{0}</p>".format(chalinfo.name));
+  const challenges_filter = $("#challenges_filter option:selected").val();
+  chalbutton.append(chalheader);
+  chalwrap.append(chalbutton);
 
-    //Set up default tag/challenge values.
-    if (orderValue === undefined) {
-      orderValue = "tag";
-    }
+  $("#" + catid + "-row")
+    .find(".category-challenges > .challenges-row")
+    .append(chalwrap);
+}
 
-    //Display tag/challenge sorted by values
-    else if (orderValue === "tag") {
-      tagList.sort((a, b) => a.value.localeCompare(b.value))
-      tagList.reverse();
-      for (let i = tagList.length - 1; i >= 0; i--) {
-        let isExoSolved = true;
-        const ID = tagList[i].value.replace(/ /g, "-").hashCode();
-        const tagrow = $(
-          "" +
-          '<div id="{0}-row" class="pt-5">'.format(ID) +
-          '<div class="title-row">' +
-          '<div class="tag-header col-md-12 mb-3">' +
-          "</div>" +
-          '<div class="exercise-badge col-md-12 my-1">' +
-          '</div>' +
-          '</div>' +
-          '<div class="tag-challenge col-md-12">' +
-          '<div class="challenges-row col-md-12"></div>' +
-          "</div>" +
-          "</div>"
-        );
-        tagrow
-          .find(".tag-header")
-          .append($("<h3>" + tagList[i].value + "</h3>"));
-        challengesBoard.append(tagrow);
+function loadChals() {
+  return CTFd.api.get_challenge_list().then(function(response) {
+    const categories = [];
+    const challenges_filter = $("#challenges_filter option:selected").val();
+    challenges = response.data;
+    $challenges_board.empty();
 
-        //This part add the badge next to its associated tag
-        //,if this one is an exercise. It also
-        //check if the exercise is solved or not.
-        if (tagList[i].exercise) {
-          let chalsIds = tagList[i].challenges;
-          for (let k = 0; k < chalsIds.length; k++) {
-            if (solves.indexOf(chalsIds[k]) < 0 ) {
-              isExoSolved = false;
-              break;
-            }
-          }
-          const badge = $(
-            '<span class="badge {0} mx-1 challenge-tag">'.format(isExoSolved  ? 'badge-success' : 'badge-warning') +
-            '<span>{0}</span>'.format(isExoSolved ? 'Solved exercise' : 'Unsolved Exercise') +
-            '</span>'
-          );
-          if (chalsIds.length > 0) {
-            tagrow
-              .find(".exercise-badge")
-              .append(badge);
+    switch (challenges_filter) {
+      case "author": {
+        for (let i = challenges.length - 1; i >= 0; i--) {
+          if ($.inArray(challenges[i].author_name, categories) === -1) {
+            const category = challenges[i].author_name;
+            categories.push(category);
+
+            const categoryid = category.replace(/ /g, "-").hashCode();
+            const categoryrow = $(
+                "" +
+                '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+                '<div class="category-header col-md-12 mb-3">' +
+                "</div>" +
+                '<div class="category-challenges col-md-12">' +
+                '<div class="challenges-row col-md-12"></div>' +
+                "</div>" +
+                "</div>"
+            );
+            categoryrow
+                .find(".category-header")
+                .append($("<h3>" + category + "</h3>"));
+            $challenges_board.append(categoryrow);
           }
         }
-      }
-      for (let i = 0; i < challenges.length; i++) {
-        for (let j = 0; j < challenges[i].tags.length; j++) {
+
+        for (let i = 0; i <= challenges.length - 1; i++) {
           const chalinfo = challenges[i];
-          const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
-          const tagID = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
-          const chalwrap = $(
-            "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid)
-          );
-          let chalbutton;
-
-          if (solves.indexOf(chalinfo.id) === -1) {
-            chalbutton = $(
-              "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
-                chalinfo.id
-              )
-            );
-          } else {
-            isExoSolved = false;
-            chalbutton = $(
-              "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
-                chalinfo.id
-              )
-            );
-          }
-
-          const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-          for (let j = 0; j < chalinfo.tags.length; j++) {
-            const tag = "tag-" + chalinfo.tags[j].value.replace(/ /g, "-");
-            chalwrap.addClass(tag);
-          }
-
-          chalbutton.append(chalheader);
-          chalwrap.append(chalbutton);
-
-          challengesBoard
-            .find("#" + tagID + "-row > .tag-challenge > .challenges-row")
-            .append(chalwrap);
+          const catid = challenges[i].author_name.replace(/ /g, "-").hashCode();
+          createChalWrapper(chalinfo, catid);
         }
+        break;
       }
-    }
+      case "solved": {
+        categories.push("Unsolved", "Solved");
 
-    //Display challenges sorted by name
-    else if (orderValue === "name") {
-      challenges.sort((a, b) => a.name.localeCompare(b.name))
-      challenges.reverse();
-      for (let i = challenges.length - 1; i >= 0; i--) {
-        const chalinfo = challenges[i];
-
-        if (solves.indexOf(chalinfo.id) === -1) {
-          const chalrow = $(
-            "" +
-            '<button class="btn btn-dark challenge-button w-100 text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
-              chalinfo.id
-            )
-            + "</div>"
+        for (const category of categories) {
+          const categoryid = category.replace(/ /g, "-").hashCode();
+          const categoryrow = $(
+              "" +
+              '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+              '<div class="category-header col-md-12 mb-3">' +
+              "</div>" +
+              '<div class="category-challenges col-md-12">' +
+              '<div class="challenges-row col-md-12"></div>' +
+              "</div>" +
+              "</div>"
           );
-
-          chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
-          challengesBoard.append(chalrow);
+          categoryrow
+              .find(".category-header")
+              .append($("<h3>" + category + "</h3>"));
+          $challenges_board.append(categoryrow);
         }
-        else if (solves.indexOf(chalinfo.id) !== -1) {
-          const chalrow = $(
-            "" +
-            '<button class="btn btn-dark challenge-button w-100 solved-challenge text-truncate col-md-3" style="margin-right:1rem; margin-top:2rem" value="{0}"></button>'.format(
-              chalinfo.id
-            )
-          );
 
-          chalrow.append($("<h3>" + challenges[i].name + "</h3>"));
-          challengesBoard.append(chalrow);
+        for (let i = 0; i <= challenges.length - 1; i++) {
+          const chalinfo = challenges[i];
+          const catid = challenges[i].solved_by_me
+              ? "Solved".replace(/ /g, "-").hashCode()
+              : "Unsolved".replace(/ /g, "-").hashCode();
+          createChalWrapper(chalinfo, catid);
         }
+        break;
       }
-    }
-
-    //Display challenges sorted by solved or not
-    else if (orderValue === "solved") {
-      challenges.sort((a, b) => a.name.localeCompare(b.name))
-      challenges.reverse();
-      const chalrow = $(
-        "" +
-        '<div class="solved-header col-md-12 mb-3">' +
-        "<h3> Solved </h3>" +
-        '<div class="challenges-row col-md-12"></div>' +
-        "</div>" +
-        '<div class="unsolved-header col-md-12 mb-3">' +
-        "<h3> Unsolved </h3>" +
-        '<div class="challenges-row col-md-12"></div>' +
-        "</div>"
-      );
-      challengesBoard.append(chalrow);
-      for (let i = challenges.length - 1; i >= 0; i--) {
-        const chalinfo = challenges[i];
-        const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
-        let classValue;
-        const chalwrap = $(
-          "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid)
-        );
-        let chalbutton;
-
-        if (solves.indexOf(chalinfo.id) === -1) {
-          chalbutton = $(
-            "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
-              chalinfo.id
-            )
-          );
-          classValue = ".unsolved-header";
-
-        } else {
-          chalbutton = $(
-            "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
-              chalinfo.id
-            )
-          );
-          classValue = ".solved-header";
-        }
-        const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-        chalbutton.append(chalheader);
-        chalwrap.append(chalbutton);
-        challengesBoard
-          .find(classValue + " > .challenges-row")
-          .append(chalwrap);
-      }
-    }
-
-    //Display challenges sorted by author
-    else if (orderValue === "author") {
-      const authorList = [];
-      for (let i = 0; i < challenges.length; i++) {
-        const chalwrap = $(
-          "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(challenges[i].id)
-        );
-        if (authorList.indexOf(challenges[i].authorId) === -1) {
-          authorList.push(challenges[i].authorId);
-          let user = (await CTFd.api.get_user_public({ userId: challenges[i].authorId })).data;
-          const chalrow = $(
+      case "name": {
+        const categoryid = "names".replace(/ /g, "-").hashCode();
+        const categoryrow = $(
             "" +
-            '<div id="{0}-row" class="pt-5">'.format(challenges[i].authorId) +
-            '<div class="author-header col-md-12 mb-3">' +
+            '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+            '<div class="category-header col-md-12 mb-3">' +
             "</div>" +
-            '<div class="author-challenge col-md-12">' +
+            '<div class="category-challenges col-md-12">' +
             '<div class="challenges-row col-md-12"></div>' +
             "</div>" +
             "</div>"
-          );
-          chalrow
-            .find(".author-header")
-            .append($("<h3>" + user.name + "</h3>"));
-          challengesBoard.append(chalrow);
+        );
+        $challenges_board.append(categoryrow);
+
+        challenges.sort((a, b) => a.name.localeCompare(b.name));
+        for (let i = 0; i <= challenges.length - 1; i++) {
+          const chalinfo = challenges[i];
+          createChalWrapper(chalinfo, categoryid);
         }
-        let chalbutton;
-        if (solves.indexOf(challenges[i].id) === -1) {
-          chalbutton = $(
-            "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
-              challenges[i].id
-            )
-          );
-        } else {
-          chalbutton = $(
-            "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
-              challenges[i].id
-            )
-          );
+        break;
+      }
+      case "tag":
+      default: {
+        return CTFd.api.get_tag_list().then(function (response) {
+          tagList.sort((a, b) => a.value.localeCompare(b.value))
+          tagList.reverse();
+          for (let i = tagList.length - 1; i >= 0; i--) {
+            let isExoSolved = true;
+            const ID = tagList[i].value.replace(/ /g, "-").hashCode();
+            const tagrow = $(
+              "" +
+              '<div id="{0}-row" class="pt-5">'.format(ID) +
+              '<div class="title-row">' +
+              '<div class="tag-header col-md-12 mb-3">' +
+              "</div>" +
+              '<div class="exercise-badge col-md-12 my-1">' +
+              '</div>' +
+              '</div>' +
+              '<div class="tag-challenge col-md-12">' +
+              '<div class="challenges-row col-md-12"></div>' +
+              "</div>" +
+              "</div>"
+            );
+            tagrow
+              .find(".tag-header")
+              .append($("<h3>" + tagList[i].value + "</h3>"));
+            challengesBoard.append(tagrow);
+    
+            //This part add the badge next to its associated tag
+            //,if this one is an exercise. It also
+            //check if the exercise is solved or not.
+            if (tagList[i].exercise) {
+              let chalsIds = tagList[i].challenges;
+              for (let k = 0; k < chalsIds.length; k++) {
+                if (solves.indexOf(chalsIds[k]) < 0 ) {
+                  isExoSolved = false;
+                  break;
+                }
+              }
+              const badge = $(
+                '<span class="badge {0} mx-1 challenge-tag">'.format(isExoSolved  ? 'badge-success' : 'badge-warning') +
+                '<span>{0}</span>'.format(isExoSolved ? 'Solved exercise' : 'Unsolved Exercise') +
+                '</span>'
+              );
+              if (chalsIds.length > 0) {
+                tagrow
+                  .find(".exercise-badge")
+                  .append(badge);
+              }
+            }
+          }
+          for (let i = 0; i < challenges.length; i++) {
+            for (let j = 0; j < challenges[i].tags.length; j++) {
+              const chalinfo = challenges[i];
+              const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
+              const tagID = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
+              const chalwrap = $(
+                "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid)
+              );
+              let chalbutton;
+    
+              if (solves.indexOf(chalinfo.id) === -1) {
+                chalbutton = $(
+                  "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
+                    chalinfo.id
+                  )
+                );
+              } else {
+                isExoSolved = false;
+                chalbutton = $(
+                  "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
+                    chalinfo.id
+                  )
+                );
+              }
+    
+              const chalheader = $("<p>{0}</p>".format(chalinfo.name));
+              for (let j = 0; j < chalinfo.tags.length; j++) {
+                const tag = "tag-" + chalinfo.tags[j].value.replace(/ /g, "-");
+                chalwrap.addClass(tag);
+              }
+    
+              chalbutton.append(chalheader);
+              chalwrap.append(chalbutton);
+    
+              challengesBoard
+                .find("#" + tagID + "-row > .tag-challenge > .challenges-row")
+                .append(chalwrap);
+            }
+          }
         }
-        const chalheader = $("<p>{0}</p>".format(challenges[i].name));
-        chalbutton.append(chalheader);
-        chalwrap.append(chalbutton);
-        challengesBoard
-          .find("#" + challenges[i].authorId + "-row > .author-challenge > .challenges-row")
-          .append(chalwrap);
       }
     }
     $("#challenges-board").empty();
@@ -546,13 +496,12 @@ async function loadChals() {
       getSolves(this.value);
     });
   });
-
 }
 
 function update() {
-  return loadUserSolves() // Load the user's solved challenge ids
-    .then(loadChals) //  Load the full list of challenges
-    .then(markSolves);
+  $challenges_board.empty();
+  $challenges_board.append($spinner_content);
+  return loadChals().then(markSolves);
 }
 
 $(() => {

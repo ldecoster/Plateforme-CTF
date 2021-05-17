@@ -9,7 +9,8 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tagChallenge import TagChallengeSchema
-from CTFd.utils.decorators import contributors_teachers_admins_only
+from CTFd.utils.decorators import access_granted_only
+from CTFd.utils.user import has_right
 from CTFd.utils.helpers.models import build_model_filters
 
 tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve TagChallenge")
@@ -34,7 +35,7 @@ tagChallenge_namespace.schema_model("TagChallengeListSuccessResponse", TagChalle
 
 @tagChallenge_namespace.route("")
 class TagChallengeList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_tag_challenge_list_get")
     @tagChallenge_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
@@ -77,7 +78,7 @@ class TagChallengeList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_tag_challenge_list_post")
     @tagChallenge_namespace.doc(
         description="Endpoint to create a TagChallenge object",
         responses={
@@ -92,6 +93,20 @@ class TagChallengeList(Resource):
         req = request.get_json()
         schema = TagChallengeSchema()
         response = schema.load(req, session=db.session)
+
+        tag_challenges = TagChallenge.query.filter_by(challenge_id=response.data.challenge_id).all()
+        tag = Tags.query.filter_by(id=response.data.tag_id).first()
+
+        if has_right("api_tag_challenge_list_post_restricted"):
+            if "ex" in tag.value:
+                return {"success": False, "error": "notAllowed"}
+
+        # Check if the challenge already has an exercise tag
+        if "ex" in tag.value:
+            for tag_challenge in tag_challenges:
+                tag = Tags.query.filter_by(id=tag_challenge.tag_id).first()
+                if "ex" in tag.value:
+                    return {"success": False, "error": "alreadyAssigned"}
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -108,7 +123,7 @@ class TagChallengeList(Resource):
 @tagChallenge_namespace.route("/<tag_id>")
 @tagChallenge_namespace.param("tag_id", "A Tag ID")
 class TagChal(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_tag_chal_get")
     @tagChallenge_namespace.doc(
         description="Endpoint to get a specific TagChallenge object",
         responses={
@@ -130,7 +145,7 @@ class TagChal(Resource):
 
         return {"success": True, "data": response.data}
     
-    @contributors_teachers_admins_only
+    @access_granted_only("api_tag_chal_delete")
     @tagChallenge_namespace.doc(
         description="Endpoint to delete a specific TagChallenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

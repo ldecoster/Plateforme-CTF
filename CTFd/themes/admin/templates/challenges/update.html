@@ -35,7 +35,7 @@
 	</div>
 	{% endblock %}
 
-	{% if is_admin() or is_teacher() or (is_contributor() and challenge.author_id == session["id"]) %}
+	{% if has_right_or_is_author("theme_admin_templates_challenges_update", challenge.author_id) %}
 	{% block state %}
 	<div class="form-group">
 		<label>

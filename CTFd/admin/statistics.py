@@ -1,13 +1,13 @@
 from flask import render_template
 
 from CTFd.admin import admin
+from CTFd.utils.decorators import access_granted_only
 from CTFd.models import Badges, Challenges, Fails, Solves, Tracking, Users, db
-from CTFd.utils.decorators import teachers_admins_only
 from CTFd.utils.modes import get_model
 
 
 @admin.route("/admin/statistics", methods=["GET"])
-@teachers_admins_only
+@access_granted_only("admin_statistics")
 def statistics():
     Model = get_model()
 
@@ -50,7 +50,7 @@ def statistics():
     )
 
     solve_data = {}
-    for chal, count, name in solves:
+    for _chal, count, name in solves:
         solve_data[name] = count
 
     most_solved = None
