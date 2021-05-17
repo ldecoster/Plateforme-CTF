@@ -272,7 +272,6 @@ class Users(db.Model):
     country = db.Column(db.String(32))
     school = db.Column(db.String(32))
     cursus = db.Column(db.String(128))
-    promotion = db.Column(db.Integer)
     specialisation = db.Column(db.String(128))
     bracket = db.Column(db.String(32))
     hidden = db.Column(db.Boolean, default=False)

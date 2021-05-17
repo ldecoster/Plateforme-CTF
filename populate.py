@@ -58,40 +58,48 @@ icons = [
 
 school = ["ISA", "ISEN", "HEI"]
 
-speciality_ISEN = [
-    "Big Data",
-    "Objets Connectés",
-    "Electronique Embarqué",
-    "Robotique mobile",
-    "Ingénierie d'affaires",
-    "Finance",
-    "Cybersécurité",
-    "Développement Logiciel",
-    "Nanosciences"
+specialisation_ISEN = [
+    "RCMOC",
+    "SNE",
+    "IAMN",
+    "RM",
+    "DLBDCC",
+    "BD",
+    "TMS",
+    "BE",
+    "BN",
+    "NM",
+    "CS",
+    "IA",
+    "DSD",
+    "FN",
+    "ME",
+    "EN",
+    "SE",
+    "NEDD"
 ]
 
-speciality_ISA = [
-    "Agriculture",
-    "Agroalimentaire",
-    "Environnement",
-    "Agroéconomie",
-    "Entrepreneuriat"
+specialisation_ISA = [
+    "AGI",
+    "AGO",
+    "ENV",
+    "MKT"
 ]
 
-speciality_HEI = [
-    "TP",
-    "Architecture",
-    "Management d'entreprise",
-    "Conception Mécanique",
-    "Energies",
-    "Médicale et Santé",
-    "Informatique",
-    "Chimie",
-    "Smart Cities",
-    "Innovation et Management textile",
-    "Entrepreneuriat",
-    "Management opé industrielles et logostiques",
-    "Mécatronique et robotique"
+specialisation_HEI = [
+    "BTP",
+    "BAA",
+    "MEOF",
+    "CM",
+    "ESEA",
+    "IMS",
+    "ITI",
+    "CITE",
+    "SC",
+    "TIMT",
+    "EIE",
+    "MOIL",
+    "MR"
 ]
 
 companies = ["Corp", "Inc.", "Squad", "Team"]
@@ -147,16 +155,16 @@ def gen_school():
     return random.choice(school)
 
 
-def gen_speciality_ISEN():
-    return random.choice(speciality_ISEN)
+def gen_specialisation_ISEN():
+    return random.choice(specialisation_ISEN)
 
 
-def gen_speciality_ISA():
-    return random.choice(speciality_ISA)
+def gen_specialisation_ISA():
+    return random.choice(specialisation_ISA)
 
 
-def gen_speciality_HEI():
-    return random.choice(speciality_HEI)
+def gen_specialisation_HEI():
+    return random.choice(specialisation_HEI)
 
 
 if __name__ == "__main__":
@@ -174,14 +182,13 @@ if __name__ == "__main__":
                 try:
                     user = Users(name=name, email=gen_email(), password="password")
                     user.school = gen_school()
-                    user.promotion = random.randint(62,66)
 
                     if user.school == "ISEN":
-                        user.speciality = gen_speciality_ISEN()
-                    if user.school == "ISA" : 
-                        user.speciality = gen_speciality_ISA()
+                        user.specialisation = gen_specialisation_ISEN()
+                    if user.school == "ISA":
+                        user.specialisation = gen_specialisation_ISA()
                     if user.school == "HEI":
-                        user.speciality = gen_speciality_HEI()
+                        user.specialisation = gen_specialisation_HEI()
 
                     user.verified = True
                     if random_chance():
@@ -229,7 +236,7 @@ if __name__ == "__main__":
         db.session.commit()
        
 
-        #Generating Votes
+        # Generating Votes
         print("GENERATING VOTES")
         if mode == "users":
          for x in range(USER_AMOUNT):
@@ -245,7 +252,7 @@ if __name__ == "__main__":
                         vot = Votes(
                             challenge_id=chalid,
                             user_id=user.id,
-                            value=random.randint(0,1),
+                            value=random.randint(0, 1),
                         )
                         new_base = random_date(
                             base_time,

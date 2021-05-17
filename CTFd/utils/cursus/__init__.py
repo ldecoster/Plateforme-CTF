@@ -15,8 +15,8 @@ CURSUS_LIST = [
     ("CPA", "Cycle Préparatoire Adimaker"),
     ("CI1", "Cycle Ingénieur 1ère Année"),
     ("CI2", "Cycle Ingénieur 2ème Année"),
-    ("CI3", "Cycle Ingénieur 3ème Année")
-
+    ("CI3", "Cycle Ingénieur 3ème Année"),
+    ("OTH", "Other")
 ]
 
 # Nicely titled (and translatable) cursus names.

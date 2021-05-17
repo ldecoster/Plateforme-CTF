@@ -41,6 +41,10 @@ SPECIALISATIONS_LIST = [
     ("AGO", "Agroalimentaire"),
     ("ENV", "Environnement"),
     ("MKT", "Marketing"),
+    # ADIMAKER
+    ("ADI", "Adimaker"),
+    # Other
+    ("OTH", "Other")
 ]
 
 # Nicely titled (and translatable) specialisation names.
