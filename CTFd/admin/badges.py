@@ -15,29 +15,20 @@ from sqlalchemy.sql import and_, or_
 def badges_listing():
     q = request.args.get("q")
     field = request.args.get("field")
-    filters = []
-
-    if q:
-        # The field exists as an exposed column
-        if Badges.__mapper__.has_property(field):
-            filters.append(getattr(Badges, field).like("%{}%".format(q)))
-
-    query = Badges.query.filter(*filters).order_by(Badges.id.asc())
-
-
-    badges = query.all()
-    total = query.count()
+    badges = Badges.query.all()
+    tags = Tags.query.all()
 
     return render_template(
         "admin/badges/badges.html",
         badges=badges,
-        total=total,
+        tags= tags,
         q=q,
-
+        field=field,
     )
 
 
 @admin.route("/admin/badges/<int:badge_id>")
+@access_granted_only("admin_challenges_detail")
 def badges_detail(badge_id):
     badges = dict(
         Badges.query.with_entities(Badges.id, Badges.name).all()
@@ -65,13 +56,7 @@ def badges_detail(badge_id):
             update_script=update_script,
             badge=badge,
             badges=badges,
+
         )
     else:
         abort(403)
-
-
-@admin.route("/admin/badges/new")
-@access_granted_only("admin_challenges_new")
-def badges_new():
-    types = BADGE_CLASSES.keys()
-    return render_template("admin/badges/new.html", types=types)

@@ -30,38 +30,52 @@
 				</button>
 			</div>
 			<div class="modal-body">
-				<div class="form-group">
-					<div class="row">
+				<form method="POST" enctype="multipart/form-data">
+					<div class="form-group">
+						<div class="row">
 
-						<div class="col-md-8">
-							<label>
-								Name:<br>
-								<small class="form-text text-muted">the name of your badge</small>
-							</label>
-							<input type="text" class="form-control" id="badge_name" name="badge_name">
-						</div>
+							<div class="col-md-8">
+								<label>
+									Name:<br>
+									<small class="form-text text-muted">the name of your badge</small>
+								</label>
+								<input type="text" class="form-control" id="badge_name" name="badge_name">
+							</div>
 
-						<div class="col-md-8">
-							<label>
-								Description:<br>
-								<small class="form-text text-muted">Add some description to your badge</small>
-							</label>
-							<input type="text" class="form-control" id="badge_desc" name="badge_desc">
-						</div>
+							<div class="col-md-8">
+								<label>
+									Description:<br>
+									<small class="form-text text-muted">Add some description to your badge</small>
+								</label>
+								<input type="text" class="form-control" id="badge_desc" name="badge_desc">
+							</div>
 
-
-						<div class="col-md-4">
-							<label>
-								<small class="form-text text-muted">&nbsp;</small>
-							</label>
+							<div class="col-md-8">
+								<label>
+									Tags associés:<br>
+									<small class="form-text text-muted">the tags corresponding to your badge</small>
+								</label>
+								<select class="form-control custom-select" id="badge_tag"
+										name="badge_tag">
+									{% for tag in Tags.query.all() %}
+									<option>{{ tag.value }}</option>
+									{% endfor %}
+								</select>
+							</div>
+							<div class="col-md-4">
+								<label>
+									<small class="form-text text-muted">&nbsp;</small>
+								</label>
+							</div>
 						</div>
 					</div>
-				</div>
-				<div class="form-group">
-					<button id="badge-create-button"
-						class="btn btn-primary float-right create-badge-select">Create</button>
-				</div>
+					<div class="form-group">
+						<button id="badge-create-button"
+							class="btn btn-primary float-right create-badge-select">Create</button>
+					</div>
+				</form>
 			</div>
+
 		</div>
 	</div>
 </div>

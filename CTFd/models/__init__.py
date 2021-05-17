@@ -392,9 +392,6 @@ class Users(db.Model):
             dt = datetime.datetime.utcfromtimestamp(freeze)
             badgesentries = badgesentries.filter(BadgesEntries.date < dt)
         return badgesentries.all()
-    def get_awards(self):
-        awards = Awards.query.filter_by(user_id=self.id)
-        return awards.all()
 
 
 class Admins(Users):
