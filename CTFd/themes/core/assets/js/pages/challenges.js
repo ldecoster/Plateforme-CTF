@@ -16,6 +16,7 @@ CTFd._internal.challenge = {};
 let challenges = [];
 let solves = [];
 let tagList = [];
+let badgeList = {};
 
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
@@ -128,7 +129,7 @@ const displayChal = chal => {
 
     $("#challenge-window")
       .find("pre code")
-      .each(function(_idx) {
+      .each(function (_idx) {
         hljs.highlightBlock(this);
       });
 
@@ -191,7 +192,7 @@ function renderSubmissionResponse(response) {
         " Solves"
       );
     }
-
+    
     answer_input.val("");
     answer_input.removeClass("wrong");
     answer_input.addClass("correct");
@@ -300,6 +301,14 @@ async function loadChals() {
   if (tagList.length === 0) {
     tagList = (await CTFd.api.get_tag_list()).data;
   }
+  if (badgeList.length === 0) {
+    console.log("get badge list");
+    let response = (await CTFd.api.get_badge_list()).data;
+    response.forEach(badge => {
+      badgeList[badge.tag_id] = badge.name;
+    });
+    console.log(badgeList);
+  }
 
   loadUserSolves().then(async function () {
     const challengesBoard = $("<div></div>");
@@ -307,7 +316,7 @@ async function loadChals() {
 
     //Set up default tag/challenge values.
     if (orderValue === undefined) {
-      orderValue = "tag"
+      orderValue = "tag";
     }
 
     //Display tag/challenge sorted by values
@@ -315,13 +324,17 @@ async function loadChals() {
       tagList.sort((a, b) => a.value.localeCompare(b.value))
       tagList.reverse();
       for (let i = tagList.length - 1; i >= 0; i--) {
-        //for (let i = 0; i <=tagList.length ; i++) {
+        let isExoSolved = true;
         const ID = tagList[i].value.replace(/ /g, "-").hashCode();
         const tagrow = $(
           "" +
           '<div id="{0}-row" class="pt-5">'.format(ID) +
+          '<div class="title-row">' +
           '<div class="tag-header col-md-12 mb-3">' +
           "</div>" +
+          '<div class="exercise-badge col-md-12 my-1">' +
+          '</div>' +
+          '</div>' +
           '<div class="tag-challenge col-md-12">' +
           '<div class="challenges-row col-md-12"></div>' +
           "</div>" +
@@ -331,6 +344,29 @@ async function loadChals() {
           .find(".tag-header")
           .append($("<h3>" + tagList[i].value + "</h3>"));
         challengesBoard.append(tagrow);
+
+        //This part add the badge next to its associated tag
+        //,if this one is an exercise. It also
+        //check if the exercise is solved or not.
+        if (tagList[i].exercise) {
+          let chalsIds = tagList[i].challenges;
+          for (let k = 0; k < chalsIds.length; k++) {
+            if (solves.indexOf(chalsIds[k]) < 0 ) {
+              isExoSolved = false;
+              break;
+            }
+          }
+          const badge = $(
+            '<span class="badge {0} mx-1 challenge-tag">'.format(isExoSolved  ? 'badge-success' : 'badge-warning') +
+            '<span>{0}</span>'.format(isExoSolved ? 'Solved exercise' : 'Unsolved Exercise') +
+            '</span>'
+          );
+          if (chalsIds.length > 0) {
+            tagrow
+              .find(".exercise-badge")
+              .append(badge);
+          }
+        }
       }
       for (let i = 0; i < challenges.length; i++) {
         for (let j = 0; j < challenges[i].tags.length; j++) {
@@ -349,6 +385,7 @@ async function loadChals() {
               )
             );
           } else {
+            isExoSolved = false;
             chalbutton = $(
               "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
                 chalinfo.id

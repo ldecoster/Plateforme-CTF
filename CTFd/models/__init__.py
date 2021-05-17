@@ -231,6 +231,7 @@ class Tags(db.Model):
     __tablename__ = "tags"
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.String(80))
+    exercise = db.Column(db.Boolean)
     challenges = db.relationship("Challenges", secondary="tagChallenge")
 
     def __init__(self, *args, **kwargs):

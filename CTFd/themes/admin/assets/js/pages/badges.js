@@ -121,12 +121,15 @@ function loadUserSolves() {
 async function loadBadgeProgressBar() {
   const badges = (await CTFd.api.get_badge_list()).data;
   loadUserSolves().then(async function (){
-
+    const users = (await CTFd.api.get_user_list()).data;
     for (let i = 0; i < badges.length; i++) {
+      let solvers = 0;
       let numOfSolvedChal = 0;
       const challenges = (await CTFd.api.get_tagChallenge_byTagId({ tagId: badges[i].tag_id })).data;
       const tag = (await CTFd.api.get_tag({tagId:badges[i].tag_id})).data;
-     
+      for (let i =0; i< users.length; i++){
+        const user_solves = (CTFd.api.get_user_solves({ userId: users[i].id })).data
+      }
       for (let j = 0; j < challenges.length; j++) {
         if (solves.indexOf(challenges[j].challenge_id) >= 0) {
           numOfSolvedChal++;

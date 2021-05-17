@@ -101,7 +101,8 @@
 							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.type }}</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell">
 								{% for tag in challenge.tags %}
-								<span class='badge badge-primary mx-1 challenge-tag'>
+								{% set tag_state = 'badge-warning' if tag.exercise else 'badge-primary' %}
+								<span class='badge {{tag_state}} mx-1 challenge-tag'>
 									<span>{{ tag.value }}</span>
 								</span>
 								{% endfor %}

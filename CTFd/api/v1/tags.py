@@ -52,7 +52,7 @@ class TagList(Resource):
             "q": (str, None),
             "field": (
                 RawEnum(
-                    "TagFields", {"value": "value"}
+                    "TagFields", {"value": "value","exercise":"exercise"}
                 ),
                 None,
             ),
@@ -85,6 +85,8 @@ class TagList(Resource):
         },
     )
     def post(self):
+        print("*"*64)
+        print("post tag")
         req = request.get_json()
         schema = TagSchema()
         response = schema.load(req, session=db.session)

@@ -717,7 +717,7 @@ class ChallengeTags(Resource):
             )
         for t in tags:
             response.append(
-                {"id": t.id, "value": t.value}
+                {"id": t.id, "value": t.value, "exercise":t.exercise}
             )
         return {"success": True, "data": response}
 
