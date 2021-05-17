@@ -56,7 +56,6 @@ CHAL_AMOUNT = args.challenges
 BADGE_AMOUNT = args.badges
 EXER_AMOUNT = args.exercices
 
-
 icons = [
     None,
     "shield",
@@ -132,8 +131,10 @@ def gen_value():
 def gen_word():
     return fake.word()
 
+
 def gen_badge():
     return random.choice(badges)
+
 
 def gen_icon():
     return random.choice(icons)
@@ -192,11 +193,11 @@ if __name__ == "__main__":
                 try:
                     user = Users(name=name, email=gen_email(), password="password")
                     user.school = gen_school()
-                    user.promotion = random.randint(62,66)
+                    user.promotion = random.randint(62, 66)
 
                     if user.school == "ISEN":
                         user.speciality = gen_speciality_ISEN()
-                    if user.school == "ISA" : 
+                    if user.school == "ISA":
                         user.speciality = gen_speciality_ISA()
                     if user.school == "HEI":
                         user.speciality = gen_speciality_HEI()
@@ -220,7 +221,7 @@ if __name__ == "__main__":
         print("GENERATING CHALLENGES")
         for x in range(CHAL_AMOUNT):
             word = gen_word()
-            user = random.randint(1,USER_AMOUNT)
+            user = random.randint(1, USER_AMOUNT)
             chal = Challenges(
                 name=word,
                 description=gen_sentence(),
@@ -245,11 +246,11 @@ if __name__ == "__main__":
             db.session.add(chal_file)
 
         db.session.commit()
-       
+
         # Generating Exercices 
         print("GENERATING EXERCICES")
-        for x in range (EXER_AMOUNT):
-            id = random.randint(0,10000)
+        for x in range(EXER_AMOUNT):
+            id = random.randint(0, 10000)
             if id not in used:
                 used.append(id)
                 word = gen_word()
@@ -259,28 +260,26 @@ if __name__ == "__main__":
                     description=gen_sentence()
                 )
 
-
                 db.session.add(exer)
                 db.session.commit()
 
-        #Generating Badges
+        # Generating Badges
         print("GENERATING BADGES")
         if mode == "users":
-         for x in range(BADGE_AMOUNT):
+            for x in range(BADGE_AMOUNT):
                 used = []
                 base_time = datetime.datetime.utcnow() + datetime.timedelta(
                     minutes=-10000
                 )
                 for y in range(random.randint(1, BADGE_AMOUNT)):
-                    id = random.randint(0,10000)
+                    id = random.randint(0, 10000)
                     if id not in used:
                         used.append(id)
                         # user = Users.query.filter_by(id=x + 1).first()
                         badge = Badges(
-                            id = id,
-                            description = "test desc",
-                            name= gen_badge(),
-                            type="standard"
+                            id=id,
+                            description="test desc",
+                            name=gen_badge(),
                         )
                         new_base = random_date(
                             base_time,
@@ -293,10 +292,10 @@ if __name__ == "__main__":
                         db.session.add(badge)
                         db.session.commit()
 
-        #Generating Votes
+        # Generating Votes
         print("GENERATING VOTES")
         if mode == "users":
-         for x in range(USER_AMOUNT):
+            for x in range(USER_AMOUNT):
                 used = []
                 base_time = datetime.datetime.utcnow() + datetime.timedelta(
                     minutes=-10000
@@ -309,7 +308,7 @@ if __name__ == "__main__":
                         vot = Votes(
                             challenge_id=chalid,
                             user_id=user.id,
-                            value=random.randint(0,1),
+                            value=random.randint(0, 1),
                         )
                         new_base = random_date(
                             base_time,
@@ -321,7 +320,6 @@ if __name__ == "__main__":
 
                         db.session.add(vot)
                         db.session.commit()
-
 
         # Generating Solves
         print("GENERATING SOLVES")
@@ -353,9 +351,8 @@ if __name__ == "__main__":
 
                         db.session.add(solve)
                         db.session.commit()
-    
+
         db.session.commit()
-        
 
         # Generating Badges Entries
         print("GENERATING BADGESENTRIES")
@@ -376,26 +373,25 @@ if __name__ == "__main__":
                 db.session.add(badgesentries)
                 db.session.commit()
 
-
-        #Generating Badges Exercices
+        # Generating Badges Exercices
         print("GENERATING BADGESEXERCICES")
         for x in range(BADGE_AMOUNT):
-             base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
-             for _ in range(random.randint(0, BADGE_AMOUNT)):
-                 user = Users.query.filter_by(id=x + 1).first()
-                 badgesexercice = BadgesExercices(
-                     exercice_id = exer.id,
-                     badge_id = badge.id,
-                 )
-                 new_base = random_date(
-                     base_time,
-                     base_time + datetime.timedelta(minutes=random.randint(30, 60)),
-                 )
-                 BadgesExercices.date = new_base
-                 base_time = new_base
+            base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
+            for _ in range(random.randint(0, BADGE_AMOUNT)):
+                user = Users.query.filter_by(id=x + 1).first()
+                badgesexercice = BadgesExercices(
+                    exercice_id=exer.id,
+                    badge_id=badge.id,
+                )
+                new_base = random_date(
+                    base_time,
+                    base_time + datetime.timedelta(minutes=random.randint(30, 60)),
+                )
+                BadgesExercices.date = new_base
+                base_time = new_base
 
-                 db.session.add(badgesexercice)
-                 db.session.commit()
+                db.session.add(badgesexercice)
+                db.session.commit()
 
         # Generating Wrong Flags
         print("GENERATING WRONG FLAGS")
