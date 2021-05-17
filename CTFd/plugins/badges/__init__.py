@@ -47,7 +47,7 @@ class BaseBadge(object):
         """
         This method is in used to access the data of a challenge in a format processable by the front end.
 
-        :param challenge:
+        :param badge:
         :return: Challenge object, data dictionary to be returned to the user
         """
         data = {
@@ -85,7 +85,7 @@ class BaseBadge(object):
         """
         This method is used to delete the resources used by a challenge.
 
-        :param challenge:
+        :param badge:
         :return:
         """
         Badges.query.filter_by(badge_id=badge.id).delete()

@@ -49,18 +49,6 @@
 							<input type="text" class="form-control" id="badge_desc" name="badge_desc">
 						</div>
 
-						<div class="col-md-8">
-							<label>
-								Tags associés:<br>
-								<small class="form-text text-muted">the tags corresponding to your badge</small>
-							</label>
-							<select class="form-control custom-select" id="badge_tag"
-								name="badge_tag">
-								{% for tag in Tags.query.all() %}
-								<option>{{ tag.value }}</option>
-								{% endfor %}
-							</select>
-						</div>
 
 						<div class="col-md-4">
 							<label>
