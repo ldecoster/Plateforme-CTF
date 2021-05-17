@@ -38,8 +38,6 @@ class Badges(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text)
     name = db.Column(db.String(80))
-    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"),
-                            nullable=False)
 
     def __init__(self, *args, **kwargs):
         super(Badges, self).__init__(**kwargs)

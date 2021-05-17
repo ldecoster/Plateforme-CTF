@@ -9,10 +9,11 @@
 <div class="jumbotron">
 	<div class="container">
 		<h1>Badges
-			<button type="button" class="btn btn-outline-primary" data-toggle="modal" title="Add new badge"
-				id="edit-new-badge">
-				<i class="btn-fa fas fa-plus-circle"></i>
-			</button>
+			<a class="no-decoration" href="{{ url_for('admin.challenges_new') }}">
+				<span role="button" data-toggle="tooltip" title="Create Challenge">
+					<i class="btn-fa fas fa-plus-circle"></i>
+				</span>
+			</a>
 		</h1>
 	</div>
 </div>
