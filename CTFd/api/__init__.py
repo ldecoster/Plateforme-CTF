@@ -1,7 +1,6 @@
 from flask import Blueprint, current_app
 from flask_restx import Api
 
-from CTFd.api.v1.badgesentries import badges_entries_namespace
 from CTFd.api.v1.challenges import challenges_namespace
 from CTFd.api.v1.comments import comments_namespace
 from CTFd.api.v1.config import configs_namespace
@@ -37,7 +36,6 @@ CTFd_API_v1.schema_model("APISimpleSuccessResponse", APISimpleSuccessResponse.sc
 CTFd_API_v1.add_namespace(challenges_namespace, "/challenges")
 CTFd_API_v1.add_namespace(tags_namespace, "/tags")
 CTFd_API_v1.add_namespace(tagChallenge_namespace, "/tagChallenge")
-CTFd_API_v1.add_namespace(badges_entries_namespace, "/badgesentries")
 CTFd_API_v1.add_namespace(hints_namespace, "/hints")
 CTFd_API_v1.add_namespace(flags_namespace, "/flags")
 CTFd_API_v1.add_namespace(votes_namespace, "/votes")

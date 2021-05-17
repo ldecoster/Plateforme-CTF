@@ -13,6 +13,7 @@ from CTFd.models import (
     Badges,
     db, Fails,
 )
+from CTFd.plugins.badges import get_badge_class
 from CTFd.schemas.badges import BadgeSchema
 from CTFd.utils import config, get_config
 from CTFd.utils import sessions
@@ -25,9 +26,7 @@ from CTFd.utils.config.visibility import (
 )
 from CTFd.utils.dates import  ctf_paused, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
-    admins_only,
-    contributors_teachers_admins_only,
-    teachers_admins_only,
+    access_granted_only,
     require_verified_emails,
 )
 
@@ -35,7 +34,12 @@ from CTFd.utils.decorators import (
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_teacher
+from CTFd.utils.user import (
+    authed,
+    get_current_user,
+    has_right,
+    has_right_or_is_author
+)
 from CTFd.utils.security.auth import login_user
 from flask import session
 
@@ -108,7 +112,7 @@ class BadgeList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_list_post")
     @badges_namespace.doc(
         description="Endpoint to create a badge object",
         responses={
@@ -175,16 +179,13 @@ class Badge(Resource):
 
         response["view"] = render_template(
             badge_class.templates["view"].lstrip("/"),
-            solves=solves,
-            files=files,
-            tags=tags,
             badge=badge,
         )
 
         db.session.close()
         return {"success": True, "data": response}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_list_post")
     @badges_namespace.doc(
         description="Endpoint to edit a specific badge object",
         responses={
@@ -212,24 +213,9 @@ class Badge(Resource):
             badge = badge_class.update(badge, request)
             response = badge_class.read(badge)
             return {"success": True, "data": response}
-        elif is_contributor() and badge.author_id == author_id:
-            badge_class = get_badge_class(badge.type)
-
-            # Check the number of votes before changing the state of the badge
-            if badge_new_state == "visible" and badge.state == "voting":
-                positive_votes = Votes.query.filter_by(badge_id=badge.id, value=1).count()
-                negative_votes = Votes.query.filter_by(badge_id=badge.id, value=0).count()
-                votes_delta = get_votes_number()
-                # If positives votes minus the delta is not greater than or equal to the negative votes, abort
-                if (positive_votes - votes_delta) < negative_votes:
-                    return {"success": False, "errors": "votes"}
-
-            badge = badge_class.update(badge, request)
-            response = badge_class.read(badge)
-            return {"success": True, "data": response}
         return {"success": False}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_list_post")
     @badges_namespace.doc(
         description="Endpoint to delete a specific badge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
