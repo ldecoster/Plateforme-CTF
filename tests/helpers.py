@@ -36,7 +36,6 @@ from CTFd.models import (
     Teams,
     Tokens,
     Tracking,
-    Unlocks,
     UserComments,
     Users,
 )
@@ -352,14 +351,6 @@ def gen_ressource(
     db.session.commit()
     return ressource
 
-
-def gen_unlock(db, user_id, team_id=None, target=None, type="ressources"):
-    unlock = Unlocks(user_id=user_id, team_id=team_id, target=target, type=type)
-    db.session.add(unlock)
-    db.session.commit()
-    return unlock
-
-
 def gen_solve(
     db,
     user_id,
@@ -493,5 +484,4 @@ def simulate_user_activity(db, user):
     for _ in range(5):
         gen_fail(db, user_id=user.id, challenge_id=challenge.id)
 
-    gen_unlock(db, user_id=user.id, target=ressource.id, type="ressources")
     gen_solve(db, user_id=user.id, challenge_id=challenge.id, provided=flag.content)

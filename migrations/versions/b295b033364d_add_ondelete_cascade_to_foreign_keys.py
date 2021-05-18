@@ -87,24 +87,6 @@ def upgrade():
             ondelete="CASCADE",
         )
 
-        op.drop_constraint("unlocks_ibfk_1", "unlocks", type_="foreignkey")
-        op.drop_constraint("unlocks_ibfk_2", "unlocks", type_="foreignkey")
-        op.create_foreign_key(
-            "unlocks_ibfk_1",
-            "unlocks",
-            "teams",
-            ["team_id"],
-            ["id"],
-            ondelete="CASCADE",
-        )
-        op.create_foreign_key(
-            "unlocks_ibfk_2",
-            "unlocks",
-            "users",
-            ["user_id"],
-            ["id"],
-            ondelete="CASCADE",
-        )
     elif url.startswith("postgres"):
         op.drop_constraint("awards_team_id_fkey", "awards", type_="foreignkey")
         op.drop_constraint("awards_user_id_fkey", "awards", type_="foreignkey")
@@ -185,35 +167,11 @@ def upgrade():
             ondelete="CASCADE",
         )
 
-        op.drop_constraint("unlocks_team_id_fkey", "unlocks", type_="foreignkey")
-        op.drop_constraint("unlocks_user_id_fkey", "unlocks", type_="foreignkey")
-        op.create_foreign_key(
-            "unlocks_team_id_fkey",
-            "unlocks",
-            "teams",
-            ["team_id"],
-            ["id"],
-            ondelete="CASCADE",
-        )
-        op.create_foreign_key(
-            "unlocks_user_id_fkey",
-            "unlocks",
-            "users",
-            ["user_id"],
-            ["id"],
-            ondelete="CASCADE",
-        )
-
 
 def downgrade():
     bind = op.get_bind()
     url = str(bind.engine.url)
     if url.startswith("mysql"):
-        op.drop_constraint("unlocks_ibfk_1", "unlocks", type_="foreignkey")
-        op.drop_constraint("unlocks_ibfk_2", "unlocks", type_="foreignkey")
-        op.create_foreign_key("unlocks_ibfk_1", "unlocks", "teams", ["team_id"], ["id"])
-        op.create_foreign_key("unlocks_ibfk_2", "unlocks", "users", ["user_id"], ["id"])
-
         op.drop_constraint("tracking_ibfk_1", "tracking", type_="foreignkey")
         op.create_foreign_key(
             "tracking_ibfk_1", "tracking", "users", ["user_id"], ["id"]
@@ -249,14 +207,6 @@ def downgrade():
         op.create_foreign_key("awards_ibfk_1", "awards", "teams", ["team_id"], ["id"])
         op.create_foreign_key("awards_ibfk_2", "awards", "users", ["user_id"], ["id"])
     elif url.startswith("postgres"):
-        op.drop_constraint("unlocks_team_id_fkey", "unlocks", type_="foreignkey")
-        op.drop_constraint("unlocks_user_id_fkey", "unlocks", type_="foreignkey")
-        op.create_foreign_key(
-            "unlocks_team_id_fkey", "unlocks", "teams", ["team_id"], ["id"]
-        )
-        op.create_foreign_key(
-            "unlocks_user_id_fkey", "unlocks", "users", ["user_id"], ["id"]
-        )
 
         op.drop_constraint("tracking_user_id_fkey", "tracking", type_="foreignkey")
         op.create_foreign_key(

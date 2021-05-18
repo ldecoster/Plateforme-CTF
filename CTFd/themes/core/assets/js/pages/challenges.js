@@ -489,34 +489,6 @@ const displayRessource = data => {
   });
 };
 
-const displayUnlock = id => {
-  ezQuery({
-    title: "Unlock Ressource?",
-    body: "Are you sure you want to open this ressource?",
-    success: () => {
-      const params = {
-        target: id,
-        type: "ressources"
-      };
-      CTFd.api.post_unlock_list({}, params).then(response => {
-        if (response.success) {
-          CTFd.api.get_ressource({ ressourceId: id }).then(response => {
-            displayRessource(response.data);
-          });
-
-          return;
-        }
-
-        ezAlert({
-          title: "Error",
-          body: "",
-          button: "Got it!"
-        });
-      });
-    }
-  });
-};
-
 const loadRessource = id => {
   CTFd.api.get_ressource({ ressourceId: id }).then(response => {
     if (response.data.content) {
@@ -524,6 +496,6 @@ const loadRessource = id => {
       return;
     }
 
-    displayUnlock(id);
+    //displayUnlock(id);
   });
 };

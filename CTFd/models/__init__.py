@@ -424,29 +424,6 @@ class Solves(Submissions):
 class Fails(Submissions):
     __mapper_args__ = {"polymorphic_identity": "incorrect"}
 
-
-class Unlocks(db.Model):
-    __tablename__ = "unlocks"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    target = db.Column(db.Integer)
-    date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    type = db.Column(db.String(32))
-
-    __mapper_args__ = {"polymorphic_on": type}
-
-    @hybrid_property
-    def account_id(self):
-        return self.user_id
-
-    def __repr__(self):
-        return "<Unlock %r>" % self.id
-
-
-class RessourceUnlocks(Unlocks):
-    __mapper_args__ = {"polymorphic_identity": "ressources"}
-
-
 class Tracking(db.Model):
     __tablename__ = "tracking"
     id = db.Column(db.Integer, primary_key=True)

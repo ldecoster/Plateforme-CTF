@@ -19,7 +19,6 @@ from CTFd.models import (
     Solves,
     Submissions,
     Tracking,
-    Unlocks,
     UserRights,
     Users,
     db,
@@ -287,7 +286,6 @@ class UserPublic(Resource):
 
         Notifications.query.filter_by(user_id=user_id).delete()
         Awards.query.filter_by(user_id=user_id).delete()
-        Unlocks.query.filter_by(user_id=user_id).delete()
         Submissions.query.filter_by(user_id=user_id).delete()
         Solves.query.filter_by(user_id=user_id).delete()
         Tracking.query.filter_by(user_id=user_id).delete()

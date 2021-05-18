@@ -15,7 +15,6 @@ from CTFd.models import (
     Fails,
     Flags,
     Ressources,
-    RessourceUnlocks,
     Solves,
     Submissions,
     Tags,
@@ -189,10 +188,10 @@ class ChallengeList(Resource):
 
             # Build the query for the challenges which may be listed
         chal_q = Challenges.query
-        # Admins can see hidden and locked challenges in the admin view
+        # Admins can see hidden challenges in the admin view
         if admin_view is False:
             chal_q = chal_q.filter(
-                and_(Challenges.state != "hidden", Challenges.state != "locked")
+                and_(Challenges.state != "hidden")
             )
         chal_q = (
             chal_q.filter_by(**query_args).filter(*filters)
@@ -320,7 +319,7 @@ class Challenge(Resource):
         else:
             chal = Challenges.query.filter(
                 Challenges.id == challenge_id,
-                and_(Challenges.state != "hidden", Challenges.state != "locked"),
+                and_(Challenges.state != "hidden"),
             ).first_or_404()
 
         try:
@@ -374,17 +373,11 @@ class Challenge(Resource):
             tag["value"] for tag in TagSchema("user", many=True).dump(chal.tags).data
         ]
 
-        unlocked_ressources = set()
+        
         ressources = []
         if authed():
             user = get_current_user()
 
-            unlocked_ressources = {
-                u.target
-                for u in RessourceUnlocks.query.filter_by(
-                    type="ressources", account_id=user.account_id
-                )
-            }
             files = []
             for f in chal.files:
                 token = {
@@ -398,12 +391,8 @@ class Challenge(Resource):
             files = [url_for("views.files", path=f.location) for f in chal.files]
 
         for ressource in Ressources.query.filter_by(challenge_id=chal.id).all():
-            if ressource.id in unlocked_ressources:
-                ressources.append(
-                    {"id": ressource.id, "content": ressource.content}
-                )
-            else:
-                ressources.append({"id": ressource.id})
+           
+            ressources.append({"id": ressource.id , "content": ressource.content})
 
         response = chal_class.read(challenge=chal)
 
@@ -570,9 +559,6 @@ class ChallengeAttempt(Resource):
 
         if challenge.state == "hidden":
             abort(404)
-
-        if challenge.state == "locked":
-            abort(403)
 
         if challenge.requirements:
             requirements = challenge.requirements.get("prerequisites", [])

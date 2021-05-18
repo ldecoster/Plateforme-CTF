@@ -20,7 +20,6 @@ from CTFd.api.v1.submissions import submissions_namespace
 from CTFd.api.v1.tagChallenge import tagChallenge_namespace
 from CTFd.api.v1.tags import tags_namespace
 from CTFd.api.v1.tokens import tokens_namespace
-from CTFd.api.v1.unlocks import unlocks_namespace
 from CTFd.api.v1.users import users_namespace
 from CTFd.api.v1.votes import votes_namespace
 
@@ -47,6 +46,5 @@ CTFd_API_v1.add_namespace(files_namespace, "/files")
 CTFd_API_v1.add_namespace(notifications_namespace, "/notifications")
 CTFd_API_v1.add_namespace(configs_namespace, "/configs")
 CTFd_API_v1.add_namespace(pages_namespace, "/pages")
-CTFd_API_v1.add_namespace(unlocks_namespace, "/unlocks")
 CTFd_API_v1.add_namespace(tokens_namespace, "/tokens")
 CTFd_API_v1.add_namespace(comments_namespace, "/comments")

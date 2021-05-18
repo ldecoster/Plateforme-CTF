@@ -183,7 +183,6 @@ def import_ctf(backup, erase=True):
         "db/dynamic_challenge.json",
         "db/flags.json",
         "db/ressources.json",
-        "db/unlocks.json",
         "db/awards.json",
         "db/tags.json",
         "db/submissions.json",

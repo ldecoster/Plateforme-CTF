@@ -31,7 +31,7 @@ class ChallengeSolveStatistics(Resource):
     def get(self):
         chals = (
             Challenges.query.filter(
-                and_(Challenges.state != "hidden", Challenges.state != "locked")
+                and_(Challenges.state != "hidden")
             )
             .all()
         )

@@ -67,7 +67,7 @@ class RessourceList(Resource):
         filters = build_model_filters(model=Ressources, query=q, field=field)
 
         ressources = Ressources.query.filter_by(**query_args).filter(*filters).all()
-        response = RessourceSchema(many=True, view="locked").dump(ressources)
+        response = RessourceSchema(many=True).dump(ressources)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -121,7 +121,7 @@ class Ressource(Resource):
     def get(self, ressource_id):
         ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
 
-        response = RessourceSchema(view="unlocked").dump(ressource)
+        response = RessourceSchema().dump(ressource)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

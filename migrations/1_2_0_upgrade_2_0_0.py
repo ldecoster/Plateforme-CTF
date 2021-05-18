@@ -122,16 +122,6 @@ if __name__ == "__main__":
         new_conn["ressources"].insert(dict(ressource))
     del old_data["ressources"]
 
-    print("MIGRATING Unlocks")
-    for unlock in old_data["unlocks"]:
-        unlock["user_id"] = unlock.pop(
-            "teamid"
-        )  # This is intentional as previous CTFds are effectively in user mode
-        unlock["target"] = unlock.pop("itemid")
-        unlock["type"] = unlock.pop("model")
-        new_conn["unlocks"].insert(dict(unlock))
-    del old_data["unlocks"]
-
     print("MIGRATING Awards")
     for award in old_data["awards"]:
         award["user_id"] = award.pop(
