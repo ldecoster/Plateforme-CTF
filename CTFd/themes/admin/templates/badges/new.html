@@ -57,7 +57,9 @@
 							<select class="form-control custom-select" id="badge_tag"
 									name="badge_tag">
 								{% for tag in tags %}
-								<option>{{ tag.value }}</option>
+									{% if tag.exercise == 1%}
+										<option>{{ tag.value }}</option>
+									{% endif %}
 								{% endfor %}
 							</select>
 						</div>
