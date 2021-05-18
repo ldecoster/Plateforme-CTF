@@ -324,21 +324,6 @@
 
 						</tr>
 						</thead>
-						<tbody>
-						{% for badges in user.badgesentries %}
-								<tr>
-									<td class="text-center chal" id="{{ badges.badge_id }}">
-									<a href="{{ url_for("admin.badges_detail", badge_id=badges.badge_id) }}">
-										{{ badges.badge.name }}
-									</a>
-									</td>
-									<td class="d-none d-md-block d-lg-block">{{ badges.badge.description }}</td>
-									<td class="solve-time">{{ badges.obtained_date }}</td>
-
-								</tr>
-
-						{% endfor %}
-						</tbody>
 					</table>
 				</div>
 			</div>
