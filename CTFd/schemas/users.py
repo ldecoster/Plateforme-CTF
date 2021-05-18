@@ -9,7 +9,7 @@ from CTFd.utils import get_config, string_types
 from CTFd.utils.crypto import verify_password
 from CTFd.utils.email import check_email_is_whitelisted
 from CTFd.utils.user import get_current_user, has_right
-from CTFd.utils.validators import validate_country_code, validate_school_code
+from CTFd.utils.validators import validate_country_code, validate_school_code, validate_cursus_code, validate_specialisation_code
 
 
 class UserSchema(ma.ModelSchema):
