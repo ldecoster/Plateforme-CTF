@@ -7,41 +7,41 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Challenges, Hints, db
-from CTFd.schemas.ressources import HintSchema
+from CTFd.models import Challenges, Ressources, db
+from CTFd.schemas.ressources import RessourceSchema
 from CTFd.utils.decorators import access_granted_only, authed_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import has_right_or_is_author
 
-ressources_namespace = Namespace("ressources", description="Endpoint to retrieve Hints")
+ressources_namespace = Namespace("ressources", description="Endpoint to retrieve Ressources")
 
-HintModel = sqlalchemy_to_pydantic(Hints)
-
-
-class HintDetailedSuccessResponse(APIDetailedSuccessResponse):
-    data: HintModel
+RessourceModel = sqlalchemy_to_pydantic(Ressources)
 
 
-class HintListSuccessResponse(APIListSuccessResponse):
-    data: List[HintModel]
+class RessourceDetailedSuccessResponse(APIDetailedSuccessResponse):
+    data: RessourceModel
+
+
+class RessourceListSuccessResponse(APIListSuccessResponse):
+    data: List[RessourceModel]
 
 
 ressources_namespace.schema_model(
-    "HintDetailedSuccessResponse", HintDetailedSuccessResponse.apidoc()
+    "RessourceDetailedSuccessResponse", RessourceDetailedSuccessResponse.apidoc()
 )
 
 ressources_namespace.schema_model(
-    "HintListSuccessResponse", HintListSuccessResponse.apidoc()
+    "RessourceListSuccessResponse", RessourceListSuccessResponse.apidoc()
 )
 
 
 @ressources_namespace.route("")
-class HintList(Resource):
+class RessourceList(Resource):
     @access_granted_only("api_ressource_list_get")
     @ressources_namespace.doc(
-        description="Endpoint to list Hint objects in bulk",
+        description="Endpoint to list Ressource objects in bulk",
         responses={
-            200: ("Success", "HintListSuccessResponse"),
+            200: ("Success", "RessourceListSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -55,7 +55,7 @@ class HintList(Resource):
             "content": (str, None),
             "q": (str, None),
             "field": (
-                RawEnum("HintFields", {"type": "type", "content": "content"}),
+                RawEnum("RessourceFields", {"type": "type", "content": "content"}),
                 None,
             ),
         },
@@ -64,10 +64,10 @@ class HintList(Resource):
     def get(self, query_args):
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
-        filters = build_model_filters(model=Hints, query=q, field=field)
+        filters = build_model_filters(model=Ressources, query=q, field=field)
 
-        ressources = Hints.query.filter_by(**query_args).filter(*filters).all()
-        response = HintSchema(many=True, view="locked").dump(ressources)
+        ressources = Ressources.query.filter_by(**query_args).filter(*filters).all()
+        response = RessourceSchema(many=True, view="locked").dump(ressources)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -76,9 +76,9 @@ class HintList(Resource):
 
     @access_granted_only("api_ressource_list_post")
     @ressources_namespace.doc(
-        description="Endpoint to create a Hint object",
+        description="Endpoint to create a Ressource object",
         responses={
-            200: ("Success", "HintDetailedSuccessResponse"),
+            200: ("Success", "RessourceDetailedSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -87,7 +87,7 @@ class HintList(Resource):
     )
     def post(self):
         req = request.get_json()
-        schema = HintSchema(view="admin")
+        schema = RessourceSchema(view="admin")
         response = schema.load(req, session=db.session)
 
         if response.errors:
@@ -106,12 +106,12 @@ class HintList(Resource):
 
 
 @ressources_namespace.route("/<ressource_id>")
-class Hint(Resource):
+class Ressource(Resource):
     @authed_only
     @ressources_namespace.doc(
-        description="Endpoint to get a specific Hint object",
+        description="Endpoint to get a specific Ressource object",
         responses={
-            200: ("Success", "HintDetailedSuccessResponse"),
+            200: ("Success", "RessourceDetailedSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -119,9 +119,9 @@ class Hint(Resource):
         },
     )
     def get(self, ressource_id):
-        ressource = Hints.query.filter_by(id=ressource_id).first_or_404()
+        ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
 
-        response = HintSchema(view="unlocked").dump(ressource)
+        response = RessourceSchema(view="unlocked").dump(ressource)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -130,9 +130,9 @@ class Hint(Resource):
 
     @access_granted_only("api_ressource_patch")
     @ressources_namespace.doc(
-        description="Endpoint to edit a specific Hint object",
+        description="Endpoint to edit a specific Ressource object",
         responses={
-            200: ("Success", "HintDetailedSuccessResponse"),
+            200: ("Success", "RessourceDetailedSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -140,12 +140,12 @@ class Hint(Resource):
         },
     )
     def patch(self, ressource_id):
-        ressource = Hints.query.filter_by(id=ressource_id).first_or_404()
+        ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
         challenge = Challenges.query.filter_by(id=ressource.challenge_id).first_or_404()
         if has_right_or_is_author("api_ressource_patch", challenge.author_id):
             req = request.get_json()
 
-            schema = HintSchema(view="admin")
+            schema = RessourceSchema(view="admin")
             response = schema.load(req, instance=ressource, partial=True, session=db.session)
 
             if response.errors:
@@ -165,7 +165,7 @@ class Hint(Resource):
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, ressource_id):
-        ressource = Hints.query.filter_by(id=ressource_id).first_or_404()
+        ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
         challenge = Challenges.query.filter_by(id=ressource.challenge_id).first_or_404()
         if has_right_or_is_author("api_ressource_delete", challenge.author_id):
             db.session.delete(ressource)
