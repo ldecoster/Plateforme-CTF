@@ -11,36 +11,16 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import (
     Badges,
-    db, Fails,
+    db
 )
 from CTFd.plugins.badges import get_badge_class
 from CTFd.schemas.badges import BadgeSchema
-from CTFd.utils import config, get_config
-from CTFd.utils import sessions
-from CTFd.utils import user as current_user
-from CTFd.utils.config import get_votes_number
-from CTFd.utils.config.visibility import (
-    accounts_visible,
-    badges_visible,
-
-)
-from CTFd.utils.dates import  ctf_paused, isoformat, unix_time_to_utc
 from CTFd.utils.decorators import (
     access_granted_only,
     require_verified_emails,
 )
 
-
-from CTFd.utils.logging import log
-from CTFd.utils.modes import generate_account_url, get_model
-from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import (
-    authed,
-    get_current_user,
-    has_right,
-    has_right_or_is_author
-)
-from CTFd.utils.security.auth import login_user
+from CTFd.utils.modes import get_model
 from flask import session
 
 badges_namespace = Namespace(
@@ -112,7 +92,7 @@ class BadgeList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @access_granted_only("api_challenge_list_post")
+    @access_granted_only("api_badge_post")
     @badges_namespace.doc(
         description="Endpoint to create a badge object",
         responses={
@@ -124,16 +104,20 @@ class BadgeList(Resource):
         },
     )
     def post(self):
+        print("*"*64)
+        print("post badges called")
         req = request.get_json()
+        print(req)
         schema = BadgeSchema()
         response = schema.load(req, session=db.session)
+        print("*"*64)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
 
-        if is_admin() or is_teacher() or is_contributor():
+        if access_granted_only("api_badge_post"):
             db.session.commit()
 
             response = schema.dump(response.data)
@@ -157,7 +141,7 @@ class Badge(Resource):
         },
     )
     def get(self, badge_id):
-        if is_admin():
+        if access_granted_only("api_badge_get"):
             badge = Badges.query.filter(Badges.id == badge_id).first_or_404()
         else:
             badge = Badges.query.filter(
@@ -185,7 +169,7 @@ class Badge(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @access_granted_only("api_challenge_list_post")
+    @access_granted_only("api_badge_patch")
     @badges_namespace.doc(
         description="Endpoint to edit a specific badge object",
         responses={
@@ -208,14 +192,14 @@ class Badge(Resource):
             if badge_new_state != "visible" and badge_new_state != "voting" and badge_new_state != "hidden":
                 return {"success": False}
 
-        if is_admin() or is_teacher():
+        if access_granted_only("api_badge_patch"):
             badge_class = get_badge_class(badge.type)
             badge = badge_class.update(badge, request)
             response = badge_class.read(badge)
             return {"success": True, "data": response}
         return {"success": False}
 
-    @access_granted_only("api_challenge_list_post")
+    @access_granted_only("api_badge_delete")
     @badges_namespace.doc(
         description="Endpoint to delete a specific badge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -223,7 +207,7 @@ class Badge(Resource):
     def delete(self, badge_id):
         author_id = session["id"]
         badge = Badges.query.filter_by(id=badge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and badge.author_id==author_id):
+        if access_granted_only("api_badge_delete") :
             badge_class = get_badge_class(badge.type)
             badge_class.delete(badge)
 
