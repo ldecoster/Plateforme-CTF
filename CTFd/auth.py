@@ -175,9 +175,10 @@ def register():
         password = request.form.get("password", "").strip()
 
         website = request.form.get("website")
-        affiliation = request.form.get("affiliation")
         country = request.form.get("country")
         school = request.form.get("school")
+        cursus = request.form.get("cursus")
+        specialisation = request.form.get("specialisation")
 
         name_len = len(name) == 0
         names = Users.query.add_columns("name", "id").filter_by(name=name).first()
@@ -203,10 +204,7 @@ def register():
                 break
 
             # Handle special casing of existing profile fields
-            if field.name.lower() == "affiliation":
-                affiliation = value
-                break
-            elif field.name.lower() == "website":
+            if field.name.lower() == "website":
                 website = value
                 break
 
@@ -232,16 +230,29 @@ def register():
                 valid_school = False
         else:
             valid_school = True
+        
+        if cursus:
+            try:
+                validators.validate_cursus_code(cursus)
+                valid_cursus = True
+            except ValidationError:
+                valid_cursus = False
+        else:
+            valid_cursus = True
+        
+        if specialisation:
+            try:
+                validators.validate_specialisation_code(specialisation)
+                valid_specialisation = True
+            except ValidationError:
+                valid_specialisation = False
+        else:
+            valid_specialisation = True
 
         if website:
             valid_website = validators.validate_url(website)
         else:
             valid_website = True
-
-        if affiliation:
-            valid_affiliation = len(affiliation) < 128
-        else:
-            valid_affiliation = True
 
         if not valid_email:
             errors.append("Please enter a valid email address")
@@ -267,8 +278,10 @@ def register():
             errors.append("Invalid country")
         if valid_school is False:
             errors.append("Invalid school")
-        if valid_affiliation is False:
-            errors.append("Please provide a shorter affiliation")
+        if valid_cursus is False:
+            errors.append("Invalid cursus")
+        if valid_specialisation is False:
+            errors.append("Invalid specialisation")
 
         if len(errors) > 0:
             return render_template(
@@ -284,12 +297,14 @@ def register():
 
                 if website:
                     user.website = website
-                if affiliation:
-                    user.affiliation = affiliation
                 if country:
                     user.country = country
                 if school:
                     user.school = school
+                if cursus:
+                    user.cursus = cursus
+                if specialisation:
+                    user.specialisation = specialisation
 
                 db.session.add(user)
                 db.session.commit()

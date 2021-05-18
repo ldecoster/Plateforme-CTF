@@ -48,9 +48,10 @@
 					<tr>
 						<td><b>User</b></td>
 						<td><b>Website</b></td>
-						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Affiliation</b></td>
 						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Country</b></td>
 						<td class="d-none d-md-table-cell d-lg-table-cell"><b>School</b></td>
+						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Cursus</b></td>
+						<td class="d-none d-md-table-cell d-lg-table-cell"><b>Specialisation</b></td>
 					</tr>
 					</thead>
 					<tbody>
@@ -69,20 +70,7 @@
 									</a>
 								{% endif %}
 							</td>
-							<td class="d-none d-md-table-cell d-lg-table-cell">
-								{% if user.affiliation %}
-									{% if user.affiliation | length > 50 %}
-										<span data-toggle="tooltip" data-placement="top" title="{{ user.affiliation }}">
-									{% if user.affiliation %}{{ user.affiliation | truncate(50) }}{% endif %}
-								</span>
-									{% else %}
-										<span>
-									{% if user.affiliation %}{{ user.affiliation | truncate(50) }}{% endif %}
-								</span>
-									{% endif %}
-								{% endif %}
-							</td>
-							<td class="d-none d-md-table-cell d-lg-table-cell">
+                            <td class="d-none d-md-table-cell d-lg-table-cell">
 								<span>
 									{% if user.country %}
 										<i class="flag-{{ user.country.lower() }}"></i>
@@ -94,6 +82,20 @@
 								<span>
 									{% if user.school %}
                                         <span class="d-block text-muted"><small>{{ lookup_school_code(user.school) }}</small></span>
+								    {% endif %}
+								</span>
+							</td>
+							<td class="d-none d-md-table-cell d-lg-table-cell">
+								<span>
+									{% if user.cursus %}
+                                        <span class="d-block text-muted"><small>{{ lookup_cursus_code(user.cursus) }}</small></span>
+								    {% endif %}
+								</span>
+							</td>
+							<td class="d-none d-md-table-cell d-lg-table-cell">
+								<span>
+									{% if user.specialisation %}
+                                        <span class="d-block text-muted"><small>{{ lookup_specialisation_code(user.specialisation) }}</small></span>
 								    {% endif %}
 								</span>
 							</td>

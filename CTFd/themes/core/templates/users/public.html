@@ -8,12 +8,6 @@
 		<div class="container">
 			<h1>{{ user.name }}</h1>
 
-			{% if user.affiliation %}
-				<h3 class="d-inline-block">
-					<span class="badge badge-primary">{{ user.affiliation }}</span>
-				</h3>
-			{% endif %}
-
 			{% if user.country %}
 				<h3 class="d-inline-block">
 					<span class="badge badge-primary">
@@ -26,6 +20,16 @@
 			{% if user.school %}
 				<h3 class="d-inline-block">
 					<span class="badge badge-primary">{{ lookup_school_code(user.school) }}</span>
+				</h3>
+			{% endif %}
+			{% if user.cursus %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_cursus_code(user.cursus) }}</span>
+				</h3>
+			{% endif %}
+			{% if user.specialisation %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_specialisation_code(user.specialisation) }}</span>
 				</h3>
 			{% endif %}
 
