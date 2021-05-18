@@ -826,7 +826,6 @@ def settings():
     name = user.name
     email = user.email
     website = user.website
-    affiliation = user.affiliation
     country = user.country
     school = user.school
     cursus = user.cursus
@@ -851,7 +850,6 @@ def settings():
         name=name,
         email=email,
         website=website,
-        affiliation=affiliation,
         country=country,
         school=school,
         cursus=cursus,

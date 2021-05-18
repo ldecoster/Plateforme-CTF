@@ -137,10 +137,6 @@ def gen_ip():
     return fake.ipv4()
 
 
-def gen_affiliation():
-    return (fake.word() + " " + random.choice(companies)).title()
-
-
 def random_date(start, end):
     return start + datetime.timedelta(
         seconds=random.randint(0, int((end - start).total_seconds()))
@@ -191,8 +187,6 @@ if __name__ == "__main__":
                         user.specialisation = gen_specialisation_HEI()
 
                     user.verified = True
-                    if random_chance():
-                        user.affiliation = gen_affiliation()
                     db.session.add(user)
                     db.session.flush()
 

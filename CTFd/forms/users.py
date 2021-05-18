@@ -17,7 +17,7 @@ def build_custom_user_fields(
     include_entries=False,
     fields_kwargs=None,
     field_entries_kwargs=None,
-    blacklisted_items=("affiliation", "website"),
+    blacklisted_items=("website"),
 ):
     """
     Function used to reinject values back into forms for accessing by themes
@@ -90,7 +90,6 @@ class UserSearchForm(BaseForm):
             ("name", "Name"),
             ("id", "ID"),
             ("email", "Email"),
-            ("affiliation", "Affiliation"),
             ("website", "Website"),
             ("ip", "IP Address"),
         ],
@@ -106,7 +105,6 @@ class PublicUserSearchForm(BaseForm):
         "Search Field",
         choices=[
             ("name", "Name"),
-            ("affiliation", "Affiliation"),
             ("website", "Website"),
         ],
         default="name",
@@ -121,7 +119,6 @@ class UserBaseFormFull(BaseForm):
     email = EmailField("Email", validators=[InputRequired()])
     password = PasswordField("Password")
     website = StringField("Website")
-    affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
     school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
     cursus = SelectField("Cursus", choices=SELECT_CURSUS_LIST)
@@ -140,7 +137,6 @@ class UserBaseFormPartial(BaseForm):
     email = EmailField("Email", validators=[InputRequired()])
     password = PasswordField("Password")
     website = StringField("Website")
-    affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
     school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
     cursus = SelectField("Cursus", choices=SELECT_CURSUS_LIST)

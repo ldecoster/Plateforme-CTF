@@ -267,7 +267,6 @@ class Users(db.Model):
 
     # Supplementary attributes
     website = db.Column(db.String(128))
-    affiliation = db.Column(db.String(128))
     country = db.Column(db.String(32))
     school = db.Column(db.String(32))
     cursus = db.Column(db.String(128))

@@ -175,7 +175,6 @@ def register():
         password = request.form.get("password", "").strip()
 
         website = request.form.get("website")
-        affiliation = request.form.get("affiliation")
         country = request.form.get("country")
         school = request.form.get("school")
         cursus = request.form.get("cursus")
@@ -205,10 +204,7 @@ def register():
                 break
 
             # Handle special casing of existing profile fields
-            if field.name.lower() == "affiliation":
-                affiliation = value
-                break
-            elif field.name.lower() == "website":
+            if field.name.lower() == "website":
                 website = value
                 break
 
@@ -258,11 +254,6 @@ def register():
         else:
             valid_website = True
 
-        if affiliation:
-            valid_affiliation = len(affiliation) < 128
-        else:
-            valid_affiliation = True
-
         if not valid_email:
             errors.append("Please enter a valid email address")
         if email.check_email_is_whitelisted(email_address) is False:
@@ -291,8 +282,6 @@ def register():
             errors.append("Invalid cursus")
         if valid_specialisation is False:
             errors.append("Invalid specialisation")
-        if valid_affiliation is False:
-            errors.append("Please provide a shorter affiliation")
 
         if len(errors) > 0:
             return render_template(
@@ -308,8 +297,6 @@ def register():
 
                 if website:
                     user.website = website
-                if affiliation:
-                    user.affiliation = affiliation
                 if country:
                     user.country = country
                 if school:

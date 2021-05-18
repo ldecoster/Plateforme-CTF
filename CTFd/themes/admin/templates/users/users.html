@@ -105,9 +105,6 @@
 									   title="{{ user.website }}" aria-hidden="true"></i>
 								</a>
 							{% endif %}
-							{% if user.affiliation %}
-								<span class="d-block text-muted"><small>{{ user.affiliation | truncate(20) }}</small></span>
-							{% endif %}
 						</td>
 						<td class="d-none d-md-table-cell d-lg-table-cell" value="{{ user.email }}">
 							{% if user.email %}

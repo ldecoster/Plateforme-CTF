@@ -17,7 +17,6 @@ def SettingsForm(*args, **kwargs):
         email = StringField("Email")
         password = PasswordField("Password")
         confirm = PasswordField("Current Password")
-        affiliation = StringField("Affiliation")
         website = URLField("Website")
         country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
         school = SelectField("School", choices=SELECT_SCHOOLS_LIST)

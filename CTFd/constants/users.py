@@ -9,7 +9,6 @@ UserAttrs = namedtuple(
         "type",
         "secret",
         "website",
-        "affiliation",
         "country",
         "school",
         "cursus",
