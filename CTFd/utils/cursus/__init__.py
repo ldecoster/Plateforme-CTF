@@ -8,7 +8,7 @@ CURSUS_LIST = [
     ("CNB", "Cycle Numérique et Biologique"),
     ("CENT", "Cycle Économie Numérique et Technologies"),
     ("EST", "Cycle Environnement, Science et Technologies"),
-    ("BIAST", "Cycle Biologie ,Agronomie,Sciences et Technologies"),
+    ("BIAST", "Cycle Biologie, Agronomie, Sciences et Technologies"),
     ("CPII", "Cycle Préparatoire intégré ISA"),
     ("ADI", "Adimaker"),
     ("CPI", "Cycle Préparatoire International"),

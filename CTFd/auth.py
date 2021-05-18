@@ -251,7 +251,7 @@ def register():
             except ValidationError:
                 valid_specialisation = False
         else:
-            valid_cursus = True
+            valid_specialisation = True
 
         if website:
             valid_website = validators.validate_url(website)
