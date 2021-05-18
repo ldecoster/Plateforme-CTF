@@ -9,7 +9,7 @@ from CTFd.utils.countries import SELECT_COUNTRIES_LIST
 from CTFd.utils.schools import SELECT_SCHOOLS_LIST
 from CTFd.utils.specialisations import SELECT_SPECIALISATIONS_LIST
 from CTFd.utils.cursus import SELECT_CURSUS_LIST
-from CTFd.utils.user import is_admin, is_teacher
+from CTFd.utils.user import has_right
 
 
 def build_custom_user_fields(
@@ -116,7 +116,7 @@ class PublicUserSearchForm(BaseForm):
     submit = SubmitField("Search")
 
 
-class UserBaseFormAdmin(BaseForm):
+class UserBaseFormFull(BaseForm):
     name = StringField("User Name", validators=[InputRequired()])
     email = EmailField("Email", validators=[InputRequired()])
     password = PasswordField("Password")
@@ -135,7 +135,7 @@ class UserBaseFormAdmin(BaseForm):
     submit = SubmitField("Submit")
 
 
-class UserBaseFormTeacher(BaseForm):
+class UserBaseFormPartial(BaseForm):
     name = StringField("User Name", validators=[InputRequired()])
     email = EmailField("Email", validators=[InputRequired()])
     password = PasswordField("Password")
@@ -153,8 +153,8 @@ class UserBaseFormTeacher(BaseForm):
 
 
 def UserEditForm(*args, **kwargs):
-    if is_admin():
-        class _UserEditForm(UserBaseFormAdmin):
+    if has_right("forms_user_edit_form_full"):
+        class _UserEditForm(UserBaseFormFull):
             pass
 
             @property
@@ -174,8 +174,8 @@ def UserEditForm(*args, **kwargs):
                 obj = kwargs.get("obj")
                 if obj:
                     self.obj = obj
-    elif is_teacher():
-        class _UserEditForm(UserBaseFormTeacher):
+    elif has_right("forms_user_edit_form_partial"):
+        class _UserEditForm(UserBaseFormPartial):
             pass
 
             @property
@@ -202,15 +202,15 @@ def UserEditForm(*args, **kwargs):
 
 
 def UserCreateForm(*args, **kwargs):
-    if is_admin():
-        class _UserCreateForm(UserBaseFormAdmin):
+    if has_right("forms_user_create_form_full"):
+        class _UserCreateForm(UserBaseFormFull):
             notify = BooleanField("Email account credentials to user", default=True)
 
             @property
             def extra(self):
                 return build_custom_user_fields(self, include_entries=False)
-    elif is_teacher():
-        class _UserCreateForm(UserBaseFormTeacher):
+    elif has_right("forms_user_create_form_partial"):
+        class _UserCreateForm(UserBaseFormPartial):
             notify = BooleanField("Email account credentials to user", default=True)
 
             @property

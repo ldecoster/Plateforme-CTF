@@ -11,7 +11,7 @@ from CTFd.api.v1.schemas import (
 from CTFd.constants import RawEnum
 from CTFd.models import Submissions, db
 from CTFd.schemas.submissions import SubmissionSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 submissions_namespace = Namespace(
@@ -41,7 +41,7 @@ submissions_namespace.schema_model(
 
 @submissions_namespace.route("")
 class SubmissionsList(Resource):
-    @admins_only
+    @access_granted_only("api_submissions_list_get")
     @submissions_namespace.doc(
         description="Endpoint to get submission objects in bulk",
         responses={
@@ -110,7 +110,7 @@ class SubmissionsList(Resource):
             "data": response.data,
         }
 
-    @admins_only
+    @access_granted_only("api_submissions_list_post")
     @submissions_namespace.doc(
         description="Endpoint to create a submission object. Users should interact with the attempt endpoint to submit flags.",
         responses={
@@ -142,7 +142,7 @@ class SubmissionsList(Resource):
 @submissions_namespace.route("/<submission_id>")
 @submissions_namespace.param("submission_id", "A Submission ID")
 class Submission(Resource):
-    @admins_only
+    @access_granted_only("api_submission_get")
     @submissions_namespace.doc(
         description="Endpoint to get submission objects in bulk",
         responses={
@@ -163,7 +163,7 @@ class Submission(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_submission_delete")
     @submissions_namespace.doc(
         description="Endpoint to get submission objects in bulk",
         responses={

@@ -15,9 +15,9 @@ from CTFd.models import (
     db,
 )
 from CTFd.schemas.comments import CommentSchema
-from CTFd.utils.decorators import admins_only,contributors_teachers_admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_teacher
+from CTFd.utils.user import has_right_or_is_author
 
 comments_namespace = Namespace("comments", description="Endpoint to retrieve Comments")
 
@@ -57,7 +57,7 @@ def get_comment_model(data):
 
 @comments_namespace.route("")
 class CommentList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_comment_list_get")
     @comments_namespace.doc(
         description="Endpoint to list Comment objects in bulk",
         responses={
@@ -111,7 +111,7 @@ class CommentList(Resource):
             "data": response.data,
         }
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_comment_list_post")
     @comments_namespace.doc(
         description="Endpoint to create a Comment object",
         responses={
@@ -142,18 +142,16 @@ class CommentList(Resource):
 
 @comments_namespace.route("/<comment_id>")
 class Comment(Resource):
-    @contributors_teachers_admins_only
     @comments_namespace.doc(
         description="Endpoint to delete a specific Comment object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, comment_id):
-        author_id = session["id"]
-        if is_admin() or is_teacher() or (is_contributor() and self.author_id==author_id):
-            comment = Comments.query.filter_by(id=comment_id).first_or_404()
+        comment = Comments.query.filter_by(id=comment_id).first_or_404()
+        if has_right_or_is_author("api_comment_delete", comment.author_id):
             db.session.delete(comment)
             db.session.commit()
             db.session.close()
 
             return {"success": True}
-        return {"success":False}
+        return {"success": False}

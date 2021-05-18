@@ -2,13 +2,14 @@ from typing import List
 
 from flask import abort, render_template, request, url_for
 from flask_restx import Namespace, Resource
-from sqlalchemy.sql import and_
+from sqlalchemy import func as sa_func
+from sqlalchemy.sql import and_, false
 
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import ChallengeFiles as ChallengeFilesModel, Votes
+from CTFd.models import ChallengeFiles as ChallengeFilesModel
 from CTFd.models import (
     Challenges,
     Fails,
@@ -19,12 +20,14 @@ from CTFd.models import (
     Submissions,
     Tags,
     TagChallenge,
+    Users,
+    Votes,
     db,
 )
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
+from CTFd.schemas.challenges import ChallengeSchema
 from CTFd.schemas.flags import FlagSchema
 from CTFd.schemas.hints import HintSchema
-from CTFd.schemas.votes import VoteSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config
 from CTFd.utils import user as current_user
@@ -35,7 +38,7 @@ from CTFd.utils.config.visibility import (
 )
 from CTFd.utils.dates import ctf_paused, isoformat
 from CTFd.utils.decorators import (
-    contributors_teachers_admins_only,
+    access_granted_only,
     require_verified_emails,
 )
 from CTFd.utils.decorators.visibility import check_challenge_visibility
@@ -43,7 +46,12 @@ from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.logging import log
 from CTFd.utils.modes import generate_account_url, get_model
 from CTFd.utils.security.signing import serialize
-from CTFd.utils.user import authed, get_current_user, is_admin, is_contributor, is_teacher
+from CTFd.utils.user import (
+    authed,
+    get_current_user,
+    has_right,
+    has_right_or_is_author
+)
 from flask import session
 
 challenges_namespace = Namespace(
@@ -71,6 +79,45 @@ challenges_namespace.schema_model(
 )
 
 
+def _build_solves_query(extra_filters=(), admin_view=False):
+    """Returns queries and data that that are used for showing an account's solves.
+    It returns a tuple of
+        - SQLAlchemy query with (challenge_id, solve_count_for_challenge_id)
+        - Current user's solved challenge IDs
+    """
+    # This can return None (unauth) if visibility is set to public
+    user = get_current_user()
+    # We only set a condition for matching user solves if there is a user and
+    # they have an account ID (user mode or in a team in teams mode)
+    AccountModel = get_model()
+    if user is not None and user.account_id is not None:
+        user_solved_cond = Solves.account_id == user.account_id
+    else:
+        user_solved_cond = false()
+    # Finally, we never count solves made by hidden or banned users, even
+    # if we are an admin. This is to match the challenge detail API.
+    exclude_solves_cond = and_(
+        AccountModel.banned == false(), AccountModel.hidden == false(),
+    )
+    # This query counts the number of solves per challenge, as well as the sum
+    # of correct solves made by the current user per the condition above (which
+    # should probably only be 0 or 1!)
+    solves_q = (
+        db.session.query(Solves.challenge_id, sa_func.count(Solves.challenge_id),)
+        .join(AccountModel)
+        .filter(*extra_filters, exclude_solves_cond)
+        .group_by(Solves.challenge_id)
+    )
+    # Also gather the user's solve items which can be different from above query
+    # Even if we are a hidden user, we should see that we have solved the challenge
+    # But as a hidden user we are not included in the count
+    solve_ids = (
+        Solves.query.with_entities(Solves.challenge_id).filter(user_solved_cond).all()
+    )
+    solve_ids = {value for value, in solve_ids}
+    return solves_q, solve_ids
+
+
 @challenges_namespace.route("")
 class ChallengeList(Resource):
     @check_challenge_visibility
@@ -93,7 +140,7 @@ class ChallengeList(Resource):
             "type": (str, None),
             "state": (str, None),
             "q": (str, None),
-            "author_id":(str,None),
+            "author_id": (str, None),
             "field": (
                 RawEnum(
                     "ChallengeFields",
@@ -102,7 +149,7 @@ class ChallengeList(Resource):
                         "description": "description",
                         "type": "type",
                         "state": "state",
-                        "author_id":"author_id",
+                        "author_id": "author_id",
                     },
                 ),
                 None,
@@ -116,50 +163,52 @@ class ChallengeList(Resource):
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=Challenges, query=q, field=field)
 
-        # This can return None (unauth) if visibility is set to public
-        user = get_current_user()
+        # Admins get a shortcut to see all challenges despite pre-requisites
+        admin_view = access_granted_only("api_challenge_list_get_full") and request.args.get("view") == "admin"
 
-        # Admins can request to see everything
-        if is_admin() and request.args.get("view") == "admin":
-            challenges = (
-                Challenges.query.filter_by(**query_args)
-                .filter(*filters)
-                .all()
-            )
-            solve_ids = set([challenge.id for challenge in challenges])
+        solve_counts = {}
+        # Build a query for to show challenge solve information. We only
+        # give an admin view if the request argument has been provided.
+        #
+        # NOTE: This is different behaviour to the challenge detail
+        # endpoint which only needs the current user to be an admin rather
+        # than also also having to provide `view=admin` as a query arg.
+        solves_q, user_solves = _build_solves_query(admin_view=admin_view)
+        # Aggregate the query results into the hashes defined at the top of
+        # this block for later use
+        for chal_id, solve_count in solves_q:
+            solve_counts[chal_id] = solve_count
+        if accounts_visible():
+            solve_count_dfl = 0
         else:
-            challenges = (
-                Challenges.query.filter(
-                    and_(Challenges.state != "hidden", Challenges.state != "locked", Challenges.state != "voting")
-                )
-                .filter_by(**query_args)
-                .filter(*filters)
-                .all()
+            # Empty out the solves_count if we're hiding scores/accounts
+            solve_counts = {}
+            # This is necessary to match the challenge detail API which returns
+            # `None` for the solve count if visibility checks fail
+            solve_count_dfl = None
+
+            # Build the query for the challenges which may be listed
+        chal_q = Challenges.query
+        # Admins can see hidden and locked challenges in the admin view
+        if admin_view is False:
+            chal_q = chal_q.filter(
+                and_(Challenges.state != "hidden", Challenges.state != "locked")
             )
+        chal_q = (
+            chal_q.filter_by(**query_args).filter(*filters)
+        )
 
-            if user:
-                solve_ids = (
-                    Solves.query.with_entities(Solves.challenge_id)
-                    .filter_by(account_id=user.account_id)
-                    .order_by(Solves.challenge_id.asc())
-                    .all()
-                )
-                solve_ids = set([value for value, in solve_ids])
-
-                # TODO: Convert this into a re-useable decorator
-                if is_admin():
-                    pass
-            else:
-                solve_ids = set()
-
+        # Iterate through the list of challenges, adding to the object which
+        # will be JSONified back to the client
         response = []
         tag_schema = TagSchema(view="user", many=True)
-        for challenge in challenges:
+        for challenge in chal_q:
+            user = Users.query.filter_by(id=challenge.author_id).first();
             if challenge.requirements:
                 requirements = challenge.requirements.get("prerequisites", [])
                 anonymize = challenge.requirements.get("anonymize")
                 prereqs = set(requirements)
-                if solve_ids >= prereqs:
+                if user_solves >= prereqs:
                     pass
                 else:
                     if anonymize:
@@ -168,8 +217,10 @@ class ChallengeList(Resource):
                                 "id": challenge.id,
                                 "type": "hidden",
                                 "name": "???",
+                                "solves": None,
+                                "solved_by_me": False,
                                 "tags": [],
-                                "authorId": "",
+                                "author_name": "",
                                 "template": "",
                                 "script": "",
                             }
@@ -189,8 +240,10 @@ class ChallengeList(Resource):
                     "id": challenge.id,
                     "type": challenge_type.name,
                     "name": challenge.name,
+                    "solves": solve_counts.get(challenge.id, solve_count_dfl),
+                    "solved_by_me": challenge.id in user_solves,
                     "tags": tag_schema.dump(challenge.tags).data,
-                    "authorId": challenge.author_id,
+                    "author_name": user.name,
                     "template": challenge_type.templates["view"],
                     "script": challenge_type.scripts["view"],
                 }
@@ -199,7 +252,7 @@ class ChallengeList(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_list_post")
     @challenges_namespace.doc(
         description="Endpoint to create a Challenge object",
         responses={
@@ -212,6 +265,13 @@ class ChallengeList(Resource):
     )
     def post(self):
         data = request.form or request.get_json()
+
+        # Load data through schema for validation but not for insertion
+        schema = ChallengeSchema()
+        response = schema.load(data)
+        if response.errors:
+            return {"success": False, "errors": response.errors}, 400
+
         challenge_type = data["type"]
         data["author_id"] = session["id"]
         challenge_class = get_chal_class(challenge_type)
@@ -222,7 +282,7 @@ class ChallengeList(Resource):
 
 @challenges_namespace.route("/types")
 class ChallengeTypes(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_types_get")
     def get(self):
         response = {}
 
@@ -255,7 +315,7 @@ class Challenge(Resource):
         },
     )
     def get(self, challenge_id):
-        if is_admin():
+        if access_granted_only("api_challenge_get_not_hidden"):
             chal = Challenges.query.filter(Challenges.id == challenge_id).first_or_404()
         else:
             chal = Challenges.query.filter(
@@ -286,9 +346,9 @@ class Challenge(Resource):
                 else:
                     # We need to handle the case where a user is viewing challenges anonymously
                     solve_ids = []
-                solve_ids = set([value for value, in solve_ids])
+                solve_ids = {value for value, in solve_ids}
                 prereqs = set(requirements)
-                if solve_ids >= prereqs or is_admin():
+                if solve_ids >= prereqs or access_granted_only("api_challenge_get"):
                     pass
                 else:
                     if anonymize:
@@ -298,8 +358,10 @@ class Challenge(Resource):
                                 "id": chal.id,
                                 "type": "hidden",
                                 "name": "???",
+                                "solves": None,
+                                "solved_by_me": False,
                                 "tags": [],
-                                "authorId": "",
+                                "author_name": "",
                                 "template": "",
                                 "script": "",
                             },
@@ -317,18 +379,12 @@ class Challenge(Resource):
         if authed():
             user = get_current_user()
 
-            # TODO: Convert this into a re-useable decorator
-            if is_admin():
-                pass
-
-            unlocked_hints = set(
-                [
-                    u.target
-                    for u in HintUnlocks.query.filter_by(
-                        type="hints", account_id=user.account_id
-                    )
-                ]
-            )
+            unlocked_hints = {
+                u.target
+                for u in HintUnlocks.query.filter_by(
+                    type="hints", account_id=user.account_id
+                )
+            }
             files = []
             for f in chal.files:
                 token = {
@@ -351,20 +407,20 @@ class Challenge(Resource):
 
         response = chal_class.read(challenge=chal)
 
-        Model = get_model()
-
-        if accounts_visible() is True:
-            solves = Solves.query.join(Model, Solves.account_id == Model.id).filter(
-                Solves.challenge_id == chal.id,
-                Model.banned == False,
-                Model.hidden == False,
-            )
-
-            solves = solves.count()
-            response["solves"] = solves
+        solves_q, user_solves = _build_solves_query(
+            admin_view=has_right("api_challenge_get"), extra_filters=(Solves.challenge_id == chal.id,)
+        )
+        # If there are no solves for this challenge ID then we have 0 rows
+        maybe_row = solves_q.first()
+        if maybe_row:
+            challenge_id, solve_count = maybe_row
+            solved_by_user = challenge_id in user_solves
         else:
-            response["solves"] = None
-            solves = None
+            solve_count, solved_by_user = 0, False
+
+        # Hide solve counts if we are hiding solves/accounts
+        if accounts_visible() is False:
+            solve_count = None
 
         if authed():
             # Get current attempts for the user
@@ -374,6 +430,8 @@ class Challenge(Resource):
         else:
             attempts = 0
 
+        response["solves"] = solve_count
+        response["solved_by_me"] = solved_by_user
         response["attempts"] = attempts
         response["files"] = files
         response["tags"] = tags
@@ -381,7 +439,8 @@ class Challenge(Resource):
 
         response["view"] = render_template(
             chal_class.templates["view"].lstrip("/"),
-            solves=solves,
+            solves=solve_count,
+            solved_by_me=solved_by_user,
             files=files,
             tags=tags,
             hints=[Hints(**h) for h in hints],
@@ -393,7 +452,7 @@ class Challenge(Resource):
         db.session.close()
         return {"success": True, "data": response}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_patch")
     @challenges_namespace.doc(
         description="Endpoint to edit a specific Challenge object",
         responses={
@@ -405,7 +464,14 @@ class Challenge(Resource):
         },
     )
     def patch(self, challenge_id):
-        author_id = session["id"]
+        data = request.get_json()
+
+        # Load data through schema for validation but not for insertion
+        schema = ChallengeSchema()
+        response = schema.load(data)
+        if response.errors:
+            return {"success": False, "errors": response.errors}, 40
+
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         data = request.form or request.get_json()
         challenge_new_state = None
@@ -416,12 +482,12 @@ class Challenge(Resource):
             if challenge_new_state != "visible" and challenge_new_state != "voting" and challenge_new_state != "hidden":
                 return {"success": False}
 
-        if is_admin() or is_teacher():
+        if has_right("api_challenge_patch_full"):
             challenge_class = get_chal_class(challenge.type)
             challenge = challenge_class.update(challenge, request)
             response = challenge_class.read(challenge)
             return {"success": True, "data": response}
-        elif is_contributor() and challenge.author_id == author_id:
+        elif has_right_or_is_author("api_challenge_patch_partial", challenge.author_id):
             challenge_class = get_chal_class(challenge.type)
 
             # Check the number of votes before changing the state of the challenge
@@ -438,15 +504,13 @@ class Challenge(Resource):
             return {"success": True, "data": response}
         return {"success": False}
 
-    @contributors_teachers_admins_only
     @challenges_namespace.doc(
         description="Endpoint to delete a specific Challenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, challenge_id):
-        author_id = session["id"]
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==author_id):
+        if has_right_or_is_author("api_challenge_delete", challenge.author_id):
             chal_class = get_chal_class(challenge.type)
             chal_class.delete(challenge)
 
@@ -469,7 +533,7 @@ class ChallengeAttempt(Resource):
 
         challenge_id = request_data.get("challenge_id")
 
-        if current_user.is_admin():
+        if current_user.has_right("api_challenge_attempt_post_full"):
             preview = request.args.get("preview", False)
             if preview:
                 challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
@@ -518,7 +582,7 @@ class ChallengeAttempt(Resource):
                 .order_by(Solves.challenge_id.asc())
                 .all()
             )
-            solve_ids = set([solve_id for solve_id, in solve_ids])
+            solve_ids = {solve_id for solve_id, in solve_ids}
             prereqs = set(requirements)
             if solve_ids >= prereqs:
                 pass
@@ -536,6 +600,7 @@ class ChallengeAttempt(Resource):
             log(
                 "submissions",
                 "[{date}] {name} submitted {submission} on {challenge_id} with kpm {kpm} [TOO FAST]",
+                name=user.name,
                 submission=request_data.get("submission", "").encode("utf-8"),
                 challenge_id=challenge_id,
                 kpm=kpm,
@@ -581,6 +646,7 @@ class ChallengeAttempt(Resource):
                 log(
                     "submissions",
                     "[{date}] {name} submitted {submission} on {challenge_id} with kpm {kpm} [CORRECT]",
+                    name=user.name,
                     submission=request_data.get("submission", "").encode("utf-8"),
                     challenge_id=challenge_id,
                     kpm=kpm,
@@ -597,6 +663,7 @@ class ChallengeAttempt(Resource):
                 log(
                     "submissions",
                     "[{date}] {name} submitted {submission} on {challenge_id} with kpm {kpm} [WRONG]",
+                    name=user.name,
                     submission=request_data.get("submission", "").encode("utf-8"),
                     challenge_id=challenge_id,
                     kpm=kpm,
@@ -631,6 +698,7 @@ class ChallengeAttempt(Resource):
             log(
                 "submissions",
                 "[{date}] {name} submitted {submission} on {challenge_id} with kpm {kpm} [ALREADY SOLVED]",
+                name=user.name,
                 submission=request_data.get("submission", "").encode("utf-8"),
                 challenge_id=challenge_id,
                 kpm=kpm,
@@ -653,7 +721,7 @@ class ChallengeSolves(Resource):
 
         # TODO: Need a generic challenge visibility call.
         # However, it should be stated that a solve on a gated challenge is not considered private.
-        if challenge.state == "hidden" and is_admin() is False:
+        if challenge.state == "hidden" and access_granted_only("api_challenge_solves_get") is False:
             abort(404)
 
         Model = get_model()
@@ -683,7 +751,7 @@ class ChallengeSolves(Resource):
 
 @challenges_namespace.route("/<challenge_id>/files")
 class ChallengeFiles(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_files_get")
     def get(self, challenge_id):
         response = []
         challenge_files = ChallengeFilesModel.query.filter_by(
@@ -697,7 +765,7 @@ class ChallengeFiles(Resource):
 
 @challenges_namespace.route("/<challenge_id>/tags")
 class ChallengeTags(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_tags_get")
     def get(self, challenge_id):
         response = []
         tags = []
@@ -716,7 +784,7 @@ class ChallengeTags(Resource):
 
 @challenges_namespace.route("/<challenge_id>/hints")
 class ChallengeHints(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_hints_get")
     def get(self, challenge_id):
         hints = Hints.query.filter_by(challenge_id=challenge_id).all()
         schema = HintSchema(many=True)
@@ -730,7 +798,7 @@ class ChallengeHints(Resource):
 
 @challenges_namespace.route("/<challenge_id>/votes")
 class ChallengeVotes(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_votes_get")
     def get(self, challenge_id):
         response_votes = []
         response_message = "Add vote"
@@ -749,7 +817,7 @@ class ChallengeVotes(Resource):
 
         for v in votes:
             # An admin or the voter can edit or delete the vote
-            if challenge.state == "voting" and (is_admin() or session["id"] == v.user_id):
+            if challenge.state == "voting" and (access_granted_only("api_challenge_votes_get_edit_vote") or session["id"] == v.user_id):
                 response_votes.append(
                     {
                         "id": v.id,
@@ -777,7 +845,7 @@ class ChallengeVotes(Resource):
 
 @challenges_namespace.route("/<challenge_id>/flags")
 class ChallengeFlags(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_flags_get")
     def get(self, challenge_id):
         flags = Flags.query.filter_by(challenge_id=challenge_id).all()
         schema = FlagSchema(many=True)
@@ -791,7 +859,7 @@ class ChallengeFlags(Resource):
 
 @challenges_namespace.route("/<challenge_id>/requirements")
 class ChallengeRequirements(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_challenge_requirements_get")
     def get(self, challenge_id):
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
         return {"success": True, "data": challenge.requirements}

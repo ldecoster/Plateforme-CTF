@@ -9,6 +9,7 @@ from wtforms import (
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import InputRequired
 
+from CTFd.constants.themes import DEFAULT_THEME
 from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.utils.config import get_themes
@@ -51,7 +52,7 @@ class SetupForm(BaseForm):
         "Theme",
         description="CTFd Theme to use",
         choices=list(zip(get_themes(), get_themes())),
-        default="core",
+        default=DEFAULT_THEME,
         validators=[InputRequired()],
     )
     theme_color = HiddenField(

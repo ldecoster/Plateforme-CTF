@@ -10,9 +10,9 @@ from CTFd.constants import RawEnum
 from CTFd.models import Challenges, Files, db
 from CTFd.schemas.files import FileSchema
 from CTFd.utils import uploads
-from CTFd.utils.decorators import admins_only,contributors_teachers_admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_teacher
+from CTFd.utils.user import has_right_or_is_author
 
 files_namespace = Namespace("files", description="Endpoint to retrieve Files")
 
@@ -38,7 +38,7 @@ files_namespace.schema_model(
 
 @files_namespace.route("")
 class FilesList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_files_list_get")
     @files_namespace.doc(
         description="Endpoint to get file objects in bulk",
         responses={
@@ -75,7 +75,7 @@ class FilesList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_files_list_post")
     @files_namespace.doc(
         description="Endpoint to get file objects in bulk",
         responses={
@@ -108,7 +108,7 @@ class FilesList(Resource):
 
 @files_namespace.route("/<file_id>")
 class FilesDetail(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_files_detail_get")
     @files_namespace.doc(
         description="Endpoint to get a specific file object",
         responses={
@@ -122,7 +122,7 @@ class FilesDetail(Resource):
     def get(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
         challenge = Challenges.query.filter_by(id=f.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        if has_right_or_is_author("api_files_detail_get", challenge.author_id):
             schema = FileSchema()
             response = schema.dump(f)
 
@@ -130,9 +130,9 @@ class FilesDetail(Resource):
                 return {"success": False, "errors": response.errors}, 400
 
             return {"success": True, "data": response.data}
-        return {"success":False}
+        return {"success": False}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_files_detail_delete")
     @files_namespace.doc(
         description="Endpoint to delete a file object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -140,11 +140,11 @@ class FilesDetail(Resource):
     def delete(self, file_id):
         f = Files.query.filter_by(id=file_id).first_or_404()
         challenge = Challenges.query.filter_by(id=f.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        if has_right_or_is_author("api_files_detail_delete", challenge.author_id):
             uploads.delete_file(file_id=f.id)
             db.session.delete(f)
             db.session.commit()
             db.session.close()
 
             return {"success": True}
-        return {"success":False}
+        return {"success": False}

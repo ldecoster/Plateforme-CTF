@@ -9,10 +9,9 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Challenges, Hints, db
 from CTFd.schemas.hints import HintSchema
-from CTFd.utils.decorators import contributors_teachers_admins_only, authed_only
+from CTFd.utils.decorators import access_granted_only, authed_only
 from CTFd.utils.helpers.models import build_model_filters
-from CTFd.utils.user import is_admin, is_contributor, is_teacher
-from flask import session
+from CTFd.utils.user import has_right_or_is_author
 
 hints_namespace = Namespace("hints", description="Endpoint to retrieve Hints")
 
@@ -38,7 +37,7 @@ hints_namespace.schema_model(
 
 @hints_namespace.route("")
 class HintList(Resource):
-    @contributors_teachers_admins_only
+    @access_granted_only("api_hint_list_get")
     @hints_namespace.doc(
         description="Endpoint to list Hint objects in bulk",
         responses={
@@ -75,7 +74,7 @@ class HintList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_hint_list_post")
     @hints_namespace.doc(
         description="Endpoint to create a Hint object",
         responses={
@@ -94,14 +93,16 @@ class HintList(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
+        challenge = Challenges.query.filter_by(id=response.data.challenge_id).first_or_404()
         db.session.add(response.data)
-        if is_admin() or is_teacher() or (is_contributor() and response.data.challenge.author_id == session["id"]):
+
+        if has_right_or_is_author("api_hint_list_post", challenge.author_id):
             db.session.commit()
 
             response = schema.dump(response.data)
 
             return {"success": True, "data": response.data}
-        return {"success":False}
+        return {"success": False}
 
 
 @hints_namespace.route("/<hint_id>")
@@ -127,7 +128,7 @@ class Hint(Resource):
 
         return {"success": True, "data": response.data}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_hint_patch")
     @hints_namespace.doc(
         description="Endpoint to edit a specific Hint object",
         responses={
@@ -141,7 +142,7 @@ class Hint(Resource):
     def patch(self, hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
         challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        if has_right_or_is_author("api_hint_patch", challenge.author_id):
             req = request.get_json()
 
             schema = HintSchema(view="admin")
@@ -156,9 +157,9 @@ class Hint(Resource):
             response = schema.dump(response.data)
 
             return {"success": True, "data": response.data}
-        return {"success":False}
+        return {"success": False}
 
-    @contributors_teachers_admins_only
+    @access_granted_only("api_hint_delete")
     @hints_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -166,7 +167,7 @@ class Hint(Resource):
     def delete(self, hint_id):
         hint = Hints.query.filter_by(id=hint_id).first_or_404()
         challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
-        if is_admin() or is_teacher() or (is_contributor() and challenge.author_id==session["id"]):
+        if has_right_or_is_author("api_hint_delete", challenge.author_id):
             db.session.delete(hint)
             db.session.commit()
             db.session.close()

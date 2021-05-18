@@ -3,12 +3,12 @@ from sqlalchemy import func
 
 from CTFd.api.v1.statistics import statistics_namespace
 from CTFd.models import Submissions
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 
 
 @statistics_namespace.route("/submissions/<column>")
 class SubmissionPropertyCounts(Resource):
-    @admins_only
+    @access_granted_only("api_statistics_submission_property_counts_get")
     def get(self, column):
         if column in Submissions.__table__.columns.keys():
             prop = getattr(Submissions, column)

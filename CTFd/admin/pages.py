@@ -5,24 +5,24 @@ from CTFd.models import Pages
 from CTFd.schemas.pages import PageSchema
 from CTFd.utils import markdown
 from CTFd.utils.config.pages import build_html
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 
 
 @admin.route("/admin/pages")
-@admins_only
+@access_granted_only("admin_pages_listing")
 def pages_listing():
     pages = Pages.query.all()
     return render_template("admin/pages.html", pages=pages)
 
 
 @admin.route("/admin/pages/new")
-@admins_only
+@access_granted_only("admin_pages_new")
 def pages_new():
     return render_template("admin/editor.html")
 
 
 @admin.route("/admin/pages/preview", methods=["POST"])
-@admins_only
+@access_granted_only("admin_pages_preview")
 def pages_preview():
     # We only care about content.
     # Loading other attributes improperly will cause Marshmallow to incorrectly return a dict
@@ -33,7 +33,7 @@ def pages_preview():
 
 
 @admin.route("/admin/pages/<int:page_id>")
-@admins_only
+@access_granted_only("admin_pages_detail")
 def pages_detail(page_id):
     page = Pages.query.filter_by(id=page_id).first_or_404()
     page_op = request.args.get("operation")

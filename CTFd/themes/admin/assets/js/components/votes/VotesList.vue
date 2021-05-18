@@ -48,7 +48,7 @@
     </table>
     <div class="col-md-12">
       <button
-          class="btn btn-primary float-right"
+          class="btn btn-success float-right"
           v-if="message === 'Add vote'"
           @click="addVote"
       >
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { ezQuery } from "core/ezq";
+import { ezAlert, ezQuery } from "core/ezq";
 import CTFd from "core/CTFd";
 import VoteCreationForm from "./VoteCreationForm.vue";
 import VoteEditForm from "./VoteEditForm.vue";
@@ -144,6 +144,12 @@ export default {
             .then(data => {
               if (data.success) {
                 this.loadVotes();
+              } else {
+                ezAlert({
+                  title: "Error!",
+                  body: "You do not have the right to delete this vote",
+                  button: "Okay"
+                });
               }
             });
         }

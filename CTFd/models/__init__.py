@@ -194,12 +194,11 @@ class TagChallenge(db.Model):
     __tablename__ = "tagChallenge"
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"),
                              primary_key=True, nullable=False)
-    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"),
-                            primary_key=True, nullable=False)
+    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True, nullable=False)
 
     def __init__(self, *args, **kwargs):
         super(TagChallenge, self).__init__(**kwargs)
-    
+
 
 class Files(db.Model):
     __tablename__ = "files"
@@ -577,3 +576,39 @@ class UserFieldEntries(FieldEntries):
     __mapper_args__ = {"polymorphic_identity": "user"}
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     user = db.relationship("Users", foreign_keys="UserFieldEntries.user_id")
+
+
+class Rights(db.Model):
+    __tablename__ = "rights"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+
+    def __init__(self, *args, **kwargs):
+        super(Rights, self).__init__(**kwargs)
+
+
+class Roles(db.Model):
+    __tablename__ = "roles"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+
+    def __init__(self, *args, **kwargs):
+        super(Roles, self).__init__(**kwargs)
+
+
+class RoleRights(db.Model):
+    __tablename__ = "role_rights"
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    right_id = db.Column(db.Integer, db.ForeignKey("rights.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+
+    def __init__(self, *args, **kwargs):
+        super(RoleRights, self).__init__(**kwargs)
+
+
+class UserRights(db.Model):
+    __tablename__ = "user_rights"
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    right_id = db.Column(db.Integer, db.ForeignKey("rights.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+
+    def __init__(self, *args, **kwargs):
+        super(UserRights, self).__init__(**kwargs)
