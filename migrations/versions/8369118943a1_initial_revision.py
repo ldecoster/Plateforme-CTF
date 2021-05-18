@@ -91,7 +91,7 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
-        "hints",
+        "ressources",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("type", sa.String(length=80), nullable=True),
         sa.Column("challenge_id", sa.Integer(), nullable=True),
@@ -229,7 +229,7 @@ def downgrade():
     op.drop_table("awards")
     op.drop_table("users")
     op.drop_table("tags")
-    op.drop_table("hints")
+    op.drop_table("ressources")
     op.drop_table("flags")
     op.drop_table("files")
     op.drop_table("teams")

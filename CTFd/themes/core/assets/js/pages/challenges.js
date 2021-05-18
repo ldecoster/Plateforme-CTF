@@ -105,8 +105,8 @@ const displayChal = chal => {
       $("#too-fast").slideUp();
     });
 
-    $(".load-hint").on("click", function (_event) {
-      loadHint($(this).data("hint-id"));
+    $(".load-ressource").on("click", function (_event) {
+      loadRessource($(this).data("ressource-id"));
     });
 
     $("#challenge-submit").click(function (event) {
@@ -481,9 +481,9 @@ $(() => {
 });
 setInterval(update, 300000); // Update every 5 minutes.
 
-const displayHint = data => {
+const displayRessource = data => {
   ezAlert({
-    title: "Hint",
+    title: "Ressource",
     body: data.html,
     button: "Got it!"
   });
@@ -491,17 +491,17 @@ const displayHint = data => {
 
 const displayUnlock = id => {
   ezQuery({
-    title: "Unlock Hint?",
-    body: "Are you sure you want to open this hint?",
+    title: "Unlock Ressource?",
+    body: "Are you sure you want to open this ressource?",
     success: () => {
       const params = {
         target: id,
-        type: "hints"
+        type: "ressources"
       };
       CTFd.api.post_unlock_list({}, params).then(response => {
         if (response.success) {
-          CTFd.api.get_hint({ hintId: id }).then(response => {
-            displayHint(response.data);
+          CTFd.api.get_ressource({ ressourceId: id }).then(response => {
+            displayRessource(response.data);
           });
 
           return;
@@ -517,10 +517,10 @@ const displayUnlock = id => {
   });
 };
 
-const loadHint = id => {
-  CTFd.api.get_hint({ hintId: id }).then(response => {
+const loadRessource = id => {
+  CTFd.api.get_ressource({ ressourceId: id }).then(response => {
     if (response.data.content) {
-      displayHint(response.data);
+      displayRessource(response.data);
       return;
     }
 

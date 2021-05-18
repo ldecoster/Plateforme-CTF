@@ -47,10 +47,10 @@ def upgrade():
             ondelete="CASCADE",
         )
 
-        op.drop_constraint("hints_ibfk_1", "hints", type_="foreignkey")
+        op.drop_constraint("ressources_ibfk_1", "ressources", type_="foreignkey")
         op.create_foreign_key(
-            "hints_ibfk_1",
-            "hints",
+            "ressources_ibfk_1",
+            "ressources",
             "challenges",
             ["challenge_id"],
             ["id"],
@@ -145,10 +145,10 @@ def upgrade():
             ondelete="CASCADE",
         )
 
-        op.drop_constraint("hints_challenge_id_fkey", "hints", type_="foreignkey")
+        op.drop_constraint("ressources_challenge_id_fkey", "ressources", type_="foreignkey")
         op.create_foreign_key(
-            "hints_challenge_id_fkey",
-            "hints",
+            "ressources_challenge_id_fkey",
+            "ressources",
             "challenges",
             ["challenge_id"],
             ["id"],
@@ -229,9 +229,9 @@ def downgrade():
             "tags_ibfk_1", "tags", "challenges", ["challenge_id"], ["id"]
         )
 
-        op.drop_constraint("hints_ibfk_1", "hints", type_="foreignkey")
+        op.drop_constraint("ressources_ibfk_1", "ressources", type_="foreignkey")
         op.create_foreign_key(
-            "hints_ibfk_1", "hints", "challenges", ["challenge_id"], ["id"]
+            "ressources_ibfk_1", "ressources", "challenges", ["challenge_id"], ["id"]
         )
 
         op.drop_constraint("flags_ibfk_1", "flags", type_="foreignkey")
@@ -273,9 +273,9 @@ def downgrade():
             "tags_challenge_id_fkey", "tags", "challenges", ["challenge_id"], ["id"]
         )
 
-        op.drop_constraint("hints_challenge_id_fkey", "hints", type_="foreignkey")
+        op.drop_constraint("ressources_challenge_id_fkey", "ressources", type_="foreignkey")
         op.create_foreign_key(
-            "hints_challenge_id_fkey", "hints", "challenges", ["challenge_id"], ["id"]
+            "ressources_challenge_id_fkey", "ressources", "challenges", ["challenge_id"], ["id"]
         )
 
         op.drop_constraint("flags_challenge_id_fkey", "flags", type_="foreignkey")

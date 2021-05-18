@@ -340,13 +340,13 @@ API.prototype.post_challenge_attempt = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.get_hint = function(parameters) {
+API.prototype.get_ressource = function(parameters) {
   if (parameters === undefined) {
     parameters = {};
   }
   let deferred = Q.defer();
   let domain = this.domain,
-    path = "/hints/{hint_id}";
+    path = "/ressources/{ressource_id}";
   let body = {},
     queryParameters = {},
     headers = {},
@@ -355,13 +355,13 @@ API.prototype.get_hint = function(parameters) {
   headers["Accept"] = ["application/json"];
   headers["Content-Type"] = ["application/json"];
 
-  path = path.replace("{hint_id}", parameters["hintId"]);
+  path = path.replace("{ressource_id}", parameters["ressourceId"]);
 
-  if (parameters["hintId"] === undefined) {
-    deferred.reject(new Error("Missing required  parameter: hintId"));
+  if (parameters["ressourceId"] === undefined) {
+    deferred.reject(new Error("Missing required  parameter: ressourceId"));
     return deferred.promise;
   }
-  delete parameters["hintId"];
+  delete parameters["ressourceId"];
 
   queryParameters = mergeQueryParams(parameters, queryParameters);
 

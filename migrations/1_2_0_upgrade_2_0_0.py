@@ -114,13 +114,13 @@ if __name__ == "__main__":
         new_conn["files"].insert(dict(f))
     del old_data["files"]
 
-    print("MIGRATING Hints")
-    for hint in old_data["hints"]:
-        hint["type"] = "standard"
-        hint["challenge_id"] = hint.pop("chal")
-        hint["content"] = hint.pop("hint")
-        new_conn["hints"].insert(dict(hint))
-    del old_data["hints"]
+    print("MIGRATING Ressources")
+    for ressource in old_data["ressources"]:
+        ressource["type"] = "standard"
+        ressource["challenge_id"] = ressource.pop("chal")
+        ressource["content"] = ressource.pop("ressource")
+        new_conn["ressources"].insert(dict(ressource))
+    del old_data["ressources"]
 
     print("MIGRATING Unlocks")
     for unlock in old_data["unlocks"]:

@@ -84,7 +84,7 @@ class UnlockList(Resource):
     @require_verified_emails
     @authed_only
     @unlocks_namespace.doc(
-        description="Endpoint to create an unlock object. Used to unlock hints.",
+        description="Endpoint to create an unlock object. Used to unlock ressources.",
         responses={
             200: ("Success", "UnlockDetailedSuccessResponse"),
             400: (

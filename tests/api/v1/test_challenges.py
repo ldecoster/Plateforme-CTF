@@ -11,7 +11,7 @@ from tests.helpers import (
     gen_challenge,
     gen_fail,
     gen_flag,
-    gen_hint,
+    gen_ressource,
     gen_solve,
     gen_tag,
     gen_team,
@@ -378,12 +378,12 @@ def test_api_challenge_with_properties_delete_admin():
     app = create_ctfd()
     with app.app_context():
         challenge = gen_challenge(app.db)
-        gen_hint(app.db, challenge_id=challenge.id)
+        gen_ressource(app.db, challenge_id=challenge.id)
         gen_tag(app.db, challenge_id=challenge.id)
         gen_flag(app.db, challenge_id=challenge.id)
 
         challenge = Challenges.query.filter_by(id=1).first()
-        assert len(challenge.hints) == 1
+        assert len(challenge.ressources) == 1
         assert len(challenge.tags) == 1
         assert len(challenge.flags) == 1
 
@@ -804,24 +804,24 @@ def test_api_challenge_get_tags_admin():
     destroy_ctfd(app)
 
 
-def test_api_challenge_get_hints_non_admin():
-    """Can a user get /api/v1/challenges/<challenge_id>/hints if not admin"""
+def test_api_challenge_get_ressources_non_admin():
+    """Can a user get /api/v1/challenges/<challenge_id>/ressources if not admin"""
     app = create_ctfd()
     with app.app_context():
         gen_challenge(app.db)
         with app.test_client() as client:
-            r = client.get("/api/v1/challenges/1/hints", json="")
+            r = client.get("/api/v1/challenges/1/ressources", json="")
             assert r.status_code == 403
     destroy_ctfd(app)
 
 
-def test_api_challenge_get_hints_admin():
-    """Can a user get /api/v1/challenges/<challenge_id>/hints if admin"""
+def test_api_challenge_get_ressources_admin():
+    """Can a user get /api/v1/challenges/<challenge_id>/ressources if admin"""
     app = create_ctfd()
     with app.app_context():
         gen_challenge(app.db)
         with login_as_user(app, "admin") as client:
-            r = client.get("/api/v1/challenges/1/hints")
+            r = client.get("/api/v1/challenges/1/ressources")
             assert r.status_code == 200
     destroy_ctfd(app)
 
