@@ -93,6 +93,7 @@ class BadgeList(Resource):
         return {"success": True, "data": response.data}
 
     @access_granted_only("api_badge_post")
+    
     @badges_namespace.doc(
         description="Endpoint to create a badge object",
         responses={
@@ -208,9 +209,12 @@ class Badge(Resource):
         author_id = session["id"]
         badge = Badges.query.filter_by(id=badge_id).first_or_404()
         if access_granted_only("api_badge_delete") :
-            badge_class = get_badge_class(badge.type)
-            badge_class.delete(badge)
-
-            return {"success": True}
-        return {"success": False}
+            # badge_class = get_badge_class(badge.type)
+            # badge_class.delete(badge)
+            # db.session.delete(Badges.query.filter_by(id=badge_id).first_or_404())
+            db.session.delete(badge)
+            db.session.commit()
+            db.session.close()
+        return {"success": True}
+        # return {"success": False}
 
