@@ -9,6 +9,7 @@ import argparse
 from CTFd import create_app
 from CTFd.cache import clear_config, clear_pages
 from CTFd.models import (
+    TagChallenge,
     Users,
     Challenges,
     Flags,
@@ -18,6 +19,8 @@ from CTFd.models import (
     Solves,
     Tracking,
     Votes,
+    Tags,
+    TagChallenge,
 )
 from faker import Faker
 
@@ -33,6 +36,9 @@ parser.add_argument(
 parser.add_argument(
     "--awards", help="Amount of awards to generate", default=5, type=int
 )
+parser.add_argument(
+    "--tags", help="Amount of tags to generate", default=4, type=int
+)
 
 args = parser.parse_args()
 
@@ -42,6 +48,7 @@ mode = args.mode
 USER_AMOUNT = args.users
 CHAL_AMOUNT = args.challenges
 AWARDS_AMOUNT = args.awards
+TAGS_AMOUNT = args.tags
 
 icons = [
     None,
@@ -315,6 +322,50 @@ if __name__ == "__main__":
                 db.session.add(award)
 
         db.session.commit()
+
+        # Generating Tags
+        print("GENERATING TAGS")
+        tags = ["web","forensics","réseau","pentesting"]
+        for x in range (TAGS_AMOUNT):
+            tag = Tags(
+                value = tags[x]
+            )
+           
+            db.session.add(tag)
+
+        db.session.commit()
+
+        #Generating TagChallenge
+        print("GENERATING TAGCHALLENGE")
+        if mode == "users":
+            for x in range(CHAL_AMOUNT):
+                used = []
+                base_time = datetime.datetime.utcnow() + datetime.timedelta(
+                    minutes=-10000
+                )
+                for y in range(random.randint(1, TAGS_AMOUNT)):
+                    tagid = random.randint(1, TAGS_AMOUNT)
+                    if tagid not in used:
+                        used.append(tagid)
+                        chall = Challenges.query.filter_by(id=x + 1).first()
+                        tagchal = TagChallenge(
+                            challenge_id=chall.id,
+                            tag_id=tagid,
+                        )
+
+                        new_base = random_date(
+                            base_time,
+                            base_time
+                            + datetime.timedelta(minutes=random.randint(30, 60)),
+                        )
+                        tagchal.date = new_base
+                        base_time = new_base
+
+                        db.session.add(tagchal)
+                        db.session.commit()
+    
+        db.session.commit()
+        
 
         # Generating Wrong Flags
         print("GENERATING WRONG FLAGS")

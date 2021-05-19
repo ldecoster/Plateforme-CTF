@@ -16,10 +16,12 @@ def export():
     cur.execute("SELECT name FROM pragma_table_info('users')")
 
     headerList = cur.fetchall()
-    c = csv.writer(open('user.csv', 'w', newline=''), delimiter=',')
-    c.writerow(headerList)
-    for x in result:
-        c.writerow(x)
+    with open('user.csv', 'w', newline='') as csvfile:
+        c = csv.writer(csvfile, delimiter=',')
+        c.writerow(headerList)
+        for x in result:
+            c.writerow(x)
+    
     # Votes
     conn = sqlite3.connect(DB)
     cur = conn.cursor()
@@ -28,10 +30,11 @@ def export():
     cur.execute("SELECT name FROM pragma_table_info('votes')")
 
     headerList = cur.fetchall()
-    c = csv.writer(open('vote.csv', 'w', newline=''), delimiter=',')
-    c.writerow(headerList)
-    for x in result:
-        c.writerow(x)
+    with open('vote.csv', 'w', newline='') as csvfile:
+        c = csv.writer(csvfile, delimiter=',')
+        c.writerow(headerList)
+        for x in result:
+            c.writerow(x)
 
     # Challenges
     conn = sqlite3.connect(DB)
@@ -41,10 +44,11 @@ def export():
     cur.execute("SELECT name FROM pragma_table_info('challenges')")
 
     headerList = cur.fetchall()
-    c = csv.writer(open('challenge.csv', 'w', newline=''), delimiter=',')
-    c.writerow(headerList)
-    for x in result:
-        c.writerow(x)
+    with open('challenge.csv', 'w', newline='') as csvfile:
+        c = csv.writer(csvfile, delimiter=',')
+        c.writerow(headerList)
+        for x in result:
+            c.writerow(x)
 
     # Solves
     conn = sqlite3.connect(DB)
@@ -54,10 +58,11 @@ def export():
     cur.execute("SELECT name FROM pragma_table_info('solves')")
 
     headerList = cur.fetchall()
-    c = csv.writer(open('solve.csv', 'w', newline=''), delimiter=',')
-    c.writerow(headerList)
-    for x in result:
-        c.writerow(x)
+    with open('solve.csv', 'w', newline='') as csvfile:
+        c = csv.writer(csvfile, delimiter=',')
+        c.writerow(headerList)
+        for x in result:
+            c.writerow(x)
 
     # Submission
     conn = sqlite3.connect(DB)
@@ -67,11 +72,41 @@ def export():
     cur.execute("SELECT name FROM pragma_table_info('submissions')")
 
     headerList = cur.fetchall()
-    c = csv.writer(open('submission.csv', 'w', newline=''), delimiter=',')
-    c.writerow(headerList)
-    for x in result:
-        c.writerow(x)
-    
+    with open('submission.csv', 'w', newline='') as csvfile:
+        c = csv.writer(csvfile, delimiter=',')
+        c.writerow(headerList)
+        for x in result:
+            c.writerow(x)
+
+    #Tags
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute("SELECT * from Tags")
+    result = cur.fetchall()
+    cur.execute("SELECT name FROM pragma_table_info('tags')")
+
+    headerList = cur.fetchall()
+    with open('tag.csv', 'w', newline='') as csvfile:
+        c = csv.writer(csvfile, delimiter=',')
+        c.writerow(headerList)
+        for x in result:
+            c.writerow(x)
+
+    #TagChallenge
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+    cur.execute("SELECT * from TagChallenge")
+    result = cur.fetchall()
+    cur.execute("SELECT name FROM pragma_table_info('tagChallenge')")
+
+    headerList = cur.fetchall()
+    with open('tagChallenge.csv', 'w', newline='') as csvFile:
+        c = csv.writer(csvFile, delimiter=',')
+        c.writerow(headerList)
+        for x in result:
+            c.writerow(x)
+
+
     # Merge Submissions and Challenges
 
     sub = pd.read_csv("submission.csv", sep=',')
@@ -91,9 +126,7 @@ def export():
     #Merge Submissions and Users
 
     user = pd.read_csv("user.csv", sep=',', encoding = "ISO-8859-1")
-
     user = user.rename(columns = {"('id',)":"('user_id',)"})
-
     user = user.drop(columns = ["('type',)",], axis = 1)
 
     submission = sub.set_index("('user_id',)")
@@ -102,6 +135,20 @@ def export():
     dfMixedUserSub = submission.join(users)
 
     dfMixedUserSub.to_csv("user&sub.csv", sep=',')
+    
+    #Merge Tag et TagChallenge
+
+    tag = pd.read_csv("tag.csv", sep=',', encoding='latin-1')
+    tagchal = pd.read_csv("tagChallenge.csv", sep=',', encoding='latin-1')
+
+    tags = tag.rename(columns = {"('id',)":"('tag_id',)"})
+
+    tagChallenge = tagchal.set_index("('tag_id',)")
+    tagss = tags.set_index("('tag_id',)")
+
+    dfMixedTagChal = tagChallenge.join(tagss)
+
+    dfMixedTagChal.to_csv("merge_tagchal.csv", sep=',')
     
     #Connection ES
 
@@ -147,6 +194,12 @@ def export():
         if es.indices.exists(index="user&sub"):
             es.indices.delete(index='user&sub')
         helpers.bulk(es, reader, index='user&sub', doc_type='my-type')
+    
+    with open('merge_tagchal.csv') as f:
+        reader = csv.DictReader(f)
+        if es.indices.exists(index="merge_tagchal"):
+            es.indices.delete(index='merge_tagchal')
+        helpers.bulk(es, reader, index='merge_tagchal', doc_type='my-type')
     
 
     print("Data updated")
