@@ -3147,7 +3147,7 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_user_awards
+   * @name API#get_user_badges
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.userId - User ID or 'me'
    */
@@ -3172,7 +3172,7 @@ let API = (function() {
       deferred.reject(new Error("Missing required  parameter: userId"));
       return deferred.promise;
     }
-
+    
     queryParameters = mergeQueryParams(parameters, queryParameters);
 
     this.request(

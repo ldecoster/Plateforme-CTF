@@ -1,10 +1,11 @@
 from flask import render_template, request, url_for
 from sqlalchemy.sql import not_
+from sqlalchemy.sql.expression import join
 
 from CTFd.admin import admin
 from CTFd.utils import get_config
 from CTFd.utils.decorators import access_granted_only
-from CTFd.models import BadgesEntries, Challenges, Tracking, Users
+from CTFd.models import Badges, Challenges, Submissions, Tracking, Users,TagChallenge,Solves, db
 
 
 @admin.route("/admin/users")
@@ -78,8 +79,16 @@ def users_detail(user_id):
     fails = user.get_fails()
 
     # Get Badges
-    badges = user.get_badgesentries(admin=True)
-
+    print("***************************************************")
+    
+    badges_challenges = Badges.query.join(TagChallenge,Badges.tag_id==TagChallenge.tag_id).all()
+    print(badges_challenges)
+    print(all_solves)
+    for i in range(len(badges_challenges)):
+        print()
+        break
+    
+    badges=0
     return render_template(
         "admin/users/user.html",
         solves=solves,

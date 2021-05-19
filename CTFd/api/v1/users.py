@@ -2,6 +2,7 @@ from typing import List
 
 from flask import abort, request, session
 from flask_restx import Namespace, Resource
+from sqlalchemy.orm import query
 
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
@@ -12,12 +13,15 @@ from CTFd.api.v1.schemas import (
 from CTFd.cache import clear_user_session
 from CTFd.constants import RawEnum
 from CTFd.models import (
+    Badges,
     BadgesEntries,
+    Challenges,
     Notifications,
     Roles,
     RoleRights,
     Solves,
     Submissions,
+    TagChallenge,
     Tracking,
     Unlocks,
     UserRights,
@@ -448,19 +452,21 @@ class UserPublicFails(Resource):
         return {"success": True, "data": data, "meta": {"count": count}}
 
 
-@users_namespace.route("/<user_id>/badgesentries")
+@users_namespace.route("/<user_id>/badges")
 @users_namespace.param("user_id", "User ID or 'me'")
 class UserPublicBadges(Resource):
     @check_account_visibility
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
+        solved_challenges = Badges.query.join(TagChallenge, Badges.tag_id == TagChallenge.tag_id).join(Challenges, TagChallenge.challenge_id == Challenges.id).join(Solves, Solves.challenge_id == Challenges.id).filter_by(user_id = user_id).all()
+        print(solved_challenges)
+        # if (user.banned or user.hidden) and has_right("api_user_public_awards_get_full") is False:
+        #     abort(404)
+        # badges_entries = user.get_awards(admin=is_admin())
+        # badges = 
 
-        if (user.banned or user.hidden) and has_right("api_user_public_awards_get_full") is False:
-            abort(404)
-        badges_entries = user.get_awards(admin=is_admin())
-
-        view = "user" if not is_admin() else "admin"
-        response = BadgesEntriesSchema(view=view, many=True).dump(badges_entries)
+        # view = "user" if not is_admin() else "admin"
+        # response = BadgesEntriesSchema(view=view, many=True).dump(badges_entries)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

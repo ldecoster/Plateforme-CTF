@@ -139,14 +139,10 @@ function loadUserSolves() {
 
 async function loadTags(){
   const badges = (await CTFd.api.get_badge_list()).data;
-  const users = (await CTFd.api.get_user_list()).data;
   for (let i = 0; i < badges.length; i++) {
-    let solvers = 0;
-    let numOfSolvedChal = 0;
-    const challenges = (await CTFd.api.get_tagChallenge_byTagId({ tagId: badges[i].tag_id })).data;
     const tag = (await CTFd.api.get_tag({tagId:badges[i].tag_id})).data;
     const tagItem = $(
-      '<span class="badge {0} mx-1 challenge-tag">'.format(progress !==100?"badge-primary":"badge-success")+
+      '<span class="badge badge-primary mx-1 challenge-tag">'+
       '<span>{0}</span>'.format(tag.value)+
       '</span>'
     );
