@@ -9,18 +9,17 @@ import argparse
 from CTFd import create_app
 from CTFd.cache import clear_config, clear_pages
 from CTFd.models import (
-    TagChallenge,
-    Users,
-    Challenges,
-    Flags,
     Awards,
     ChallengeFiles,
+    Challenges,
     Fails,
+    Flags,
     Solves,
-    Tracking,
-    Votes,
-    Tags,
     TagChallenge,
+    Tags,
+    Tracking,
+    Users,
+    Votes,
 )
 from faker import Faker
 
