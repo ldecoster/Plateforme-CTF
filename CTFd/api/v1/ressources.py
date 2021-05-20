@@ -67,7 +67,7 @@ class RessourceList(Resource):
         filters = build_model_filters(model=Ressources, query=q, field=field)
 
         ressources = Ressources.query.filter_by(**query_args).filter(*filters).all()
-        response = RessourceSchema(many=True).dump(ressources)
+        response = RessourceSchema(many=True, view="user").dump(ressources)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
