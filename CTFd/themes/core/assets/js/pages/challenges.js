@@ -1,6 +1,6 @@
 import "./main";
 import "bootstrap/js/dist/tab";
-import { ezQuery, ezAlert } from "../ezq";
+import { ezAlert } from "../ezq";
 import { htmlEntities } from "../utils";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -17,7 +17,7 @@ let solves = [];
 let tag_list = [];
 
 const $challenges_board = $("#challenges-board");
-const $spinner_content = $challenges_board.children().detach();;
+const $spinner_content = $challenges_board.children().detach();
 
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];

@@ -145,7 +145,7 @@ def upgrade():
             ondelete="CASCADE",
         )
 
-        op.drop_constraint("ressources_challenge_id_fkey", "ressources", type_="foreignkey")
+        op.drop_constraint("hints_challenge_id_fkey", "hints", type_="foreignkey")
         op.create_foreign_key(
             "hints_challenge_id_fkey",
             "hints",
