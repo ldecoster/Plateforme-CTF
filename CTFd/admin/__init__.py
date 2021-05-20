@@ -32,11 +32,11 @@ from CTFd.models import (
     Pages,
     Solves,
     Submissions,
+    Tags,
     Tracking,
     Users,
     db,
     get_class_by_tablename,
-    Tags,
 )
 from CTFd.utils import config as ctf_config
 from CTFd.utils import get_config, set_config

@@ -177,15 +177,19 @@ def import_ctf(backup, erase=True):
         print("Failed to disable foreign key checks. Continuing.")
 
     first = [
-        "db/teams.json",
         "db/users.json",
         "db/challenges.json",
-        "db/dynamic_challenge.json",
         "db/flags.json",
         "db/ressources.json",
+        "db/votes.json",
         "db/awards.json",
         "db/tags.json",
+        "db/tagChallenges.json",
         "db/submissions.json",
+        "db/rights.json",
+        "db/roles.json",
+        "db/role_rights.json",
+        "db/user_rights.json",
         "db/solves.json",
         "db/files.json",
         "db/notifications.json",

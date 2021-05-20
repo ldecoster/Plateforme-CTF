@@ -154,7 +154,6 @@ class Tag(Resource):
         schema = TagSchema()
         req = request.get_json()
 
-        # TODO ISEN : vérifier utilité de la ligne ci-dessous
         tag.value = req["tagValue"]
 
         response = schema.load(req, session=db.session, instance=tag)
