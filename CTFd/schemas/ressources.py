@@ -17,6 +17,14 @@ class RessourceSchema(ma.ModelSchema):
             "content",
             "html",
         ],
+        "user": [
+            "id",
+            "type",
+            "challenge",
+            "challenge_id",
+            "content",
+            "html",
+        ],
     }
 
     def __init__(self, view=None, *args, **kwargs):

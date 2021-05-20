@@ -74,7 +74,6 @@ class RessourceList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @access_granted_only("api_ressource_list_post")
     @ressources_namespace.doc(
         description="Endpoint to create a Ressource object",
         responses={
@@ -121,14 +120,13 @@ class Ressource(Resource):
     def get(self, ressource_id):
         ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
 
-        response = RessourceSchema().dump(ressource)
+        response = RessourceSchema(view="user").dump(ressource)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
         return {"success": True, "data": response.data}
 
-    @access_granted_only("api_ressource_patch")
     @ressources_namespace.doc(
         description="Endpoint to edit a specific Ressource object",
         responses={
@@ -159,7 +157,6 @@ class Ressource(Resource):
             return {"success": True, "data": response.data}
         return {"success": False}
 
-    @access_granted_only("api_ressource_delete")
     @ressources_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
