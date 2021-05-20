@@ -1,5 +1,5 @@
 import fetch from "./fetch";
-/*jsressource esversion: 6 */
+/*jshint esversion: 6 */
 /*global fetch, btoa */
 import Q from "q";
 /**
