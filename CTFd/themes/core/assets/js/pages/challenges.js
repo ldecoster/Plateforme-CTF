@@ -493,9 +493,6 @@ const loadRessource = id => {
   CTFd.api.get_ressource({ ressourceId: id }).then(response => {
     if (response.data.content) {
       displayRessource(response.data);
-      return;
     }
-
-    //displayUnlock(id);
   });
 };
