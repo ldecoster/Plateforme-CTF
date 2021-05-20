@@ -10,22 +10,6 @@ const createGraphs = (id, name, account_id) => {
     CTFd.api.get_user_awards({ userId: account_id })
   ]).then(responses => {
     createGraph(
-      "score_graph",
-      "#score-graph",
-      responses,
-      id,
-      name,
-      account_id
-    );
-    createGraph(
-      "category_breakdown",
-      "#categories-pie-graph",
-      responses,
-      id,
-      name,
-      account_id
-    );
-    createGraph(
       "solve_percentages",
       "#keys-pie-graph",
       responses,
@@ -42,22 +26,6 @@ const updateGraphs = (id, name, account_id) => {
     CTFd.api.get_user_fails({ userId: account_id }),
     CTFd.api.get_user_awards({ userId: account_id })
   ]).then(responses => {
-    updateGraph(
-      "score_graph",
-      "#score-graph",
-      responses,
-      id,
-      name,
-      account_id
-    );
-    updateGraph(
-      "category_breakdown",
-      "#categories-pie-graph",
-      responses,
-      id,
-      name,
-      account_id
-    );
     updateGraph(
       "solve_percentages",
       "#keys-pie-graph",

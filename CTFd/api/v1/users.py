@@ -73,9 +73,10 @@ class UserList(Resource):
     )
     @validate_args(
         {
-            "affiliation": (str, None),
             "country": (str, None),
             "school": (str, None),
+            "cursus": (str, None),
+            "specialisation": (str, None),
             "bracket": (str, None),
             "q": (str, None),
             "field": (
@@ -86,8 +87,9 @@ class UserList(Resource):
                         "website": "website",
                         "country": "country",
                         "school": "school",
+                        "cursus": "cursus",
+                        "specialisation": "specialisation",
                         "bracket": "bracket",
-                        "affiliation": "affiliation",
                     },
                 ),
                 None,
