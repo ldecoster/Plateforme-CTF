@@ -14,23 +14,23 @@ import FlagList from "../components/flags/FlagList.vue";
 import Requirements from "../components/requirements/Requirements.vue";
 import TagsList from "../components/tags/TagsList.vue";
 import ChallengeFilesList from "../components/files/ChallengeFilesList.vue";
-import HintsList from "../components/hints/HintsList.vue";
+import RessourcesList from "../components/ressources/RessourcesList.vue";
 import hljs from "highlight.js";
 
-const displayHint = data => {
+const displayRessource = data => {
   ezAlert({
-    title: "Hint",
+    title: "Ressource",
     body: data.html,
     button: "Got it!"
   });
 };
 
-const loadHint = id => {
-  CTFd.api.get_hint({ hintId: id, preview: true }).then(response => {
-    if (response.data.content) {
-      displayHint(response.data);
-      return;
-    }
+const loadRessource = id => {
+  CTFd.api.get_ressource({ ressourceId: id, preview: true }).then(response => {
+    
+    displayRessource(response.data);
+    return;
+    
     // displayUnlock(id);
   });
 };
@@ -287,8 +287,8 @@ $(() => {
               $("#too-fast").slideUp();
             });
 
-            $(".load-hint").on("click", function(_event) {
-              loadHint($(this).data("hint-id"));
+            $(".load-ressource").on("click", function(_event) {
+              loadRessource($(this).data("ressource-id"));
             });
 
             $("#challenge-submit").click(function(e) {
@@ -480,12 +480,12 @@ $(() => {
     }).$mount(vueContainer);
   }
 
-  // Load HintsList component
-  if (document.querySelector("#challenge-hints")) {
-    const hintsList = Vue.extend(HintsList);
+  // Load RessourcesList component
+  if (document.querySelector("#challenge-ressources")) {
+    const ressourcesList = Vue.extend(RessourcesList);
     let vueContainer = document.createElement("div");
-    document.querySelector("#challenge-hints").appendChild(vueContainer);
-    new hintsList({
+    document.querySelector("#challenge-ressources").appendChild(vueContainer);
+    new ressourcesList({
       propsData: { challenge_id: window.CHALLENGE_ID }
     }).$mount(vueContainer);
   }

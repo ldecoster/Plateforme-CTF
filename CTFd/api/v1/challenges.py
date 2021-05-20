@@ -14,8 +14,7 @@ from CTFd.models import (
     Challenges,
     Fails,
     Flags,
-    Hints,
-    HintUnlocks,
+    Ressources,
     Solves,
     Submissions,
     Tags,
@@ -27,7 +26,7 @@ from CTFd.models import (
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.schemas.challenges import ChallengeSchema
 from CTFd.schemas.flags import FlagSchema
-from CTFd.schemas.hints import HintSchema
+from CTFd.schemas.ressources import RessourceSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config
 from CTFd.utils import user as current_user
@@ -189,10 +188,10 @@ class ChallengeList(Resource):
 
             # Build the query for the challenges which may be listed
         chal_q = Challenges.query
-        # Admins can see hidden and locked challenges in the admin view
+        # Admins can see hidden challenges in the admin view
         if admin_view is False:
             chal_q = chal_q.filter(
-                and_(Challenges.state != "hidden", Challenges.state != "locked")
+                and_(Challenges.state != "hidden")
             )
         chal_q = (
             chal_q.filter_by(**query_args).filter(*filters)
@@ -320,7 +319,7 @@ class Challenge(Resource):
         else:
             chal = Challenges.query.filter(
                 Challenges.id == challenge_id,
-                and_(Challenges.state != "hidden", Challenges.state != "locked"),
+                and_(Challenges.state != "hidden"),
             ).first_or_404()
 
         try:
@@ -374,17 +373,11 @@ class Challenge(Resource):
             tag["value"] for tag in TagSchema("user", many=True).dump(chal.tags).data
         ]
 
-        unlocked_hints = set()
-        hints = []
+        
+        ressources = []
         if authed():
             user = get_current_user()
 
-            unlocked_hints = {
-                u.target
-                for u in HintUnlocks.query.filter_by(
-                    type="hints", account_id=user.account_id
-                )
-            }
             files = []
             for f in chal.files:
                 token = {
@@ -397,13 +390,9 @@ class Challenge(Resource):
         else:
             files = [url_for("views.files", path=f.location) for f in chal.files]
 
-        for hint in Hints.query.filter_by(challenge_id=chal.id).all():
-            if hint.id in unlocked_hints:
-                hints.append(
-                    {"id": hint.id, "content": hint.content}
-                )
-            else:
-                hints.append({"id": hint.id})
+        for ressource in Ressources.query.filter_by(challenge_id=chal.id).all():
+           
+            ressources.append({"id": ressource.id , "content": ressource.content})
 
         response = chal_class.read(challenge=chal)
 
@@ -435,7 +424,7 @@ class Challenge(Resource):
         response["attempts"] = attempts
         response["files"] = files
         response["tags"] = tags
-        response["hints"] = hints
+        response["ressources"] = ressources
 
         response["view"] = render_template(
             chal_class.templates["view"].lstrip("/"),
@@ -443,7 +432,7 @@ class Challenge(Resource):
             solved_by_me=solved_by_user,
             files=files,
             tags=tags,
-            hints=[Hints(**h) for h in hints],
+            ressources=[Ressources(**h) for h in ressources],
             max_attempts=chal.max_attempts,
             attempts=attempts,
             challenge=chal,
@@ -570,9 +559,6 @@ class ChallengeAttempt(Resource):
 
         if challenge.state == "hidden":
             abort(404)
-
-        if challenge.state == "locked":
-            abort(403)
 
         if challenge.requirements:
             requirements = challenge.requirements.get("prerequisites", [])
@@ -782,13 +768,13 @@ class ChallengeTags(Resource):
         return {"success": True, "data": response}
 
 
-@challenges_namespace.route("/<challenge_id>/hints")
-class ChallengeHints(Resource):
-    @access_granted_only("api_challenge_hints_get")
+@challenges_namespace.route("/<challenge_id>/ressources")
+class ChallengeRessources(Resource):
+    @access_granted_only("api_challenge_ressources_get")
     def get(self, challenge_id):
-        hints = Hints.query.filter_by(challenge_id=challenge_id).all()
-        schema = HintSchema(many=True)
-        response = schema.dump(hints)
+        ressources = Ressources.query.filter_by(challenge_id=challenge_id).all()
+        schema = RessourceSchema(many=True)
+        response = schema.dump(ressources)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

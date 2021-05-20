@@ -25,7 +25,7 @@ from CTFd.models import (
     Fields,
     Files,
     Flags,
-    Hints,
+    Ressources,
     Notifications,
     PageComments,
     PageFiles,
@@ -36,7 +36,6 @@ from CTFd.models import (
     Teams,
     Tokens,
     Tracking,
-    Unlocks,
     UserComments,
     Users,
 )
@@ -342,23 +341,15 @@ def gen_team(
     return team
 
 
-def gen_hint(
-    db, challenge_id, content="This is a hint", cost=0, type="standard", **kwargs
+def gen_ressource(
+    db, challenge_id, content="This is a ressource", cost=0, type="standard", **kwargs
 ):
-    hint = Hints(
+    ressource = Ressources(
         challenge_id=challenge_id, content=content, cost=cost, type=type, **kwargs
     )
-    db.session.add(hint)
+    db.session.add(ressource)
     db.session.commit()
-    return hint
-
-
-def gen_unlock(db, user_id, team_id=None, target=None, type="hints"):
-    unlock = Unlocks(user_id=user_id, team_id=team_id, target=target, type=type)
-    db.session.add(unlock)
-    db.session.commit()
-    return unlock
-
+    return ressource
 
 def gen_solve(
     db,
@@ -488,10 +479,9 @@ def simulate_user_activity(db, user):
     gen_award(db, user_id=user.id)
     challenge = gen_challenge(db)
     flag = gen_flag(db, challenge_id=challenge.id)
-    hint = gen_hint(db, challenge_id=challenge.id)
+    ressource = gen_ressource(db, challenge_id=challenge.id)
 
     for _ in range(5):
         gen_fail(db, user_id=user.id, challenge_id=challenge.id)
 
-    gen_unlock(db, user_id=user.id, target=hint.id, type="hints")
     gen_solve(db, user_id=user.id, challenge_id=challenge.id, provided=flag.content)

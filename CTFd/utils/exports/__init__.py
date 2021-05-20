@@ -182,8 +182,7 @@ def import_ctf(backup, erase=True):
         "db/challenges.json",
         "db/dynamic_challenge.json",
         "db/flags.json",
-        "db/hints.json",
-        "db/unlocks.json",
+        "db/ressources.json",
         "db/awards.json",
         "db/tags.json",
         "db/submissions.json",
@@ -263,7 +262,7 @@ def import_ctf(backup, erase=True):
                         # This is a hack to ensure we can still accept older exports. See #867
                         if member in (
                             "db/challenges.json",
-                            "db/hints.json",
+                            "db/ressources.json",
                             "db/awards.json",
                         ):
                             requirements = entry.get("requirements")

@@ -7,41 +7,41 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Challenges, Hints, db
-from CTFd.schemas.hints import HintSchema
+from CTFd.models import Challenges, Ressources, db
+from CTFd.schemas.ressources import RessourceSchema
 from CTFd.utils.decorators import access_granted_only, authed_only
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.user import has_right_or_is_author
 
-hints_namespace = Namespace("hints", description="Endpoint to retrieve Hints")
+ressources_namespace = Namespace("ressources", description="Endpoint to retrieve Ressources")
 
-HintModel = sqlalchemy_to_pydantic(Hints)
-
-
-class HintDetailedSuccessResponse(APIDetailedSuccessResponse):
-    data: HintModel
+RessourceModel = sqlalchemy_to_pydantic(Ressources)
 
 
-class HintListSuccessResponse(APIListSuccessResponse):
-    data: List[HintModel]
+class RessourceDetailedSuccessResponse(APIDetailedSuccessResponse):
+    data: RessourceModel
 
 
-hints_namespace.schema_model(
-    "HintDetailedSuccessResponse", HintDetailedSuccessResponse.apidoc()
+class RessourceListSuccessResponse(APIListSuccessResponse):
+    data: List[RessourceModel]
+
+
+ressources_namespace.schema_model(
+    "RessourceDetailedSuccessResponse", RessourceDetailedSuccessResponse.apidoc()
 )
 
-hints_namespace.schema_model(
-    "HintListSuccessResponse", HintListSuccessResponse.apidoc()
+ressources_namespace.schema_model(
+    "RessourceListSuccessResponse", RessourceListSuccessResponse.apidoc()
 )
 
 
-@hints_namespace.route("")
-class HintList(Resource):
-    @access_granted_only("api_hint_list_get")
-    @hints_namespace.doc(
-        description="Endpoint to list Hint objects in bulk",
+@ressources_namespace.route("")
+class RessourceList(Resource):
+    @access_granted_only("api_ressource_list_get")
+    @ressources_namespace.doc(
+        description="Endpoint to list Ressource objects in bulk",
         responses={
-            200: ("Success", "HintListSuccessResponse"),
+            200: ("Success", "RessourceListSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -55,7 +55,7 @@ class HintList(Resource):
             "content": (str, None),
             "q": (str, None),
             "field": (
-                RawEnum("HintFields", {"type": "type", "content": "content"}),
+                RawEnum("RessourceFields", {"type": "type", "content": "content"}),
                 None,
             ),
         },
@@ -64,21 +64,20 @@ class HintList(Resource):
     def get(self, query_args):
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
-        filters = build_model_filters(model=Hints, query=q, field=field)
+        filters = build_model_filters(model=Ressources, query=q, field=field)
 
-        hints = Hints.query.filter_by(**query_args).filter(*filters).all()
-        response = HintSchema(many=True, view="locked").dump(hints)
+        ressources = Ressources.query.filter_by(**query_args).filter(*filters).all()
+        response = RessourceSchema(many=True, view="user").dump(ressources)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
         return {"success": True, "data": response.data}
 
-    @access_granted_only("api_hint_list_post")
-    @hints_namespace.doc(
-        description="Endpoint to create a Hint object",
+    @ressources_namespace.doc(
+        description="Endpoint to create a Ressource object",
         responses={
-            200: ("Success", "HintDetailedSuccessResponse"),
+            200: ("Success", "RessourceDetailedSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
@@ -87,7 +86,7 @@ class HintList(Resource):
     )
     def post(self):
         req = request.get_json()
-        schema = HintSchema(view="admin")
+        schema = RessourceSchema(view="admin")
         response = schema.load(req, session=db.session)
 
         if response.errors:
@@ -96,7 +95,7 @@ class HintList(Resource):
         challenge = Challenges.query.filter_by(id=response.data.challenge_id).first_or_404()
         db.session.add(response.data)
 
-        if has_right_or_is_author("api_hint_list_post", challenge.author_id):
+        if has_right_or_is_author("api_ressource_list_post", challenge.author_id):
             db.session.commit()
 
             response = schema.dump(response.data)
@@ -105,48 +104,47 @@ class HintList(Resource):
         return {"success": False}
 
 
-@hints_namespace.route("/<hint_id>")
-class Hint(Resource):
+@ressources_namespace.route("/<ressource_id>")
+class Ressource(Resource):
     @authed_only
-    @hints_namespace.doc(
-        description="Endpoint to get a specific Hint object",
+    @ressources_namespace.doc(
+        description="Endpoint to get a specific Ressource object",
         responses={
-            200: ("Success", "HintDetailedSuccessResponse"),
+            200: ("Success", "RessourceDetailedSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
-    def get(self, hint_id):
-        hint = Hints.query.filter_by(id=hint_id).first_or_404()
+    def get(self, ressource_id):
+        ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
 
-        response = HintSchema(view="unlocked").dump(hint)
+        response = RessourceSchema(view="user").dump(ressource)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
         return {"success": True, "data": response.data}
 
-    @access_granted_only("api_hint_patch")
-    @hints_namespace.doc(
-        description="Endpoint to edit a specific Hint object",
+    @ressources_namespace.doc(
+        description="Endpoint to edit a specific Ressource object",
         responses={
-            200: ("Success", "HintDetailedSuccessResponse"),
+            200: ("Success", "RessourceDetailedSuccessResponse"),
             400: (
                 "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
-    def patch(self, hint_id):
-        hint = Hints.query.filter_by(id=hint_id).first_or_404()
-        challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
-        if has_right_or_is_author("api_hint_patch", challenge.author_id):
+    def patch(self, ressource_id):
+        ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
+        challenge = Challenges.query.filter_by(id=ressource.challenge_id).first_or_404()
+        if has_right_or_is_author("api_ressource_patch", challenge.author_id):
             req = request.get_json()
 
-            schema = HintSchema(view="admin")
-            response = schema.load(req, instance=hint, partial=True, session=db.session)
+            schema = RessourceSchema(view="admin")
+            response = schema.load(req, instance=ressource, partial=True, session=db.session)
 
             if response.errors:
                 return {"success": False, "errors": response.errors}, 400
@@ -159,16 +157,15 @@ class Hint(Resource):
             return {"success": True, "data": response.data}
         return {"success": False}
 
-    @access_granted_only("api_hint_delete")
-    @hints_namespace.doc(
+    @ressources_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
-    def delete(self, hint_id):
-        hint = Hints.query.filter_by(id=hint_id).first_or_404()
-        challenge = Challenges.query.filter_by(id=hint.challenge_id).first_or_404()
-        if has_right_or_is_author("api_hint_delete", challenge.author_id):
-            db.session.delete(hint)
+    def delete(self, ressource_id):
+        ressource = Ressources.query.filter_by(id=ressource_id).first_or_404()
+        challenge = Challenges.query.filter_by(id=ressource.challenge_id).first_or_404()
+        if has_right_or_is_author("api_ressource_delete", challenge.author_id):
+            db.session.delete(ressource)
             db.session.commit()
             db.session.close()
 

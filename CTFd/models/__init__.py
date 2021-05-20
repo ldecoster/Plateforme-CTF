@@ -85,7 +85,7 @@ class Challenges(db.Model):
     requirements = db.Column(db.JSON)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     files = db.relationship("ChallengeFiles", backref="challenge")
-    hints = db.relationship("Hints", backref="challenge")
+    ressources = db.relationship("Ressources", backref="challenge")
     tags = db.relationship("Tags", secondary="tagChallenge")
     flags = db.relationship("Flags", backref="challenge")
     comments = db.relationship("ChallengeComments", backref="challenge")
@@ -122,8 +122,8 @@ class Challenges(db.Model):
         return "<Challenge %r>" % self.name
 
 
-class Hints(db.Model):
-    __tablename__ = "hints"
+class Ressources(db.Model):
+    __tablename__ = "ressources"
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(80), default="standard")
     challenge_id = db.Column(
@@ -135,7 +135,7 @@ class Hints(db.Model):
 
     @property
     def name(self):
-        return "Hint {id}".format(id=self.id)
+        return "Ressource {id}".format(id=self.id)
 
     @property
     def category(self):
@@ -143,7 +143,7 @@ class Hints(db.Model):
 
     @property
     def description(self):
-        return "Hint for {name}".format(name=self.challenge.name)
+        return "Ressource for {name}".format(name=self.challenge.name)
 
     @property
     def html(self):
@@ -153,10 +153,10 @@ class Hints(db.Model):
         return markup(build_html(self.content))
 
     def __init__(self, *args, **kwargs):
-        super(Hints, self).__init__(**kwargs)
+        super(Ressources, self).__init__(**kwargs)
 
     def __repr__(self):
-        return "<Hint %r>" % self.content
+        return "<Ressource %r>" % self.content
 
 
 class Awards(db.Model):
@@ -421,29 +421,6 @@ class Solves(Submissions):
 
 class Fails(Submissions):
     __mapper_args__ = {"polymorphic_identity": "incorrect"}
-
-
-class Unlocks(db.Model):
-    __tablename__ = "unlocks"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    target = db.Column(db.Integer)
-    date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    type = db.Column(db.String(32))
-
-    __mapper_args__ = {"polymorphic_on": type}
-
-    @hybrid_property
-    def account_id(self):
-        return self.user_id
-
-    def __repr__(self):
-        return "<Unlock %r>" % self.id
-
-
-class HintUnlocks(Unlocks):
-    __mapper_args__ = {"polymorphic_identity": "hints"}
-
 
 class Tracking(db.Model):
     __tablename__ = "tracking"

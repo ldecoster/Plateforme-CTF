@@ -6,7 +6,7 @@
           <div class="container">
             <div class="row">
               <div class="col-md-12">
-                <h3>Hint</h3>
+                <h3>Ressource</h3>
               </div>
             </div>
           </div>
@@ -19,25 +19,26 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method="POST" @submit.prevent="submitHint">
+        <form method="POST" @submit.prevent="updateRessource">
           <div class="modal-body">
             <div class="container">
               <div class="row">
                 <div class="col-md-12">
                   <div class="form-group">
                     <label class="text-muted">
-                      Hint<br />
+                      Ressource<br />
                       <small>Markdown &amp; HTML are supported</small>
                     </label>
+                    <!-- Explicitly don't put the markdown class on this because we will add it later -->
                     <textarea
                       type="text"
-                      class="form-control markdown"
+                      class="form-control"
                       name="content"
                       rows="7"
+                      :value="this.content"
                       ref="content"
                     ></textarea>
                   </div>
-                  <input type="hidden" id="hint-id-for-hint" name="id" />
                 </div>
               </div>
             </div>
@@ -58,25 +59,70 @@
 </template>
 
 <script>
+import CTFd from "core/CTFd";
+import { bindMarkdownEditor } from "../../styles";
 export default {
-  name: "HintCreationForm",
+  name: "RessourceEditForm",
   props: {
-    challenge_id: Number
+    ressource_id: Number
   },
   data: function() {
-    return {};
+    return {
+      content: null
+    };
+  },
+  watch: {
+    ressource_id: {
+      immediate: true,
+      handler(val, oldVal) {
+        if (val !== null) {
+          this.loadRessource();
+        }
+      }
+    }
   },
   methods: {
+    loadRessource: function() {
+      CTFd.fetch(`/api/v1/ressources/${this.$props.ressource_id}?preview=true`, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        }
+      })
+        .then(response => {
+          return response.json();
+        })
+        .then(response => {
+          if (response.success) {
+            let ressource = response.data;
+            this.cost = ressource.cost;
+            this.content = ressource.content;
+            // Wait for Vue to update the DOM
+            this.$nextTick(() => {
+              // Wait a little longer because we need the modal to appear.
+              // Kinda nasty but not really avoidable without polling the DOM via CodeMirror
+              setTimeout(() => {
+                let editor = this.$refs.content;
+                bindMarkdownEditor(editor);
+                editor.mde.codemirror.getDoc().setValue(editor.value);
+                editor.mde.codemirror.refresh();
+              }, 100);
+            });
+          }
+        });
+    },
     getContent: function() {
       return this.$refs.content.value;
     },
-    submitHint: function() {
+    updateRessource: function() {
       let params = {
         challenge_id: this.$props.challenge_id,
         content: this.getContent()
       };
-      CTFd.fetch("/api/v1/hints", {
-        method: "POST",
+      CTFd.fetch(`/api/v1/ressources/${this.$props.ressource_id}`, {
+        method: "PATCH",
         credentials: "same-origin",
         headers: {
           Accept: "application/json",
@@ -89,9 +135,19 @@ export default {
         })
         .then(response => {
           if (response.success) {
-            this.$emit("refreshHints", this.$options.name);
+            this.$emit("refreshRessources", this.$options.name);
           }
         });
+    }
+  },
+  mounted() {
+    if (this.ressource_id) {
+      this.loadRessource();
+    }
+  },
+  created() {
+    if (this.ressource_id) {
+      this.loadRessource();
     }
   }
 };

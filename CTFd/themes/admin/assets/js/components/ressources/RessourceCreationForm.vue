@@ -6,7 +6,7 @@
           <div class="container">
             <div class="row">
               <div class="col-md-12">
-                <h3>Hint</h3>
+                <h3>Ressource</h3>
               </div>
             </div>
           </div>
@@ -19,26 +19,25 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method="POST" @submit.prevent="updateHint">
+        <form method="POST" @submit.prevent="submitRessource">
           <div class="modal-body">
             <div class="container">
               <div class="row">
                 <div class="col-md-12">
                   <div class="form-group">
                     <label class="text-muted">
-                      Hint<br />
+                      Ressource<br />
                       <small>Markdown &amp; HTML are supported</small>
                     </label>
-                    <!-- Explicitly don't put the markdown class on this because we will add it later -->
                     <textarea
                       type="text"
-                      class="form-control"
+                      class="form-control markdown"
                       name="content"
                       rows="7"
-                      :value="this.content"
                       ref="content"
                     ></textarea>
                   </div>
+                  <input type="hidden" id="ressource-id-for-ressource" name="id" />
                 </div>
               </div>
             </div>
@@ -59,70 +58,25 @@
 </template>
 
 <script>
-import CTFd from "core/CTFd";
-import { bindMarkdownEditor } from "../../styles";
 export default {
-  name: "HintEditForm",
+  name: "RessourceCreationForm",
   props: {
-    hint_id: Number
+    challenge_id: Number
   },
   data: function() {
-    return {
-      content: null
-    };
-  },
-  watch: {
-    hint_id: {
-      immediate: true,
-      handler(val, oldVal) {
-        if (val !== null) {
-          this.loadHint();
-        }
-      }
-    }
+    return {};
   },
   methods: {
-    loadHint: function() {
-      CTFd.fetch(`/api/v1/hints/${this.$props.hint_id}?preview=true`, {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        }
-      })
-        .then(response => {
-          return response.json();
-        })
-        .then(response => {
-          if (response.success) {
-            let hint = response.data;
-            this.cost = hint.cost;
-            this.content = hint.content;
-            // Wait for Vue to update the DOM
-            this.$nextTick(() => {
-              // Wait a little longer because we need the modal to appear.
-              // Kinda nasty but not really avoidable without polling the DOM via CodeMirror
-              setTimeout(() => {
-                let editor = this.$refs.content;
-                bindMarkdownEditor(editor);
-                editor.mde.codemirror.getDoc().setValue(editor.value);
-                editor.mde.codemirror.refresh();
-              }, 100);
-            });
-          }
-        });
-    },
     getContent: function() {
       return this.$refs.content.value;
     },
-    updateHint: function() {
+    submitRessource: function() {
       let params = {
         challenge_id: this.$props.challenge_id,
         content: this.getContent()
       };
-      CTFd.fetch(`/api/v1/hints/${this.$props.hint_id}`, {
-        method: "PATCH",
+      CTFd.fetch("/api/v1/ressources", {
+        method: "POST",
         credentials: "same-origin",
         headers: {
           Accept: "application/json",
@@ -135,19 +89,9 @@ export default {
         })
         .then(response => {
           if (response.success) {
-            this.$emit("refreshHints", this.$options.name);
+            this.$emit("refreshRessources", this.$options.name);
           }
         });
-    }
-  },
-  mounted() {
-    if (this.hint_id) {
-      this.loadHint();
-    }
-  },
-  created() {
-    if (this.hint_id) {
-      this.loadHint();
     }
   }
 };

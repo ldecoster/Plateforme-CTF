@@ -25,7 +25,7 @@ from tests.helpers import (
     gen_fail,
     gen_file,
     gen_flag,
-    gen_hint,
+    gen_ressource,
     gen_solve,
     gen_team,
     gen_tracking,
@@ -42,7 +42,7 @@ def test_reset():
         for x in range(10):
             chal = gen_challenge(app.db, name="chal_name{}".format(x))
             gen_flag(app.db, challenge_id=chal.id, content="flag")
-            gen_hint(app.db, challenge_id=chal.id)
+            gen_ressource(app.db, challenge_id=chal.id)
             gen_file(
                 app.db,
                 location="{name}/{name}.file".format(name=chal.name),
@@ -144,7 +144,7 @@ def test_reset_team_mode():
         for x in range(10):
             chal = gen_challenge(app.db, name="chal_name{}".format(x))
             gen_flag(app.db, challenge_id=chal.id, content="flag")
-            gen_hint(app.db, challenge_id=chal.id)
+            gen_ressource(app.db, challenge_id=chal.id)
             gen_file(
                 app.db,
                 location="{name}/{name}.file".format(name=chal.name),

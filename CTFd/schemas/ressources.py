@@ -1,21 +1,15 @@
-from CTFd.models import Hints, ma
+from CTFd.models import Ressources, ma
 from CTFd.utils import string_types
 
 
-class HintSchema(ma.ModelSchema):
+class RessourceSchema(ma.ModelSchema):
     class Meta:
-        model = Hints
+        model = Ressources
         include_fk = True
         dump_only = ("id", "type", "html")
 
     views = {
-        "locked": [
-            "id",
-            "type",
-            "challenge",
-            "challenge_id"
-        ],
-        "unlocked": [
+        "admin": [
             "id",
             "type",
             "challenge",
@@ -23,7 +17,7 @@ class HintSchema(ma.ModelSchema):
             "content",
             "html",
         ],
-        "admin": [
+        "user": [
             "id",
             "type",
             "challenge",
@@ -40,4 +34,4 @@ class HintSchema(ma.ModelSchema):
             elif isinstance(view, list):
                 kwargs["only"] = view
 
-        super(HintSchema, self).__init__(*args, **kwargs)
+        super(RessourceSchema, self).__init__(*args, **kwargs)

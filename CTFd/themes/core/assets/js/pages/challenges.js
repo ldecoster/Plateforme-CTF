@@ -1,6 +1,6 @@
 import "./main";
 import "bootstrap/js/dist/tab";
-import { ezQuery, ezAlert } from "../ezq";
+import { ezAlert } from "../ezq";
 import { htmlEntities } from "../utils";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -105,8 +105,8 @@ const displayChal = chal => {
       $("#too-fast").slideUp();
     });
 
-    $(".load-hint").on("click", function (_event) {
-      loadHint($(this).data("hint-id"));
+    $(".load-ressource").on("click", function (_event) {
+      loadRessource($(this).data("ressource-id"));
     });
 
     $("#challenge-submit").click(function (event) {
@@ -481,49 +481,18 @@ $(() => {
 });
 setInterval(update, 300000); // Update every 5 minutes.
 
-const displayHint = data => {
+const displayRessource = data => {
   ezAlert({
-    title: "Hint",
+    title: "Ressource",
     body: data.html,
     button: "Got it!"
   });
 };
 
-const displayUnlock = id => {
-  ezQuery({
-    title: "Unlock Hint?",
-    body: "Are you sure you want to open this hint?",
-    success: () => {
-      const params = {
-        target: id,
-        type: "hints"
-      };
-      CTFd.api.post_unlock_list({}, params).then(response => {
-        if (response.success) {
-          CTFd.api.get_hint({ hintId: id }).then(response => {
-            displayHint(response.data);
-          });
-
-          return;
-        }
-
-        ezAlert({
-          title: "Error",
-          body: "",
-          button: "Got it!"
-        });
-      });
-    }
-  });
-};
-
-const loadHint = id => {
-  CTFd.api.get_hint({ hintId: id }).then(response => {
+const loadRessource = id => {
+  CTFd.api.get_ressource({ ressourceId: id }).then(response => {
     if (response.data.content) {
-      displayHint(response.data);
-      return;
+      displayRessource(response.data);
     }
-
-    displayUnlock(id);
   });
 };
