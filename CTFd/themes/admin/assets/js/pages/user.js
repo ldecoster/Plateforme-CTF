@@ -141,44 +141,6 @@ function deleteUser(event) {
   });
 }
 
-function badgesUser(event) {
-  event.preventDefault();
-  const params = $("#user-badgesentries-form").serializeJSON(true);
-  params["user_id"] = window.USER_ID;
-
-  CTFd.fetch("/api/v1/badges", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(params)
-  })
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(response) {
-      if (response.ccsuess) {
-        window.location.reload();
-      } else {
-        $("#user-badgesentries-form > #results").empty();
-        Object.keys(response.errors).forEach(function(key, _index) {
-          $("#user-badgesentries-form > #results").append(
-            ezBadge({
-              type: "error",
-              body: response.errors[key]
-            })
-          );
-          const i = $("#user-badgesentries-form").find("input[name={0}]".format(key));
-          const input = $(i);
-          input.addClass("input-filled-invalid");
-          input.removeClass("input-filled-valid");
-        });
-      }
-    });
-}
-
 function emailUser(event) {
   event.preventDefault();
   var params = $("#user-mail-form").serializeJSON(true);
@@ -258,35 +220,6 @@ function deleteSelectedSubmissions(event, target) {
       const reqs = [];
       for (var subId of submissionIDs) {
         reqs.push(CTFd.api.delete_submission({ submissionId: subId }));
-      }
-      Promise.all(reqs).then(_responses => {
-        window.location.reload();
-      });
-    }
-  });
-}
-
-function deleteSelectedAwards(_event) {
-  let awardIDs = $("input[data-award-id]:checked").map(function() {
-    return $(this).data("award-id");
-  });
-  let target = awardIDs.length === 1 ? "award" : "awards";
-
-  ezQuery({
-    title: `Delete Awards`,
-    body: `Are you sure you want to delete ${awardIDs.length} ${target}?`,
-    success: function() {
-      const reqs = [];
-      for (var awardID of awardIDs) {
-        let req = CTFd.fetch("/api/v1/awards/" + awardID, {
-          method: "DELETE",
-          credentials: "same-origin",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          }
-        });
-        reqs.push(req);
       }
       Promise.all(reqs).then(_responses => {
         window.location.reload();
@@ -404,6 +337,7 @@ const updateGraphs = (id, name, account_id) => {
 };
 
 $(() => {
+
   $(".delete-user").click(deleteUser);
 
   $(".edit-user").click(function(_event) {
@@ -430,10 +364,6 @@ $(() => {
 
   $("#fails-delete-button").click(function(e) {
     deleteSelectedSubmissions(e, "fails");
-  });
-
-  $("#awards-delete-button").click(function(e) {
-    deleteSelectedAwards(e);
   });
 
   $("#missing-solve-button").click(function(e) {

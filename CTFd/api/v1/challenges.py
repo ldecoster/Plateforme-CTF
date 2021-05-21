@@ -264,9 +264,6 @@ class ChallengeList(Resource):
         },
     )
     def post(self):
-        print("*"*64)
-        print("post triggreed")
-        print("*"*64)
 
         data = request.form or request.get_json()
 

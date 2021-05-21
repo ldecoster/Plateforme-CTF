@@ -1,11 +1,10 @@
 from flask import render_template, request, url_for
 from sqlalchemy.sql import not_
-from sqlalchemy.sql.expression import join
 
 from CTFd.admin import admin
 from CTFd.utils import get_config
 from CTFd.utils.decorators import access_granted_only
-from CTFd.models import Badges, Challenges, Submissions, Tracking, Users,TagChallenge,Solves, db
+from CTFd.models import Badges, Challenges, Tags, Tracking, Users,TagChallenge,Solves, db
 
 
 @admin.route("/admin/users")
@@ -79,16 +78,19 @@ def users_detail(user_id):
     fails = user.get_fails()
 
     # Get Badges
-    print("***************************************************")
     
-    badges_challenges = Badges.query.join(TagChallenge,Badges.tag_id==TagChallenge.tag_id).all()
-    print(badges_challenges)
-    print(all_solves)
-    for i in range(len(badges_challenges)):
-        print()
-        break
+    solved_chal = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).with_entities(TagChallenge.challenge_id).join(Solves,Solves.challenge_id==TagChallenge.challenge_id).filter_by(user_id=user_id).all()
+    badges_chal = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).with_entities(TagChallenge.challenge_id).join(Challenges,Challenges.id==TagChallenge.challenge_id).filter_by(state="visible").all()
+    solved_chal=[value for (value,) in solved_chal]
+    badges_chal=[value for (value,) in badges_chal]
+
+    set_difference = set(badges_chal) - set(solved_chal)
+    list_difference = list(set_difference)
     
-    badges=0
+    # SELECT * from badges JOIN tags on badges.tag_id=tags.id where id not in(SELECT badges.id from badges INNER JOIN tagChallenge ON tagChallenge.tag_id=badges.tag_id where challenge_id in (2))
+    unearned_badges = Badges.query.join(TagChallenge,TagChallenge.tag_id==Badges.tag_id).with_entities(Badges.id).filter(TagChallenge.challenge_id.in_(list_difference))
+    badges= Badges.query.filter(Badges.id.notin_(unearned_badges)).all()
+    
     return render_template(
         "admin/users/user.html",
         solves=solves,
@@ -97,4 +99,5 @@ def users_detail(user_id):
         missing=missing,
         fails=fails,
         badges=badges,
+        Tags=Tags
     )

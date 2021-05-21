@@ -105,13 +105,9 @@ class BadgeList(Resource):
         },
     )
     def post(self):
-        print("*"*64)
-        print("post badges called")
         req = request.get_json()
-        print(req)
         schema = BadgeSchema()
         response = schema.load(req, session=db.session)
-        print("*"*64)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

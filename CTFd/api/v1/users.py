@@ -457,17 +457,6 @@ class UserPublicFails(Resource):
 class UserPublicBadges(Resource):
     @check_account_visibility
     def get(self, user_id):
-        user = Users.query.filter_by(id=user_id).first_or_404()
-        solved_challenges = Badges.query.join(TagChallenge, Badges.tag_id == TagChallenge.tag_id).join(Challenges, TagChallenge.challenge_id == Challenges.id).join(Solves, Solves.challenge_id == Challenges.id).filter_by(user_id = user_id).all()
-        print(solved_challenges)
-        # if (user.banned or user.hidden) and has_right("api_user_public_awards_get_full") is False:
-        #     abort(404)
-        # badges_entries = user.get_awards(admin=is_admin())
-        # badges = 
-
-        # view = "user" if not is_admin() else "admin"
-        # response = BadgesEntriesSchema(view=view, many=True).dump(badges_entries)
-
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
