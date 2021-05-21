@@ -49,8 +49,7 @@
 		{% include "components/errors.html" %}
 
 		{% set solves = user.solves %}
-		{% set awards = user.awards %}
-		{% if solves or awards %}
+		{% if solves %}
 			<div class="row">
 				<div class="col-md-6 d-none d-md-block d-lg-block">
 					<div id="keys-pie-graph" class="d-flex align-items-center">
@@ -86,22 +85,22 @@
 						<tr>
 							<td><b>Name</b></td>
 							<td class="d-none d-md-block d-lg-block"><b>Descripton</b></td>
-							<td><b>Date</b></td>
-
+							<td><b>Exercise</b></td>
+							
 						</tr>
 						</thead>
 						<tbody>
-						{% for badges in user.badgesentries %}
+						{% for badge in badges %}
 
 								<tr>
-									<td>
-										<i class="awards-icon awards-{{ badges.icon }} fa-2x"></i>
-										<br>
-										<strong>{{ badges.badge.name}}</strong>
+									<td><strong>{{ badge.name}}</strong></td>
+									<td class="d-none d-md-block d-lg-block">{{ badge.description }}</td>
+									{% set tag = Tags.query.filter_by(id=badge.tag_id).first_or_404() %}
+									<td id="{{ badge.id }}">
+										<span class='badge badge-warning mx-1'>
+											<span>{{ tag.value }}</span>
+										</span>
 									</td>
-									<td class="d-none d-md-block d-lg-block">{{ badges.badge.description }}</td>
-									<td class="solve-time">{{ badges.obtained_date }}</td>
-
 								</tr>
 
 						{% endfor %}

@@ -132,26 +132,6 @@ class Challenges(db.Model):
 
     def __repr__(self):
         return "<Challenge %r>" % self.name
-
-
-class Exercices(db.Model):
-    __tablename__ = "exercices"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    description = db.Column(db.Text)
-    challenge_id = db.Column(
-        db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
-    )
-    challenge = db.relationship("Challenges", foreign_keys="Exercices.challenge_id", lazy="select")
-
-    #__mapper_args__ = {"polymorphic_identity": "standard", "polymorphic_on": type}
-
-    def __init__(self, *args, **kwargs):
-        super(Exercices, self).__init__(**kwargs)
-
-    def __repr__(self):
-        return "<Exercices %r>" % self.id
-
 class Hints(db.Model):
     __tablename__ = "hints"
     id = db.Column(db.Integer, primary_key=True)
@@ -187,44 +167,6 @@ class Hints(db.Model):
 
     def __repr__(self):
         return "<Hint %r>" % self.content
-
-
-class BadgesEntries(db.Model):
-    __tablename__ = "badges_entries"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
-    obtained_date=db.Column(db.DateTime,default=datetime.datetime.utcnow)
-
-    user = db.relationship("Users", foreign_keys="BadgesEntries.user_id", lazy="select")
-    badge = db.relationship("Badges", foreign_keys="BadgesEntries.badge_id", lazy="select")
-
-    @hybrid_property
-    def account_id(self):
-        return self.user_id
-
-    def __init__(self, *args, **kwargs):
-        super(BadgesEntries, self).__init__(**kwargs)
-
-    def __repr__(self):
-        return "<BadgeEntries %r>" % self.id
-
-
-class BadgesExercices(db.Model):
-     __tablename__ = "badges_exercices"
-     id = db.Column(db.Integer, primary_key=True)
-     exercice_id = db.Column(db.Integer, db.ForeignKey("exercices.id", ondelete="CASCADE"))
-     badge_id = db.Column(db.Integer, db.ForeignKey("badges.id", ondelete="CASCADE"))
-
-     badge = db.relationship("Badges", foreign_keys="BadgesExercices.badge_id", lazy="select")
-     exercice = db.relationship("Exercices", foreign_keys="BadgesExercices.exercice_id", lazy="select")
-
-     def __init__(self, *args, **kwargs):
-         super(BadgesExercices, self).__init__(**kwargs)
-
-     def __repr__(self):
-        return "<BadgesExercices %r>" % self.id
-
 
 class Tags(db.Model):
     __tablename__ = "tags"
@@ -362,12 +304,6 @@ class Users(db.Model):
     def fails(self):
         return self.get_fails()
 
-    @property
-    def awards(self):
-        return self.get_awards()
-    def badgesentries(self):
-        return self.get_badgesentries(admin=False)
-
     def get_fields(self, admin=False):
         if admin:
             return self.field_entries
@@ -383,18 +319,6 @@ class Users(db.Model):
     def get_fails(self):
         fails = Fails.query.filter_by(user_id=self.id)
         return fails.all()
-
-    def get_badgesentries(self, admin=False):
-        from CTFd.utils import get_config
-
-        badgesentries = BadgesEntries.query.filter_by(user_id=self.id)
-        freeze = get_config("freeze")
-        if freeze and admin is False:
-            dt = datetime.datetime.utcfromtimestamp(freeze)
-            badgesentries = badgesentries.filter(BadgesEntries.date < dt)
-        return badgesentries.all()
-
-
 class Admins(Users):
     __tablename__ = "admins"
     __mapper_args__ = {"polymorphic_identity": "admin"}

@@ -274,7 +274,6 @@ const createGraphs = (id, name, account_id) => {
   Promise.all([
     CTFd.api.get_user_solves({ userId: account_id }),
     CTFd.api.get_user_fails({ userId: account_id }),
-    CTFd.api.get_user_awards({ userId: account_id })
   ]).then(responses => {
     createGraph(
       "score_graph",
@@ -307,7 +306,6 @@ const updateGraphs = (id, name, account_id) => {
   Promise.all([
     CTFd.api.get_user_solves({ userId: account_id }),
     CTFd.api.get_user_fails({ userId: account_id }),
-    CTFd.api.get_user_awards({ userId: account_id })
   ]).then(responses => {
     updateGraph(
       "score_graph",

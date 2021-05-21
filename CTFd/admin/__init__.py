@@ -26,7 +26,6 @@ from CTFd.admin import submissions  # noqa: F401
 from CTFd.admin import users  # noqa: F401
 from CTFd.cache import cache, clear_config, clear_pages
 from CTFd.models import (
-    BadgesEntries,
     Badges,
     Challenges,
     Configs,

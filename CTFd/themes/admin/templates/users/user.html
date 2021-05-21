@@ -45,9 +45,6 @@
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<div class="modal-body clearfix">
-				{% include "admin/modals/awards/create.html" %}
-			</div>
 		</div>
 	</div>
 </div>
@@ -177,8 +174,8 @@
 		<a class="nav-item nav-link" id="nav-wrong-tab" data-toggle="tab" href="#nav-wrong" role="tab"
 		   aria-controls="nav-wrong" aria-selected="false">Fails</a>
 
-		<a class="nav-item nav-link" id="nav-awards-tab" data-toggle="tab" href="#nav-awards" role="tab"
-		   aria-controls="nav-awards" aria-selected="false">Badges</a>
+		<a class="nav-item nav-link" id="nav-badges-tab" data-toggle="tab" href="#nav-badges" role="tab"
+		   aria-controls="nav-badges" aria-selected="false">Badges</a>
 
 		<a class="nav-item nav-link" id="nav-missing-tab" data-toggle="tab" href="#nav-missing" role="tab"
 		   aria-controls="nav-missing" aria-selected="false">Missing</a>
@@ -299,19 +296,8 @@
 			</div>
 		</div>
 
-		<div class="tab-pane fade" id="nav-awards" role="tabpanel" aria-labelledby="nav-awards-tab">
+		<div class="tab-pane fade" id="nav-badges" role="tabpanel" aria-labelledby="nav-badges-tab">
 			<h3 class="text-center pt-5 d-block">Badges</h3>
-			<div class="row">
-				<div class="col-md-12">
-					<div class="float-right pb-3">
-						<div class="btn-group" role="group">
-							<button type="button" class="btn btn-outline-danger" id="awards-delete-button">
-								<i class="btn-fa fas fa-trash-alt"></i>
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
 			<div class="row">
 				<div class="col-md-12">
 					<table class="table table-striped border">

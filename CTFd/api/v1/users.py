@@ -17,7 +17,6 @@ from CTFd.cache import clear_user_session
 from CTFd.constants import RawEnum
 from CTFd.models import (
     Badges,
-    BadgesEntries,
     Challenges,
     Notifications,
     Roles,
@@ -31,7 +30,6 @@ from CTFd.models import (
     Users,
     db,
 )
-from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
@@ -40,7 +38,7 @@ from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.email import sendmail, user_created_notification
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.security.auth import update_user
-from CTFd.utils.user import get_current_user, get_current_user_type, has_right
+from CTFd.utils.user import get_current_user, get_current_user_type, has_right, get_current_user_badges
 
 users_namespace = Namespace("users", description="Endpoint to retrieve Users")
 
@@ -390,25 +388,6 @@ class UserPrivateFails(Resource):
         count = len(response.data)
 
         return {"success": True, "data": data, "meta": {"count": count}}
-
-
-@users_namespace.route("/me/badgesentries")
-@users_namespace.param("user_id", "User ID")
-class UserPrivateBadges(Resource):
-    @authed_only
-    def get(self):
-        user = get_current_user()
-        basgesentries = user.get_awards(admin=True)
-
-        view = "user" if not is_admin() else "admin"
-        response = BadgesEntriesSchema(view=view, many=True).dump(basgesentries)
-
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
-
-        return {"success": True, "data": response.data}
-
-
 @users_namespace.route("/<user_id>/solves")
 @users_namespace.param("user_id", "User ID")
 class UserPublicSolves(Resource):
@@ -461,17 +440,7 @@ class UserPublicBadges(Resource):
     @check_account_visibility
     def get(self, user_id):
         # Get Badges
-        solved_chal = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).with_entities(TagChallenge.challenge_id).join(Solves,Solves.challenge_id==TagChallenge.challenge_id).filter_by(user_id=user_id).all()
-        badges_chal = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).with_entities(TagChallenge.challenge_id).join(Challenges,Challenges.id==TagChallenge.challenge_id).filter_by(state="visible").all()
-        solved_chal=[value for (value,) in solved_chal]
-        badges_chal=[value for (value,) in badges_chal]
-
-        set_difference = set(badges_chal) - set(solved_chal)
-        list_difference = list(set_difference)
-        
-        # SELECT * from badges JOIN tags on badges.tag_id=tags.id where id not in(SELECT badges.id from badges INNER JOIN tagChallenge ON tagChallenge.tag_id=badges.tag_id where challenge_id in (2))
-        unearned_badges = Badges.query.join(TagChallenge,TagChallenge.tag_id==Badges.tag_id).with_entities(Badges.id).filter(TagChallenge.challenge_id.in_(list_difference))
-        badges= Badges.query.filter(Badges.id.notin_(unearned_badges)).all()
+        badges = get_current_user_badges()
         view = "admin"
         response = BadgeSchema(view=view,many=True).dump(badges)
         if response.errors:

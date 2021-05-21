@@ -8,7 +8,6 @@ from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
 from CTFd.models import Unlocks, db, get_class_by_tablename
-from CTFd.schemas.badgesentries import BadgesEntriesSchema
 from CTFd.schemas.unlocks import UnlockSchema
 from CTFd.utils.decorators import (
     access_granted_only,
