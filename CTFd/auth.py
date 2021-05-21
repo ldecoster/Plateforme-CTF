@@ -365,7 +365,7 @@ def login():
                     request.args.get("next")
                 ):
                     return redirect(request.args.get("next"))
-                return redirect(("challenges.listing"))
+                return redirect(url_for("challenges.listing"))
 
             else:
                 # This user exists but the password is wrong
