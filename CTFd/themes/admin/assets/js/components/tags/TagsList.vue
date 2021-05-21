@@ -84,7 +84,6 @@ export default {
     setTagsList: function (event) {
       CTFd.api.get_tag_list().then((response) => {
         this.tagsList = response.data;
-        console.log(this.tagsList);
         this.matches = this.tagsList.filter((tag) => {
           const regex = new RegExp(`^${this.tagValue}`, "gi");
           return (
@@ -140,7 +139,7 @@ export default {
         challenge_id: window.CHALLENGE_ID
       };
       CTFd.api.post_tag_list({}, params).then((res) => {
-        this.errorTag(response);
+        this.errorTag(res);
         CTFd.api
           .post_tagChallenge_list(
             {},
