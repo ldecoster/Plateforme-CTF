@@ -65,45 +65,6 @@ function addBadge(_event) {
 
 }
 
-function bulkEditBadges(_event) {
-  let badgeIDs = $("input[data-badge-id]:checked").map(function () {
-    return $(this).data("badge-id");
-  });
-
-  ezAlert({
-    title: "Edit Badges",
-    body: $(`
-    <form id="badges-bulk-edit">
-      <div class="form-group">
-        <label>State</label>
-        <select name="state" data-initial="">
-          <option value="">--</option>
-          <option value="hidden">Hidden</option>
-          <option value="visible">Visible</option>
-          <option value="voting">Voting</option>
-        </select>
-      </div>
-    </form>
-    `),
-    button: "Submit",
-    success: function () {
-      let data = $("#badges-bulk-edit").serializeJSON(true);
-      const reqs = [];
-      for (var badID of badgeIDs) {
-        reqs.push(
-          CTFd.fetch(`/api/v1/badges/${badID}`, {
-            method: "PATCH",
-            body: JSON.stringify(data)
-          })
-        );
-      }
-      Promise.all(reqs).then(_responses => {
-        window.location.reload();
-      });
-    }
-  });
-}
-
 $("#edit-new-badge").on('click', function (event) {
   $("#badge-create-options").modal();
 });
@@ -111,7 +72,5 @@ $("#edit-new-badge").on('click', function (event) {
 $("#badge-create-button").click(addBadge);
 
 $(() => {
-  // loadBadgeProgressBar();
   $("#badges-delete-button").click(deleteSelectedBadges);
-  $("#badges-edit-button").click(bulkEditBadges);
 });

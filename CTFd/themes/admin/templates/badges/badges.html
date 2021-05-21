@@ -11,7 +11,9 @@
 		<h1>Badges
 			<button type="button" class="btn btn-outline-primary" data-toggle="modal" title="Add new badge"
 					id="edit-new-badge">
-				<i class="btn-fa fas fa-plus-circle"></i>
+					<span role="button" data-toggle="tooltip" title="Create Badge">
+						<i class="btn-fa fas fa-plus-circle"></i>
+					</span>
 			</button>
 		</h1>
 	</div>
@@ -22,45 +24,11 @@
 </div>
 
 <div class="container">
-	<div class="row">
-		<div class="col-md-12">
-			{% if q and field %}
-			<h5 class="text-muted text-center">
-				Searching for badges with <strong>{{ field }}</strong> matching <strong>{{ q }}</strong>
-			</h5>
-			<h6 class="text-muted text-center pb-3">
-				{{ total }} results
-			</h6>
-			{% endif %}
-
-			{% with form = Forms.badges.BadgesSearchForm(field=field, q=q) %}
-			<form method="GET" class="form-inline">
-				<div class="form-group col-md-2">
-					{{ form.field(class="form-control custom-select w-100") }}
-				</div>
-				<div class="form-group col-md-8">
-					{{ form.q(class="form-control w-100", placeholder="Search for matching badge") }}
-				</div>
-				<div class="form-group col-md-2">
-					<button type="submit" class="btn btn-primary w-100">
-						<i class="fas fa-search" aria-hidden="true"></i>
-					</button>
-				</div>
-			</form>
-			{% endwith %}
-		</div>
-	</div>
-
-	<hr>
 
 	<div class="row">
 		<div class="col-md-12">
 			<div class="float-right pb-3">
 				<div class="btn-group" role="group">
-					<button type="button" class="btn btn-outline-secondary" data-toggle="tooltip"
-						title="Edit Badges" id="badges-edit-button">
-						<i class="btn-fa fas fa-pencil-alt"></i>
-					</button>
 					<button type="button" class="btn btn-outline-danger" data-toggle="tooltip" title="Delete Badges"
 						id="badges-delete-button">
 						<i class="btn-fa fas fa-trash-alt"></i>
@@ -85,6 +53,7 @@
 							<th class="sort-col"><b>Name</b></th>
 							<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Exercise</b></th>
 							<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Progress</b></th>
+							<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Players</b></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -109,8 +78,7 @@
 								{% set challenges_query = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).filter_by(id=badge.id).with_entities(TagChallenge.challenge_id) %}
     							{% set entrants_query = Submissions.query.filter(Submissions.challenge_id.in_(challenges_query)).group_by(Submissions.user_id) %}
     							{% set winners_query = entrants_query.filter_by(type="correct") %}
-								{% set users= Users.query.count() %}
-								{% set progress = winners_query.count()/users*100 if users>0 else 0 %}
+								{% set progress = winners_query.count()/entrants_query.count()*100 if entrants_query.count()>0 else 0 %}
 								<div class="progress">
 									<div class="progress-bar {{'bg-success' if progress == 100 else ''}}" role="progressbar"
 										aria-valuenow="{winners_query.count()}" aria-valuemin="0"
@@ -120,6 +88,7 @@
 									</div>
 								</div>
 							</td>
+							<td class="text-center">{{ entrants_query.count() }}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
