@@ -3162,7 +3162,6 @@ let API = (function() {
       queryParameters = {},
       headers = {},
       form = {};
-
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 

@@ -391,6 +391,7 @@ def setup():
                     "api_badge_post",
                     "api_badge_patch",
                     "api_badge_delete",
+                    "api_user_public_badges_get_full",
                     "forms_user_edit_form_full",
                     "forms_user_edit_form_partial",
                     "forms_user_create_form_full",
@@ -573,6 +574,7 @@ def setup():
                     "api_badge_post",
                     "api_badge_patch",
                     "api_badge_delete",
+                    "api_user_public_badges_get_full",
                     "forms_user_edit_form_full",
                     "forms_user_edit_form_partial",
                     "forms_user_create_form_full",
@@ -676,6 +678,7 @@ def setup():
                     "api_badge_post",
                     "api_badge_patch",
                     "api_badge_delete",
+                    "api_user_public_badges_get_full",
                     "forms_user_edit_form_partial",
                     "forms_user_create_form_partial",
                     "schemas_user_schema_validate_name",
@@ -753,6 +756,7 @@ def setup():
                     "api_badge_post",
                     "api_badge_patch",
                     "api_badge_delete",
+                    "api_user_public_badges_get_full"
                 ]
 
                 # Create the new roles

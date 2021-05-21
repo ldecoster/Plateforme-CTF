@@ -303,10 +303,10 @@ function loadChals() {
     const categories = [];
     const challenges_filter = $("#challenges_filter option:selected").val();
     challenges = response.data;
-    $challenges_board.empty();
 
     switch (challenges_filter) {
       case "author": {
+        $challenges_board.empty();
         for (let i = challenges.length - 1; i >= 0; i--) {
           if ($.inArray(challenges[i].author_name, categories) === -1) {
             const category = challenges[i].author_name;
@@ -340,6 +340,7 @@ function loadChals() {
       case "solved": {
         categories.push("Unsolved", "Solved");
 
+        $challenges_board.empty();
         for (const category of categories) {
           const categoryid = category.replace(/ /g, "-").hashCode();
           const categoryrow = $(
@@ -379,6 +380,7 @@ function loadChals() {
             "</div>" +
             "</div>"
         );
+        $challenges_board.empty();
         $challenges_board.append(categoryrow);
 
         challenges.sort((a, b) => a.name.localeCompare(b.name));
@@ -389,43 +391,65 @@ function loadChals() {
         break;
       }
       case "exercise":{
-        return CTFd.api.get_tag_list().then(function (response) {
-          tag_list = response.data;
-          tag_list.sort((a, b) => b.value.localeCompare(a.value));
-
-          for (let i = tag_list.length - 1; i >= 0; i--) {
-            if ($.inArray(tag_list[i].value, categories) === -1 && tag_list[i].exercise) {
-              const category = tag_list[i].value;
-              categories.push(category);
-
-              const categoryid = category.replace(/ /g, "-").hashCode();
-              const categoryrow = $(
-                  "" +
-                  '<div id="{0}-row" class="pt-5">'.format(categoryid) +
-                  '<div class="category-header col-md-12 mb-3">' +
-                  "</div>" +
-                  '<div class="category-challenges col-md-12">' +
-                  '<div class="challenges-row col-md-12"></div>' +
-                  "</div>" +
-                  "</div>"
-              );
-              categoryrow
-                  .find(".category-header")
-                  .append($("<h3>" + category + "</h3>"));
-              $challenges_board.append(categoryrow);
-            }
-          }
-
-          for (let i = 0; i <= challenges.length - 1; i++) {
-            for (let j = 0; j <= challenges[i].tags.length - 1; j++) {
-              const chalinfo = challenges[i];
-              const catid = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
-              createChalWrapper(chalinfo, catid);
-            }
-          }
-
-          $(".challenge-button").click(function (_event) {
-            loadChal(this.value);
+        return CTFd.api.get_tag_list().then(function (tagResponse) {
+          return CTFd.api.get_badge_list().then(function (badgeResponse){
+            return CTFd.api.get_user_private().then(function (userRes){
+              current_user=userRes.data;
+              return CTFd.api.get_user_badges({userId:current_user.id}).then(function (userBadgesRes){
+                tag_list = tagResponse.data;
+                tag_list.sort((a, b) => b.value.localeCompare(a.value));
+                badge_list =Object.assign({},...badgeResponse.data.map(badge => ({[badge.tag_id]:badge.name})));
+                user_badges = Object.assign({},...userBadgesRes.data.map(badge =>({[badge.tag_id]:badge.name})));
+                $challenges_board.empty();
+                for (let i = tag_list.length - 1; i >= 0; i--) {
+                  if ($.inArray(tag_list[i].value, categories) === -1 && tag_list[i].exercise) {
+                    const category = tag_list[i].value;
+                    categories.push(category);
+      
+                    const categoryid = category.replace(/ /g, "-").hashCode();
+                    const categoryrow = $(
+                        "" +
+                        '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+                        '<div class="category-header col-md-12 mb-3"' +
+                        'style="display: flex; align-items: center;'+
+                        '">' +
+                        "</div>" +
+                        '<div class="category-challenges col-md-12">' +
+                        '<div class="challenges-row col-md-12"></div>' +
+                        "</div>" +
+                        "</div>"
+                    );
+                    categoryrow
+                        .find(".category-header")
+                        .append($("<h3 class='mb-0'>" + category + "</h3>"));
+                    if(badge_list[tag_list[i].id]){
+                      categoryrow
+                      .find(".category-header")
+                      .append($(
+                        "<div>"+
+                        "<span class='badge badge-pill {0} ml-2'>".format(user_badges[tag_list[i].id]?'badge-success':'badge-secondary')+
+                        "<span>{0}</span>".format(badge_list[tag_list[i].id])+
+                        "</span>"+
+                        "</div>"
+                        ));
+                    }
+                    $challenges_board.append(categoryrow);     
+                  }
+                }
+      
+                for (let i = 0; i <= challenges.length - 1; i++) {
+                  for (let j = 0; j <= challenges[i].tags.length - 1; j++) {
+                    const chalinfo = challenges[i];
+                    const catid = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
+                    createChalWrapper(chalinfo, catid);
+                  }
+                }
+      
+                $(".challenge-button").click(function (_event) {
+                  loadChal(this.value);
+                });
+              });
+            });
           });
         });
       }
@@ -435,6 +459,7 @@ function loadChals() {
           tag_list = response.data;
           tag_list.sort((a, b) => b.value.localeCompare(a.value));
 
+          $challenges_board.empty();
           for (let i = tag_list.length - 1; i >= 0; i--) {
             if ($.inArray(tag_list[i].value, categories) === -1 && !tag_list[i].exercise) {
               const category = tag_list[i].value;
