@@ -49,6 +49,9 @@
 {% endblock %}
 
 {% block scripts %}
+	<script>
+		var USER_ID = {{ user.id }};
+	</script>
 {% endblock %}
 
 {% block entrypoint %}

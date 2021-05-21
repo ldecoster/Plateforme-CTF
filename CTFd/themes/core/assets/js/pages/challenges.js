@@ -393,9 +393,7 @@ function loadChals() {
       case "exercise":{
         return CTFd.api.get_tag_list().then(function (tagResponse) {
           return CTFd.api.get_badge_list().then(function (badgeResponse){
-            return CTFd.api.get_user_private().then(function (userRes){
-              current_user=userRes.data;
-              return CTFd.api.get_user_badges({userId:current_user.id}).then(function (userBadgesRes){
+              return CTFd.api.get_user_badges({userId:window.USER_ID}).then(function (userBadgesRes){
                 tag_list = tagResponse.data;
                 tag_list.sort((a, b) => b.value.localeCompare(a.value));
                 badge_list =Object.assign({},...badgeResponse.data.map(badge => ({[badge.tag_id]:badge.name})));
@@ -449,7 +447,7 @@ function loadChals() {
                   loadChal(this.value);
                 });
               });
-            });
+            
           });
         });
       }
