@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request, url_for
 
-from CTFd.models import Users
+from CTFd.models import Badges, Challenges, Solves, TagChallenge, Tags, Users
 from CTFd.utils.decorators import authed_only
 from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.helpers import get_errors, get_infos
-from CTFd.utils.user import get_current_user
+from CTFd.utils.user import get_current_user, get_current_user_badges
 
 users = Blueprint("users", __name__)
 
@@ -49,6 +49,8 @@ def private():
     errors = get_errors()
 
     user = get_current_user()
+    # Get Badges
+    badges = get_current_user_badges()
 
     return render_template(
         "users/private.html",
@@ -56,6 +58,8 @@ def private():
         account=user.account,
         infos=infos,
         errors=errors,
+        badges=badges,
+        Tags=Tags
     )
 
 
@@ -65,7 +69,16 @@ def public(user_id):
     infos = get_infos()
     errors = get_errors()
     user = Users.query.filter_by(id=user_id, banned=False, hidden=False).first_or_404()
+    
+    # Get Badges
+    badges = get_current_user_badges()
 
     return render_template(
-        "users/public.html", user=user, account=user.account, infos=infos, errors=errors
+        "users/public.html", 
+        user=user, 
+        account=user.account, 
+        infos=infos, 
+        errors=errors,
+        badges=badges,
+        Tags=Tags
     )

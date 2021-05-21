@@ -7,7 +7,7 @@ from flask import redirect, request, session, url_for
 
 from CTFd.cache import cache
 from CTFd.constants.users import UserAttrs
-from CTFd.models import Fails, Tracking, Rights, UserRights, Users, db
+from CTFd.models import Badges, Challenges, Fails, Solves, TagChallenge, Tracking, Rights, UserRights, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.security.auth import logout_user
 from CTFd.utils.security.signing import hmac
@@ -55,6 +55,24 @@ def get_current_user_type(fallback=None):
     if authed():
         user = get_current_user_attrs()
         return user.type
+    else:
+        return fallback
+
+def get_current_user_badges(fallback=None):
+    if authed():
+        user = get_current_user_attrs()
+        solved_chal = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).with_entities(TagChallenge.challenge_id).join(Solves,Solves.challenge_id==TagChallenge.challenge_id).filter_by(user_id=user.id).all()
+        badges_chal = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).with_entities(TagChallenge.challenge_id).join(Challenges,Challenges.id==TagChallenge.challenge_id).filter_by(state="visible").all()
+        solved_chal=[value for (value,) in solved_chal]
+        badges_chal=[value for (value,) in badges_chal]
+
+        set_difference = set(badges_chal) - set(solved_chal)
+        list_difference = list(set_difference)
+        
+        # SELECT * from badges JOIN tags on badges.tag_id=tags.id where id not in(SELECT badges.id from badges INNER JOIN tagChallenge ON tagChallenge.tag_id=badges.tag_id where challenge_id in (2))
+        unearned_badges = Badges.query.join(TagChallenge,TagChallenge.tag_id==Badges.tag_id).with_entities(Badges.id).filter(TagChallenge.challenge_id.in_(list_difference))
+        badges= Badges.query.filter(Badges.id.notin_(unearned_badges)).all()
+        return badges
     else:
         return fallback
 
