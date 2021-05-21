@@ -1,10 +1,8 @@
 from flask import abort, render_template, request, url_for, session
 
 from CTFd.admin import admin
-from CTFd.models import Badges, Flags, Solves, Tags, TagChallenge, Votes
+from CTFd.models import Badges, Submissions, Tags, TagChallenge, Users
 from CTFd.plugins.badges import get_badge_class, BADGE_CLASSES
-from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
-from CTFd.utils.config import get_votes_number
 from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.user import has_right, has_right_or_is_author
 from sqlalchemy.sql import and_, or_
@@ -15,15 +13,15 @@ from sqlalchemy.sql import and_, or_
 def badges_listing():
     q = request.args.get("q")
     field = request.args.get("field")
-    badges = Badges.query.all()
-    tags = Tags.query.all()
-
     return render_template(
         "admin/badges/badges.html",
-        badges=badges,
-        tags= tags,
         q=q,
         field=field,
+        Tags=Tags,
+        TagChallenge=TagChallenge,
+        Submissions=Submissions,
+        Badges=Badges,
+        Users=Users
     )
 
 

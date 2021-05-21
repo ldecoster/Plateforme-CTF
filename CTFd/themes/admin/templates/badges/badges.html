@@ -88,7 +88,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{% for badge in badges %}
+						{% for badge in Badges.query.all() %}
 						<tr data-href="{{ url_for('admin.badges_detail', badge_id=badge.id) }}">
 							<td class="d-block border-right text-center" data-checkbox>
 								<div class="form-check">
@@ -99,10 +99,25 @@
 							<td class="text-center">{{ badge.id }}</td>
 							<td><a href="{{ url_for('admin.badges_detail', badge_id=badge.id) }}">{{ badge.name }}</a>
 							</td>
-							<td  id="{{badge.id}}-tag" class="d-none d-md-table-cell d-lg-table-cell text-center">
+							{% set tag = Tags.query.filter_by(id=badge.tag_id).first_or_404() %}
+							<td class="text-center" id="{{ badge.id }}">
+								<span class='badge badge-warning mx-1'>
+									<span>{{ tag.value }}</span>
+								</span>
 							</td>
 							<td>
-								<div class="progress" id="{{badge.id}}-progress">
+								{% set challenges_query = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).filter_by(id=badge.id).with_entities(TagChallenge.challenge_id) %}
+    							{% set entrants_query = Submissions.query.filter(Submissions.challenge_id.in_(challenges_query)).group_by(Submissions.user_id) %}
+    							{% set winners_query = entrants_query.filter_by(type="correct") %}
+								{% set users= Users.query.count() %}
+								{% set progress = winners_query.count()/users*100 if users>0 else 0 %}
+								<div class="progress">
+									<div class="progress-bar {{'bg-success' if progress == 100 else ''}}" role="progressbar"
+										aria-valuenow="{winners_query.count()}" aria-valuemin="0"
+										aria-valuemax="{entrants_query.count()}" 
+										style="width:{{progress}}%;color:{{'black' if progress < 5 else 'white'}}">
+											{{progress|int}} %
+									</div>
 								</div>
 							</td>
 						</tr>

@@ -1,10 +1,7 @@
 import "./main";
-import regeneratorRuntime from "regenerator-runtime";
 import $ from "jquery";
-import { ezAlert, ezQuery } from "core/ezq";
+import { ezAlert } from "core/ezq";
 import CTFd from "core/CTFd";
-
-let solves = [];
 
 function deleteSelectedBadges(_event) {
   console.log("in delete badge");
@@ -27,26 +24,6 @@ function deleteSelectedBadges(_event) {
       Promise.all(reqs).then(_responses => {
         window.location.reload();
       });
-  
-  // ezQuery({
-  //   title: "Delete Badges",
-  //   body: `Are you sure you want to delete ${badgeIDs.length} ${target}?`,
-  //   success: function () {
-  //     console.log("yee")
-  //     const reqs = [];
-  //     for (let i=0;i<badgeIDs.length;i++) {
-  //       console.log("bad id is"  + badgeIDs.get(i));
-  //       reqs.push(
-  //         CTFd.fetch(`/api/v1/badges/${badgeIDs.get(i)}`, {
-  //           method: "DELETE"
-  //         })
-  //       );
-  //     }
-  //     Promise.all(reqs).then(_responses => {
-  //       window.location.reload();
-  //     });
-  //   }
-  // });
 }
 
 
@@ -126,68 +103,6 @@ function bulkEditBadges(_event) {
     }
   });
 }
-function loadUserSolves() {
-  return CTFd.api.get_user_solves({ userId: "me" }).then(function (response) {
-    temp = response.data;
-    for (let i = temp.length - 1; i >= 0; i--) {
-      const chal_id = temp[i].challenge_id;
-      solves.push(chal_id);
-      
-    }
-  });
-}
-
-async function loadTags(){
-  const badges = (await CTFd.api.get_badge_list()).data;
-  for (let i = 0; i < badges.length; i++) {
-    const tag = (await CTFd.api.get_tag({tagId:badges[i].tag_id})).data;
-    const tagItem = $(
-      '<span class="badge badge-primary mx-1 challenge-tag">'+
-      '<span>{0}</span>'.format(tag.value)+
-      '</span>'
-    );
-    $("#" + badges[i].id + "-tag").append(tagItem);
-  }
-}
-
-async function loadBadgeProgressBar() {
-  const badges = (await CTFd.api.get_badge_list()).data;
-  loadUserSolves().then(async function (){
-    const users = (await CTFd.api.get_user_list()).data;
-    for (let i = 0; i < badges.length; i++) {
-      let solvers = 0;
-      let numOfSolvedChal = 0;
-      const challenges = (await CTFd.api.get_tagChallenge_byTagId({ tagId: badges[i].tag_id })).data;
-      const tag = (await CTFd.api.get_tag({tagId:badges[i].tag_id})).data;
-      
-      // for (let i =0; i< users.length; i++){
-      //   const user_solves = (CTFd.api.get_user_solves({ userId: users[i].id })).data
-      // }
-      // for (let j = 0; j < challenges.length; j++) {
-      //   if (solves.indexOf(challenges[j].challenge_id) >= 0) {
-      //     numOfSolvedChal++;
-      //   }
-      // }
-      // const progress = (challenges.length !== 0 ? numOfSolvedChal / challenges.length : 0) * 100;
-      // const progressBar = $(
-      //   '<div class="progress-bar {0}" role="progressbar"'.format(progress === 100 ? 'bg-success' : '') +
-      //   'aria-valuenow="{0}" aria-valuemin="0"'.format(numOfSolvedChal) +
-      //   'aria-valuemax="{0}" style="width:{1}%">'.format(challenges.length, progress) +
-      //   '{0}'.format(progress !== 0 ? progress + '%' : '') +
-      //   '</div>'
-      // );
-      // const tagClass = progress===100?' badge-success':' badge-primary';
-      // $("#" + badges[i].id + "-progress").append(progressBar);
-  
-      const tagItem = $(
-        '<span class="badge {0} mx-1 challenge-tag">'.format(progress !==100?"badge-primary":"badge-success")+
-        '<span>{0}</span>'.format(tag.value)+
-        '</span>'
-      );
-      $("#" + badges[i].id + "-tag").append(tagItem);
-    }
-  });
-}
 
 $("#edit-new-badge").on('click', function (event) {
   $("#badge-create-options").modal();
@@ -197,7 +112,6 @@ $("#badge-create-button").click(addBadge);
 
 $(() => {
   // loadBadgeProgressBar();
-  loadTags();
   $("#badges-delete-button").click(deleteSelectedBadges);
   $("#badges-edit-button").click(bulkEditBadges);
 });

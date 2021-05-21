@@ -56,8 +56,8 @@
 							</label>
 							<select class="form-control custom-select" id="badge_tag"
 									name="badge_tag">
-								{% for tag in tags %}
-									{% if tag.exercise == 1%}
+								{% for tag in Tags.query.all() %}
+									{% if tag.exercise %}
 										<option>{{ tag.value }}</option>
 									{% endif %}
 								{% endfor %}
