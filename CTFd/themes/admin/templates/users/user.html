@@ -317,13 +317,29 @@
 					<table class="table table-striped border">
 						<thead>
 						<tr>
-							<th class="sort-col text-center"><b>Description</b></th>
 							<th class="sort-col text-center"><b>Name</b></th>
-							<th class="sort-col text-center"><b>Date</b></th>
-
-
+							<th class="sort-col text-center"><b>Description</b></th>
+							<th class="sort-col text-center"><b>Exercise</b></th>
 						</tr>
 						</thead>
+						<tbody>
+							{% for badge in badges %}
+								<tr class="chal-wrong">
+									<td class="text-center chal" id="{{ badge.id }}">
+											{{ badge.name }}
+									</td>
+									<td class="text-center" id="{{ badge.id }}">
+										<pre>{{ badge.description }}</pre>
+									</td>
+									{% set tag = Tags.query.filter_by(id=badge.tag_id).first_or_404() %}
+									<td class="text-center" id="{{ badge.id }}">
+										<span class='badge badge-warning mx-1'>
+											<span>{{ tag.value }}</span>
+										</span>
+									</td>
+								</tr>
+							{% endfor %}
+							</tbody>
 					</table>
 				</div>
 			</div>
