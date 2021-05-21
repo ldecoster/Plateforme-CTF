@@ -3,15 +3,24 @@ from elasticsearch import helpers, Elasticsearch
 from CTFd.utils import get_app_config
 
 import csv
+import glob
+import os
 import pandas as pd
 import schedule
 import sqlite3
 import time
+import uuid
 
 
 def export():
     app = create_app()
     with app.app_context():
+        # Generate temp folder from uploads
+        upload_folder = get_app_config("UPLOAD_FOLDER")
+        random_name = uuid.uuid4().hex
+        upload_folder_name = upload_folder + '/' + random_name + '/'
+        os.mkdir(upload_folder_name)
+
         db = get_app_config("SQLALCHEMY_DATABASE_URI").replace("sqlite:///", "")
         conn = sqlite3.connect(db)
         cur = conn.cursor()
@@ -22,7 +31,7 @@ def export():
         cur.execute("SELECT name FROM pragma_table_info('users')")
         header_list = cur.fetchall()
 
-        with open('user.csv', 'w', newline='', encoding='utf-8') as csv_file:
+        with open(upload_folder_name + 'user.csv', 'w', newline='', encoding='utf-8') as csv_file:
             c = csv.writer(csv_file, delimiter=',')
             c.writerow(header_list)
             for x in result:
@@ -34,7 +43,7 @@ def export():
         cur.execute("SELECT name FROM pragma_table_info('votes')")
         header_list = cur.fetchall()
 
-        with open('vote.csv', 'w', newline='', encoding='utf-8') as csv_file:
+        with open(upload_folder_name + 'vote.csv', 'w', newline='', encoding='utf-8') as csv_file:
             c = csv.writer(csv_file, delimiter=',')
             c.writerow(header_list)
             for x in result:
@@ -46,7 +55,7 @@ def export():
         cur.execute("SELECT name FROM pragma_table_info('challenges')")
         header_list = cur.fetchall()
 
-        with open('challenge.csv', 'w', newline='', encoding='utf-8') as csv_file:
+        with open(upload_folder_name + 'challenge.csv', 'w', newline='', encoding='utf-8') as csv_file:
             c = csv.writer(csv_file, delimiter=',')
             c.writerow(header_list)
             for x in result:
@@ -58,7 +67,7 @@ def export():
         cur.execute("SELECT name FROM pragma_table_info('solves')")
         header_list = cur.fetchall()
 
-        with open('solve.csv', 'w', newline='', encoding='utf-8') as csv_file:
+        with open(upload_folder_name + 'solve.csv', 'w', newline='', encoding='utf-8') as csv_file:
             c = csv.writer(csv_file, delimiter=',')
             c.writerow(header_list)
             for x in result:
@@ -70,7 +79,7 @@ def export():
         cur.execute("SELECT name FROM pragma_table_info('submissions')")
         header_list = cur.fetchall()
 
-        with open('submission.csv', 'w', newline='', encoding='utf-8') as csv_file:
+        with open(upload_folder_name + 'submission.csv', 'w', newline='', encoding='utf-8') as csv_file:
             c = csv.writer(csv_file, delimiter=',')
             c.writerow(header_list)
             for x in result:
@@ -82,7 +91,7 @@ def export():
         cur.execute("SELECT name FROM pragma_table_info('tags')")
         header_list = cur.fetchall()
 
-        with open('tag.csv', 'w', newline='', encoding='utf-8') as csv_file:
+        with open(upload_folder_name + 'tag.csv', 'w', newline='', encoding='utf-8') as csv_file:
             c = csv.writer(csv_file, delimiter=',')
             c.writerow(header_list)
             for x in result:
@@ -94,7 +103,7 @@ def export():
         cur.execute("SELECT name FROM pragma_table_info('tagChallenge')")
         header_list = cur.fetchall()
 
-        with open('tagChallenge.csv', 'w', newline='', encoding='utf-8') as csvFile:
+        with open(upload_folder_name + 'tagChallenge.csv', 'w', newline='', encoding='utf-8') as csvFile:
             c = csv.writer(csvFile, delimiter=',')
             c.writerow(header_list)
             for x in result:
@@ -104,8 +113,8 @@ def export():
         conn.close()
 
         # Merge Submissions and Challenges
-        sub = pd.read_csv("submission.csv", sep=',')
-        chal = pd.read_csv("challenge.csv", sep=',')
+        sub = pd.read_csv(upload_folder_name + "submission.csv", sep=',')
+        chal = pd.read_csv(upload_folder_name + "challenge.csv", sep=',')
 
         challenge = chal.rename(columns={"('id',)": "('challenge_id',)"})
 
@@ -116,10 +125,10 @@ def export():
 
         df_mixed_chal_sub = submission.join(challenges)
 
-        df_mixed_chal_sub.to_csv("chal&sub.csv", sep=',')
+        df_mixed_chal_sub.to_csv(upload_folder_name + "chal&sub.csv", sep=',')
 
         # Merge Submissions and Users
-        user = pd.read_csv("user.csv", sep=',', encoding='utf-8')
+        user = pd.read_csv(upload_folder_name + "user.csv", sep=',', encoding='utf-8')
         user = user.rename(columns={"('id',)": "('user_id',)"})
         user = user.drop(columns=["('type',)", ], axis=1)
 
@@ -128,11 +137,11 @@ def export():
 
         df_mixed_user_sub = submission.join(users)
 
-        df_mixed_user_sub.to_csv("user&sub.csv", sep=',')
+        df_mixed_user_sub.to_csv(upload_folder_name + "user&sub.csv", sep=',')
 
         # Merge Tag and TagChallenge
-        tag = pd.read_csv("tag.csv", sep=',', encoding='utf-8')
-        tagchal = pd.read_csv("tagChallenge.csv", sep=',', encoding='utf-8')
+        tag = pd.read_csv(upload_folder_name + "tag.csv", sep=',', encoding='utf-8')
+        tagchal = pd.read_csv(upload_folder_name + "tagChallenge.csv", sep=',', encoding='utf-8')
 
         tags = tag.rename(columns={"('id',)": "('tag_id',)"})
 
@@ -141,58 +150,63 @@ def export():
 
         df_mixed_tag_chal = tagChallenge.join(tagss)
 
-        df_mixed_tag_chal.to_csv("merge_tagchal.csv", sep=',')
+        df_mixed_tag_chal.to_csv(upload_folder_name + "merge_tagchal.csv", sep=',')
 
         # ES connection
         es = Elasticsearch()
-        with open('submission.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'submission.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="submission"):
                 es.indices.delete(index='submission')
             helpers.bulk(es, reader, index='submission', doc_type='my-type')
 
-        with open('solve.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'solve.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="solve"):
                 es.indices.delete(index='solve')
             helpers.bulk(es, reader, index='solve', doc_type='my-type')
 
-        with open('challenge.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'challenge.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="challenge"):
                 es.indices.delete(index='challenge')
             helpers.bulk(es, reader, index='challenge', doc_type='my-type')
 
-        with open('vote.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'vote.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="vote"):
                 es.indices.delete(index='vote')
             helpers.bulk(es, reader, index='vote', doc_type='my-type')
 
-        with open('user.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'user.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="user"):
                 es.indices.delete(index='user')
             helpers.bulk(es, reader, index='user', doc_type='my-type')
 
-        with open('chal&sub.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'chal&sub.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="chal&sub"):
                 es.indices.delete(index='chal&sub')
             helpers.bulk(es, reader, index='chal&sub', doc_type='my-type')
 
-        with open('user&sub.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'user&sub.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="user&sub"):
                 es.indices.delete(index='user&sub')
             helpers.bulk(es, reader, index='user&sub', doc_type='my-type')
 
-        with open('merge_tagchal.csv', encoding='utf-8') as f:
+        with open(upload_folder_name + 'merge_tagchal.csv', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             if es.indices.exists(index="merge_tagchal"):
                 es.indices.delete(index='merge_tagchal')
             helpers.bulk(es, reader, index='merge_tagchal', doc_type='my-type')
 
+        # Remove files and folder
+        files = glob.glob(upload_folder_name + '*')
+        for file in files:
+            os.remove(file)
+        os.rmdir(upload_folder_name)
         print("Data updated")
 
 
