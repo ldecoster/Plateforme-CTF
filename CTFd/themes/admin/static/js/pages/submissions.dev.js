@@ -147,7 +147,7 @@
 /******/
 /******/
 /******/ 	// add entry module to deferred list
-/******/ 	deferredModules.push(["./CTFd/themes/admin/assets/js/pages/submissions.js","components","helpers","vendor","default~pages/challenge~pages/challenges~pages/configs~pages/editor~pages/main~pages/notifications~p~90c9030e"]);
+/******/ 	deferredModules.push(["./CTFd/themes/admin/assets/js/pages/submissions.js","components","helpers","vendor","default~pages/badges~pages/challenge~pages/challenges~pages/configs~pages/editor~pages/main~pages/no~d469b6ee"]);
 /******/ 	// run deferred modules when ready
 /******/ 	return checkDeferredModules();
 /******/ })
