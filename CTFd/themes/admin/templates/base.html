@@ -65,6 +65,7 @@
 					{% endif %}
 					{% if has_right("theme_admin_templates_base_full") or has_right("theme_admin_templates_base_partial") %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.users_listing') }}">Users</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.badges_listing') }}">Badges</a></li>
 					{% endif %}
 					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a></li>
 

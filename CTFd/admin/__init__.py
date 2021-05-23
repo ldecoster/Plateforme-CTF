@@ -17,6 +17,7 @@ from flask import (
 admin = Blueprint("admin", __name__)
 
 # isort:imports-firstparty
+from CTFd.admin import badges  # noqa: F401
 from CTFd.admin import challenges  # noqa: F401
 from CTFd.admin import notifications  # noqa: F401
 from CTFd.admin import pages  # noqa: F401
@@ -25,7 +26,7 @@ from CTFd.admin import submissions  # noqa: F401
 from CTFd.admin import users  # noqa: F401
 from CTFd.cache import cache, clear_config, clear_pages
 from CTFd.models import (
-    Awards,
+    Badges,
     Challenges,
     Configs,
     Notifications,
@@ -205,7 +206,7 @@ def reset():
         if data.get("submissions"):
             Solves.query.delete()
             Submissions.query.delete()
-            Awards.query.delete()
+            Badges.query.delete()
             Tracking.query.delete()
 
         if require_setup:

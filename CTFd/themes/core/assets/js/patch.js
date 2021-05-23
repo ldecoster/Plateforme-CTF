@@ -112,29 +112,6 @@ API.prototype.patch_user_private = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.post_unlock_list = function(parameters, body) {
-  let deferred = Q.defer();
-  let domain = this.domain,
-    path = "/unlocks";
-  let headers = {},
-    form = {};
-
-  headers["Accept"] = ["application/json"];
-  headers["Content-Type"] = ["application/json"];
-
-  this.request(
-    "POST",
-    domain + path,
-    parameters,
-    body,
-    headers,
-    {},
-    form,
-    deferred
-  );
-
-  return deferred.promise;
-};
 
 API.prototype.post_notification_list = function(parameters, body) {
   if (parameters === undefined) {

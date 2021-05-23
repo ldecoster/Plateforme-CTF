@@ -12,7 +12,6 @@ from CTFd.api.v1.schemas import (
 from CTFd.cache import clear_user_session
 from CTFd.constants import RawEnum
 from CTFd.models import (
-    Awards,
     Notifications,
     Roles,
     RoleRights,
@@ -23,7 +22,6 @@ from CTFd.models import (
     Users,
     db,
 )
-from CTFd.schemas.awards import AwardSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
@@ -287,7 +285,6 @@ class UserPublic(Resource):
             )
 
         Notifications.query.filter_by(user_id=user_id).delete()
-        Awards.query.filter_by(user_id=user_id).delete()
         Submissions.query.filter_by(user_id=user_id).delete()
         Solves.query.filter_by(user_id=user_id).delete()
         Tracking.query.filter_by(user_id=user_id).delete()
@@ -385,23 +382,6 @@ class UserPrivateFails(Resource):
         return {"success": True, "data": data, "meta": {"count": count}}
 
 
-@users_namespace.route("/me/awards")
-@users_namespace.param("user_id", "User ID")
-class UserPrivateAwards(Resource):
-    @authed_only
-    def get(self):
-        user = get_current_user()
-        awards = user.get_awards()
-
-        view = "user" if not has_right("api_user_private_awards_get_full") else "admin"
-        response = AwardSchema(view=view, many=True).dump(awards)
-
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
-
-        return {"success": True, "data": response.data}
-
-
 @users_namespace.route("/<user_id>/solves")
 @users_namespace.param("user_id", "User ID")
 class UserPublicSolves(Resource):
@@ -446,26 +426,6 @@ class UserPublicFails(Resource):
         count = len(response.data)
 
         return {"success": True, "data": data, "meta": {"count": count}}
-
-
-@users_namespace.route("/<user_id>/awards")
-@users_namespace.param("user_id", "User ID or 'me'")
-class UserPublicAwards(Resource):
-    @check_account_visibility
-    def get(self, user_id):
-        user = Users.query.filter_by(id=user_id).first_or_404()
-
-        if (user.banned or user.hidden) and has_right("api_user_public_awards_get_full") is False:
-            abort(404)
-        awards = user.get_awards()
-
-        view = "user" if not has_right("api_user_public_awards_get_full") else "admin"
-        response = AwardSchema(view=view, many=True).dump(awards)
-
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
-
-        return {"success": True, "data": response.data}
 
 
 @users_namespace.route("/<int:user_id>/email")

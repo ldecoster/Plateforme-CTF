@@ -33,6 +33,17 @@ class Votes(db.Model):
     user = db.relationship("Users", foreign_keys="Votes.user_id", lazy="select")
 
 
+class Badges(db.Model):
+    __tablename__ = "badges"
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.Text)
+    name = db.Column(db.String(80))
+    tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"), nullable=False)
+
+    def __init__(self, *args, **kwargs):
+        super(Badges, self).__init__(**kwargs)
+
+
 class Notifications(db.Model):
     __tablename__ = "notifications"
     id = db.Column(db.Integer, primary_key=True)
@@ -159,31 +170,11 @@ class Ressources(db.Model):
         return "<Ressource %r>" % self.content
 
 
-class Awards(db.Model):
-    __tablename__ = "awards"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
-    name = db.Column(db.String(80))
-    date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    icon = db.Column(db.Text)
-
-    user = db.relationship("Users", foreign_keys="Awards.user_id", lazy="select")
-
-    @hybrid_property
-    def account_id(self):
-        return self.user_id
-
-    def __init__(self, *args, **kwargs):
-        super(Awards, self).__init__(**kwargs)
-
-    def __repr__(self):
-        return "<Award %r>" % self.name
-
-
 class Tags(db.Model):
     __tablename__ = "tags"
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.String(80))
+    exercise = db.Column(db.Boolean)
     challenges = db.relationship("Challenges", secondary="tagChallenge")
 
     def __init__(self, *args, **kwargs):
@@ -313,10 +304,6 @@ class Users(db.Model):
     def fails(self):
         return self.get_fails()
 
-    @property
-    def awards(self):
-        return self.get_awards()
-
     def get_fields(self, admin=False):
         if admin:
             return self.field_entries
@@ -332,10 +319,6 @@ class Users(db.Model):
     def get_fails(self):
         fails = Fails.query.filter_by(user_id=self.id)
         return fails.all()
-
-    def get_awards(self):
-        awards = Awards.query.filter_by(user_id=self.id)
-        return awards.all()
 
 
 class Admins(Users):
@@ -421,6 +404,7 @@ class Solves(Submissions):
 
 class Fails(Submissions):
     __mapper_args__ = {"polymorphic_identity": "incorrect"}
+
 
 class Tracking(db.Model):
     __tablename__ = "tracking"
