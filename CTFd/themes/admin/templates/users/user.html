@@ -36,22 +36,6 @@
 	</div>
 </div>
 
-<div id="user-award-modal" class="modal fade">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h2 class="modal-action text-center w-100">Award User</h2>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body clearfix">
-				{% include "admin/modals/awards/create.html" %}
-			</div>
-		</div>
-	</div>
-</div>
-
 <div id="user-email-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -150,9 +134,6 @@
 			<a class="statistics-user text-dark">
 				<i class="btn-fa fas fa-chart-pie fa-2x px-2" data-toggle="tooltip" data-placement="top" title="User Statistics"></i>
 			</a>
-			<a class="award-user text-dark">
-				<i class="btn-fa fas fa-trophy fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Award User"></i>
-			</a>
 			<a class="email-user text-dark">
 				<i class="btn-fa fas fa-envelope fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Email User"></i>
 			</a>
@@ -182,8 +163,8 @@
 		<a class="nav-item nav-link" id="nav-wrong-tab" data-toggle="tab" href="#nav-wrong" role="tab"
 		   aria-controls="nav-wrong" aria-selected="false">Fails</a>
 
-		<a class="nav-item nav-link" id="nav-awards-tab" data-toggle="tab" href="#nav-awards" role="tab"
-		   aria-controls="nav-awards" aria-selected="false">Awards</a>
+		<a class="nav-item nav-link" id="nav-badges-tab" data-toggle="tab" href="#nav-badges" role="tab"
+		   aria-controls="nav-badges" aria-selected="false">Badges</a>
 
 		<a class="nav-item nav-link" id="nav-missing-tab" data-toggle="tab" href="#nav-missing" role="tab"
 		   aria-controls="nav-missing" aria-selected="false">Missing</a>
@@ -302,47 +283,29 @@
 			</div>
 		</div>
 
-		<div class="tab-pane fade" id="nav-awards" role="tabpanel" aria-labelledby="nav-awards-tab">
-			<h3 class="text-center pt-5 d-block">Awards</h3>
-			<div class="row">
-				<div class="col-md-12">
-					<div class="float-right pb-3">
-						<div class="btn-group" role="group">
-							<button type="button" class="btn btn-outline-danger" id="awards-delete-button">
-								<i class="btn-fa fas fa-trash-alt"></i>
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
+		<div class="tab-pane fade" id="nav-badges" role="tabpanel" aria-labelledby="nav-badges-tab">
+			<h3 class="text-center pt-5 d-block">Badges</h3>
 			<div class="row">
 				<div class="col-md-12">
 					<table class="table table-striped border">
 						<thead>
 							<tr>
-								<th class="border-right" data-checkbox>
-									<div class="form-check text-center">
-										<input type="checkbox" class="form-check-input" data-checkbox-all>&nbsp;
-									</div>
-								</th>
-								<th class="sort-col text-center"><b>Name</b></th>
-								<th class="sort-col text-center"><b>Date</b></th>
-								<th class="sort-col text-center"><b>Icon</b></th>
+								<th class="sort-col"><b>Name</b></th>
+								<th class="d-none d-md-block d-lg-block sort-col"><b>Description</b></th>
+								<th class="sort-col text-center"><b>Exercise</b></th>
 							</tr>
 						</thead>
-						<tbody id="awards-body">
-						{% for award in awards %}
-							<tr class="award-row">
-								<td class="border-right" data-checkbox>
-									<div class="form-check text-center">
-										<input type="checkbox" class="form-check-input" value="{{ award.id }}" data-award-id="{{ award.id }}" data-award-name="{{ award.name }}">&nbsp;
-									</div>
+						<tbody id="badges-body">
+						{% for badge in badges %}
+							<tr class="badge-row">
+								<td>{{ badge.name }}</td>
+								<td class="d-none d-md-block d-lg-block">{{ badge.description }}</td>
+								<td class="text-center">
+									{% set tag = Tags.query.filter_by(id=badge.tag_id).first_or_404() %}
+                                    <span class='badge badge-warning mx-1'>
+                                        <span>{{ tag.value }}</span>
+                                    </span>
 								</td>
-								<td class="text-center chal" id="{{ award.id }}">{{ award.name }}</td>
-								<td class="text-center solve-time">
-									<span data-time="{{ award.date | isoformat }}"></span>
-								</td>
-								<td class="text-center"> <i class="award-icon award-{{ award.icon }}"></i> {{ award.icon }}</td>
 							</tr>
 						{% endfor %}
 						</tbody>

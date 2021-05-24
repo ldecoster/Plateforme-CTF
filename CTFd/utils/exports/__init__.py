@@ -182,7 +182,7 @@ def import_ctf(backup, erase=True):
         "db/flags.json",
         "db/ressources.json",
         "db/votes.json",
-        "db/awards.json",
+        "db/badges.json",
         "db/tags.json",
         "db/tagChallenges.json",
         "db/submissions.json",
@@ -267,7 +267,6 @@ def import_ctf(backup, erase=True):
                         if member in (
                             "db/challenges.json",
                             "db/ressources.json",
-                            "db/awards.json",
                         ):
                             requirements = entry.get("requirements")
                             if requirements and isinstance(requirements, string_types):

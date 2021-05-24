@@ -40,9 +40,9 @@
 						</th>
 						<th class="sort-col text-center"><b>ID</b></th>
                         <th class="sort-col"><b>Name</b></th>
-                        <th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Exercise</b></th>
+                        <th class="text-center"><b>Exercise</b></th>
                         <th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Progress</b></th>
-                        <th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Players</b></th>
+                        <th class="sort-col text-center"><b>Players</b></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -59,13 +59,13 @@
 								{{ badge.name | truncate(32) }}
 							</a>
 						</td>
-                        <td class="d-none d-md-table-cell d-lg-table-cell">
+                        <td class="text-center">
                             {% set tag = Tags.query.filter_by(id=badge.tag_id).first_or_404() %}
                             <span class='badge badge-warning mx-1'>
                                 <span>{{ tag.value }}</span>
                             </span>
                         </td>
-                        <td class="d-none d-md-table-cell d-lg-table-cell">
+                        <td class="d-none d-md-table-cell d-lg-table-cell text-center">
                             {% set challenges_query = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).filter_by(id=badge.id).with_entities(TagChallenge.challenge_id) %}
                             {% set entrants_query = Submissions.query.filter(Submissions.challenge_id.in_(challenges_query)).group_by(Submissions.user_id) %}
                             {% set winners_query = entrants_query.filter_by(type="correct") %}
@@ -79,7 +79,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="d-none d-md-table-cell d-lg-table-cell">
+                        <td class="text-center">
                             {{ entrants_query.count() }}
                         </td>
 					</tr>
