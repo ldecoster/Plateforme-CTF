@@ -22,6 +22,7 @@ from CTFd.models import (
     Users,
     db,
 )
+from CTFd.schemas.badges import BadgeSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
@@ -30,7 +31,7 @@ from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.email import sendmail, user_created_notification
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.security.auth import update_user
-from CTFd.utils.user import get_current_user, get_current_user_type, has_right
+from CTFd.utils.user import get_current_user, get_current_user_type, has_right, get_user_badges
 
 users_namespace = Namespace("users", description="Endpoint to retrieve Users")
 
@@ -426,6 +427,20 @@ class UserPublicFails(Resource):
         count = len(response.data)
 
         return {"success": True, "data": data, "meta": {"count": count}}
+
+
+@users_namespace.route("/badges")
+class UserBadges(Resource):
+    @check_account_visibility
+    def get(self):
+        badges = get_user_badges(session["id"])
+
+        response = BadgeSchema(many=True).dump(badges)
+
+        if response.errors:
+            return {"success": False, "errors": response.errors}, 400
+
+        return {"success": True, "data": response.data}
 
 
 @users_namespace.route("/<int:user_id>/email")
