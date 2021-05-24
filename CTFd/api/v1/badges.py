@@ -130,6 +130,28 @@ class Badge(Resource):
 
         return {"success": True, "data": response.data}
 
+    @access_granted_only("api_badge_patch")
+    @badges_namespace.doc(
+        description="Endpoint to patch a Badge object",
+        responses={200: ("Success", "APISimpleSuccessResponse")},
+    )
+    def patch(self, badge_id):
+        badge = Badges.query.filter_by(id=badge_id).first_or_404()
+        schema = BadgeSchema()
+        req = request.get_json()
+
+        response = schema.load(req, session=db.session, instance=badge, partial=True)
+
+        if response.errors:
+            return {"success": False, "errors": response.errors}, 400
+
+        db.session.commit()
+
+        response = schema.dump(response.data)
+        db.session.close()
+
+        return {"success": True, "data": response.data}
+
     @access_granted_only("api_badge_delete")
     @badges_namespace.doc(
         description="Endpoint to delete a Badge object",

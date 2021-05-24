@@ -23,8 +23,9 @@ def badges_listing():
 @access_granted_only("admin_badges_detail")
 def badges_detail(badge_id):
     badge = Badges.query.filter_by(id=badge_id).first_or_404()
+    tags = Tags.query.all()
 
-    return render_template("/admin/badges/badge.html", badge=badge)
+    return render_template("admin/badges/badge.html", badge=badge, tags=tags)
 
 
 @admin.route("/admin/badges/new")
