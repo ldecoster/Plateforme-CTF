@@ -96,10 +96,10 @@ class TagList(Resource):
                 return {"success": False, "error": "notAllowed"}
 
         # Check if the challenge already has an exercise tag
-        if "ex" in response.data.value:
+        if response.data.exercise is True:
             for tag_challenge in tag_challenges:
                 tag = Tags.query.filter_by(id=tag_challenge.tag_id).first()
-                if "ex" in tag.value:
+                if tag.exercise is True:
                     return {"success": False, "error": "alreadyAssigned"}
 
         if response.errors:

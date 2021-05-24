@@ -3,9 +3,10 @@
     <div id="results"></div>
     <div id="challenge-tags" class="my-3">
       <span
-        class="badge badge-primary mx-1 challenge-tag"
+        class="badge mx-1 challenge-tag"
         v-for="tag in tags"
         :key="tag.id"
+        v-bind:class="[tag.exercise ? 'badge-warning' : 'badge-primary']"
       >
         <span>{{ tag.value }}</span>
         <a class="btn-fa delete-tag" @click="deleteTag(tag.id)"> &#215;</a>
@@ -16,7 +17,9 @@
       <label
         >Tag
         <br />
-        <small class="text-muted">Type tag and press Enter</small>
+        <small class="form-text text-muted">
+          Write down your tag. If it already exists, select the tag by clicking on it. If it's a new one, then press Enter
+        </small>
       </label>
       <input
         id="tags-add-input"
@@ -27,6 +30,12 @@
         @keyup="setTagsList"
       />
       <div class="list-group overflow-auto" @click="addTagChallenge"></div>
+    </div>
+    <div class="form-group">
+      <div class="custom-control custom-checkbox">
+        <input id="ExerciseCheckBox" type="checkbox" class="custom-control-input" v-model="isExercise">
+        <label class="custom-control-label" for="ExerciseCheckBox">This tag is an exercise tag</label>
+      </div>
     </div>
   </div>
 </template>
@@ -44,6 +53,7 @@ export default {
     return {
       tags: [],
       tagValue: "",
+      isExercise: Boolean(),
       matches: [],
       tagsList: []
     };
@@ -119,6 +129,7 @@ export default {
     addTag: function() {
       const params = {
         value: this.tagValue,
+        exercise: this.isExercise,
         challenge_id: window.CHALLENGE_ID
       };
       CTFd.api.post_tag_list({}, params).then(res => {
