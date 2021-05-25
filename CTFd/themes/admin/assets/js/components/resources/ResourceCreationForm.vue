@@ -6,7 +6,7 @@
           <div class="container">
             <div class="row">
               <div class="col-md-12">
-                <h3>Ressource</h3>
+                <h3>Resource</h3>
               </div>
             </div>
           </div>
@@ -19,14 +19,14 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method="POST" @submit.prevent="submitRessource">
+        <form method="POST" @submit.prevent="submitResource">
           <div class="modal-body">
             <div class="container">
               <div class="row">
                 <div class="col-md-12">
                   <div class="form-group">
                     <label class="text-muted">
-                      Ressource<br />
+                      Resource<br />
                       <small>Markdown &amp; HTML are supported</small>
                     </label>
                     <textarea
@@ -37,7 +37,7 @@
                       ref="content"
                     ></textarea>
                   </div>
-                  <input type="hidden" id="ressource-id-for-ressource" name="id" />
+                  <input type="hidden" id="resource-id-for-resource" name="id" />
                 </div>
               </div>
             </div>
@@ -59,7 +59,7 @@
 
 <script>
 export default {
-  name: "RessourceCreationForm",
+  name: "ResourceCreationForm",
   props: {
     challenge_id: Number
   },
@@ -70,12 +70,12 @@ export default {
     getContent: function() {
       return this.$refs.content.value;
     },
-    submitRessource: function() {
+    submitResource: function() {
       let params = {
         challenge_id: this.$props.challenge_id,
         content: this.getContent()
       };
-      CTFd.fetch("/api/v1/ressources", {
+      CTFd.fetch("/api/v1/resources", {
         method: "POST",
         credentials: "same-origin",
         headers: {
@@ -89,7 +89,7 @@ export default {
         })
         .then(response => {
           if (response.success) {
-            this.$emit("refreshRessources", this.$options.name);
+            this.$emit("refreshResources", this.$options.name);
           }
         });
     }

@@ -14,20 +14,20 @@ import FlagList from "../components/flags/FlagList.vue";
 import Requirements from "../components/requirements/Requirements.vue";
 import TagsList from "../components/tags/TagsList.vue";
 import ChallengeFilesList from "../components/files/ChallengeFilesList.vue";
-import RessourcesList from "../components/ressources/RessourcesList.vue";
+import ResourcesList from "../components/resources/ResourcesList.vue";
 import hljs from "highlight.js";
 
-const displayRessource = data => {
+const displayResource = data => {
   ezAlert({
-    title: "Ressource",
+    title: "Resource",
     body: data.html,
     button: "Got it!"
   });
 };
 
-const loadRessource = id => {
-  CTFd.api.get_ressource({ ressourceId: id, preview: true }).then(response => {
-    displayRessource(response.data);
+const loadResource = id => {
+  CTFd.api.get_resource({ resourceId: id, preview: true }).then(response => {
+    displayResource(response.data);
   });
 };
 
@@ -283,8 +283,8 @@ $(() => {
               $("#too-fast").slideUp();
             });
 
-            $(".load-ressource").on("click", function(_event) {
-              loadRessource($(this).data("ressource-id"));
+            $(".load-resource").on("click", function(_event) {
+              loadResource($(this).data("resource-id"));
             });
 
             $("#challenge-submit").click(function(e) {
@@ -476,12 +476,12 @@ $(() => {
     }).$mount(vueContainer);
   }
 
-  // Load RessourcesList component
-  if (document.querySelector("#challenge-ressources")) {
-    const ressourcesList = Vue.extend(RessourcesList);
+  // Load ResourcesList component
+  if (document.querySelector("#challenge-resources")) {
+    const resourcesList = Vue.extend(ResourcesList);
     let vueContainer = document.createElement("div");
-    document.querySelector("#challenge-ressources").appendChild(vueContainer);
-    new ressourcesList({
+    document.querySelector("#challenge-resources").appendChild(vueContainer);
+    new resourcesList({
       propsData: { challenge_id: window.CHALLENGE_ID }
     }).$mount(vueContainer);
   }

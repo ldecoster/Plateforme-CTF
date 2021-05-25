@@ -5,7 +5,7 @@ from CTFd.models import (
     Challenges,
     Fails,
     Flags,
-    Ressources,
+    Resources,
     Solves,
     TagChallenge,
     Votes,
@@ -99,7 +99,7 @@ class BaseChallenge(object):
             delete_file(f.id)
         ChallengeFiles.query.filter_by(challenge_id=challenge.id).delete()
         TagChallenge.query.filter_by(challenge_id=challenge.id).delete()
-        Ressources.query.filter_by(challenge_id=challenge.id).delete()
+        Resources.query.filter_by(challenge_id=challenge.id).delete()
         Challenges.query.filter_by(id=challenge.id).delete()
         cls.challenge_model.query.filter_by(id=challenge.id).delete()
         db.session.commit()

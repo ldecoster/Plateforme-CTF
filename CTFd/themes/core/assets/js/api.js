@@ -505,18 +505,18 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_challenge_ressources
+   * @name API#get_challenge_resources
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.id - A Challenge ID
    * @param {string} parameters.challengeId -
    */
-  API.prototype.get_challenge_ressources = function(parameters) {
+  API.prototype.get_challenge_resources = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/challenges/{challenge_id}/ressources";
+      path = "/challenges/{challenge_id}/resources";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1336,16 +1336,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#post_ressource_list
+   * @name API#post_resource_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.post_ressource_list = function(parameters) {
+  API.prototype.post_resource_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/ressources";
+      path = "/resources";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1372,16 +1372,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_ressource_list
+   * @name API#get_resource_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.get_ressource_list = function(parameters) {
+  API.prototype.get_resource_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/ressources";
+      path = "/resources";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1408,17 +1408,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#patch_ressource
+   * @name API#patch_resource
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.ressourceId -
+   * @param {string} parameters.resourceId -
    */
-  API.prototype.patch_ressource = function(parameters) {
+  API.prototype.patch_resource = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/ressources/{ressource_id}";
+      path = "/resources/{resource_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1427,10 +1427,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{ressource_id}", parameters["ressourceId"]);
+    path = path.replace("{resource_id}", parameters["resourceId"]);
 
-    if (parameters["ressourceId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: ressourceId"));
+    if (parameters["resourceId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: resourceId"));
       return deferred.promise;
     }
 
@@ -1452,17 +1452,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#delete_ressource
+   * @name API#delete_resource
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.ressourceId -
+   * @param {string} parameters.resourceId -
    */
-  API.prototype.delete_ressource = function(parameters) {
+  API.prototype.delete_resource = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/ressources/{ressource_id}";
+      path = "/resources/{resource_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1471,10 +1471,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{ressource_id}", parameters["ressourceId"]);
+    path = path.replace("{resource_id}", parameters["resourceId"]);
 
-    if (parameters["ressourceId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: ressourceId"));
+    if (parameters["resourceId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: resourceId"));
       return deferred.promise;
     }
 
@@ -1496,17 +1496,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_ressource
+   * @name API#get_resource
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.ressourceId -
+   * @param {string} parameters.resourceId -
    */
-  API.prototype.get_ressource = function(parameters) {
+  API.prototype.get_resource = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/ressources/{ressource_id}";
+      path = "/resources/{resource_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1515,10 +1515,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{ressource_id}", parameters["ressourceId"]);
+    path = path.replace("{resource_id}", parameters["resourceId"]);
 
-    if (parameters["ressourceId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: ressourceId"));
+    if (parameters["resourceId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: resourceId"));
       return deferred.promise;
     }
 

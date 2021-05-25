@@ -180,7 +180,7 @@ def import_ctf(backup, erase=True):
         "db/users.json",
         "db/challenges.json",
         "db/flags.json",
-        "db/ressources.json",
+        "db/resources.json",
         "db/votes.json",
         "db/badges.json",
         "db/tags.json",
@@ -266,7 +266,7 @@ def import_ctf(backup, erase=True):
                         # This is a hack to ensure we can still accept older exports. See #867
                         if member in (
                             "db/challenges.json",
-                            "db/ressources.json",
+                            "db/resources.json",
                         ):
                             requirements = entry.get("requirements")
                             if requirements and isinstance(requirements, string_types):

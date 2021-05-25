@@ -14,7 +14,7 @@ from CTFd.models import (
     Challenges,
     Fails,
     Flags,
-    Ressources,
+    Resources,
     Solves,
     Submissions,
     Tags,
@@ -26,7 +26,7 @@ from CTFd.models import (
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.schemas.challenges import ChallengeSchema
 from CTFd.schemas.flags import FlagSchema
-from CTFd.schemas.ressources import RessourceSchema
+from CTFd.schemas.resources import ResourceSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import config
 from CTFd.utils import user as current_user
@@ -374,7 +374,7 @@ class Challenge(Resource):
         ]
 
         
-        ressources = []
+        resources = []
         if authed():
             user = get_current_user()
 
@@ -390,9 +390,9 @@ class Challenge(Resource):
         else:
             files = [url_for("views.files", path=f.location) for f in chal.files]
 
-        for ressource in Ressources.query.filter_by(challenge_id=chal.id).all():
+        for resource in Resources.query.filter_by(challenge_id=chal.id).all():
            
-            ressources.append({"id": ressource.id , "content": ressource.content})
+            resources.append({"id": resource.id , "content": resource.content})
 
         response = chal_class.read(challenge=chal)
 
@@ -424,7 +424,7 @@ class Challenge(Resource):
         response["attempts"] = attempts
         response["files"] = files
         response["tags"] = tags
-        response["ressources"] = ressources
+        response["resources"] = resources
 
         response["view"] = render_template(
             chal_class.templates["view"].lstrip("/"),
@@ -432,7 +432,7 @@ class Challenge(Resource):
             solved_by_me=solved_by_user,
             files=files,
             tags=tags,
-            ressources=[Ressources(**h) for h in ressources],
+            resources=[Resources(**h) for h in resources],
             max_attempts=chal.max_attempts,
             attempts=attempts,
             challenge=chal,
@@ -768,13 +768,13 @@ class ChallengeTags(Resource):
         return {"success": True, "data": response}
 
 
-@challenges_namespace.route("/<challenge_id>/ressources")
-class ChallengeRessources(Resource):
-    @access_granted_only("api_challenge_ressources_get")
+@challenges_namespace.route("/<challenge_id>/resources")
+class ChallengeResources(Resource):
+    @access_granted_only("api_challenge_resources_get")
     def get(self, challenge_id):
-        ressources = Ressources.query.filter_by(challenge_id=challenge_id).all()
-        schema = RessourceSchema(many=True)
-        response = schema.dump(ressources)
+        resources = Resources.query.filter_by(challenge_id=challenge_id).all()
+        schema = ResourceSchema(many=True)
+        response = schema.dump(resources)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400

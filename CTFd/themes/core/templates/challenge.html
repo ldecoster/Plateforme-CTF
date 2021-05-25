@@ -35,12 +35,12 @@
 
 						<span class="challenge-desc">{% block description %}{{ challenge.html }}{% endblock %}</span>
 
-						<div class="challenge-ressources ressource-row row">
-							{% for ressource in ressources %}
-								<div class='col-md-12 ressource-button-wrapper text-center mb-3'>
-									<a class="btn btn-info btn-ressource btn-block load-ressource" href="javascript:;" data-ressource-id="{{ ressource.id }}">
+						<div class="challenge-resources resource-row row">
+							{% for resource in resources %}
+								<div class='col-md-12 resource-button-wrapper text-center mb-3'>
+									<a class="btn btn-info btn-resource btn-block load-resource" href="javascript:;" data-resource-id="{{ resource.id }}">
                                         <small>
-                                            View Ressource
+                                            View Resource
                                         </small>
 									</a>
 								</div>

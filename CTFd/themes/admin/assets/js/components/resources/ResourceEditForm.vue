@@ -6,7 +6,7 @@
           <div class="container">
             <div class="row">
               <div class="col-md-12">
-                <h3>Ressource</h3>
+                <h3>Resource</h3>
               </div>
             </div>
           </div>
@@ -19,14 +19,14 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method="POST" @submit.prevent="updateRessource">
+        <form method="POST" @submit.prevent="updateResource">
           <div class="modal-body">
             <div class="container">
               <div class="row">
                 <div class="col-md-12">
                   <div class="form-group">
                     <label class="text-muted">
-                      Ressource<br />
+                      Resource<br />
                       <small>Markdown &amp; HTML are supported</small>
                     </label>
                     <!-- Explicitly don't put the markdown class on this because we will add it later -->
@@ -62,9 +62,9 @@
 import CTFd from "core/CTFd";
 import { bindMarkdownEditor } from "../../styles";
 export default {
-  name: "RessourceEditForm",
+  name: "ResourceEditForm",
   props: {
-    ressource_id: Number
+    resource_id: Number
   },
   data: function() {
     return {
@@ -72,18 +72,18 @@ export default {
     };
   },
   watch: {
-    ressource_id: {
+    resource_id: {
       immediate: true,
       handler(val, oldVal) {
         if (val !== null) {
-          this.loadRessource();
+          this.loadResource();
         }
       }
     }
   },
   methods: {
-    loadRessource: function() {
-      CTFd.fetch(`/api/v1/ressources/${this.$props.ressource_id}?preview=true`, {
+    loadResource: function() {
+      CTFd.fetch(`/api/v1/resources/${this.$props.resource_id}?preview=true`, {
         method: "GET",
         credentials: "same-origin",
         headers: {
@@ -96,9 +96,9 @@ export default {
         })
         .then(response => {
           if (response.success) {
-            let ressource = response.data;
-            this.cost = ressource.cost;
-            this.content = ressource.content;
+            let resource = response.data;
+            this.cost = resource.cost;
+            this.content = resource.content;
             // Wait for Vue to update the DOM
             this.$nextTick(() => {
               // Wait a little longer because we need the modal to appear.
@@ -116,12 +116,12 @@ export default {
     getContent: function() {
       return this.$refs.content.value;
     },
-    updateRessource: function() {
+    updateResource: function() {
       let params = {
         challenge_id: this.$props.challenge_id,
         content: this.getContent()
       };
-      CTFd.fetch(`/api/v1/ressources/${this.$props.ressource_id}`, {
+      CTFd.fetch(`/api/v1/resources/${this.$props.resource_id}`, {
         method: "PATCH",
         credentials: "same-origin",
         headers: {
@@ -135,19 +135,19 @@ export default {
         })
         .then(response => {
           if (response.success) {
-            this.$emit("refreshRessources", this.$options.name);
+            this.$emit("refreshResources", this.$options.name);
           }
         });
     }
   },
   mounted() {
-    if (this.ressource_id) {
-      this.loadRessource();
+    if (this.resource_id) {
+      this.loadResource();
     }
   },
   created() {
-    if (this.ressource_id) {
-      this.loadRessource();
+    if (this.resource_id) {
+      this.loadResource();
     }
   }
 };

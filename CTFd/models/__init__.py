@@ -96,7 +96,7 @@ class Challenges(db.Model):
     requirements = db.Column(db.JSON)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     files = db.relationship("ChallengeFiles", backref="challenge")
-    ressources = db.relationship("Ressources", backref="challenge")
+    resources = db.relationship("Resources", backref="challenge")
     tags = db.relationship("Tags", secondary="tagChallenge")
     flags = db.relationship("Flags", backref="challenge")
     comments = db.relationship("ChallengeComments", backref="challenge")
@@ -133,8 +133,8 @@ class Challenges(db.Model):
         return "<Challenge %r>" % self.name
 
 
-class Ressources(db.Model):
-    __tablename__ = "ressources"
+class Resources(db.Model):
+    __tablename__ = "resources"
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(80), default="standard")
     challenge_id = db.Column(
@@ -146,7 +146,7 @@ class Ressources(db.Model):
 
     @property
     def name(self):
-        return "Ressource {id}".format(id=self.id)
+        return "Resource {id}".format(id=self.id)
 
     @property
     def category(self):
@@ -154,7 +154,7 @@ class Ressources(db.Model):
 
     @property
     def description(self):
-        return "Ressource for {name}".format(name=self.challenge.name)
+        return "Resource for {name}".format(name=self.challenge.name)
 
     @property
     def html(self):
@@ -164,10 +164,10 @@ class Ressources(db.Model):
         return markup(build_html(self.content))
 
     def __init__(self, *args, **kwargs):
-        super(Ressources, self).__init__(**kwargs)
+        super(Resources, self).__init__(**kwargs)
 
     def __repr__(self):
-        return "<Ressource %r>" % self.content
+        return "<Resource %r>" % self.content
 
 
 class Tags(db.Model):
