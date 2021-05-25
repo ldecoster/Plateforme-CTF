@@ -95,7 +95,7 @@ export default {
 
         // Check if they are new matches [WHY ?]
         let newMatches = this.tagsList.filter(tag => {
-          const regex = new RegExp(`^${this.tagValue}`, 'gi');
+          const regex = new RegExp(`^${this.tagValue}$`, 'gi');
           return tag.value.match(regex);
         });
         if (event.keyCode !== 13 || newMatches.length !== 0) {
