@@ -97,12 +97,12 @@ class TagChallengeList(Resource):
         tag_challenges = TagChallenge.query.filter_by(challenge_id=response.data.challenge_id).all()
         tag = Tags.query.filter_by(id=response.data.tag_id).first()
 
-        if has_right("api_tag_challenge_list_post_restricted"):
-            if "ex" in tag.value:
-                return {"success": False, "error": "notAllowed"}
-
         # Check if the challenge already has an exercise tag
         if tag.exercise is True:
+            # If a contributor try to add an exercise tag, return an error
+            if has_right("api_tag_challenge_list_post_restricted"):
+                return {"success": False, "error": "notAllowed"}
+            # If there is already an exercise tag assigned, return an error
             for tag_challenge in tag_challenges:
                 tag_already_assigned = Tags.query.filter_by(id=tag_challenge.tag_id).first()
                 if tag_already_assigned.exercise is True:

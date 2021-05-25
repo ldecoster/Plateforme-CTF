@@ -90,13 +90,12 @@ class TagList(Resource):
 
         tag_challenges = TagChallenge.query.filter_by(challenge_id=req.get("challenge_id")).all()
 
-        # Only for contributors
-        if has_right("api_tag_list_post_restricted"):
-            if "ex" in response.data.value:
-                return {"success": False, "error": "notAllowed"}
-
         # Check if the challenge already has an exercise tag
         if response.data.exercise is True:
+            # If a contributor try to add an exercise tag, return an error
+            if has_right("api_tag_list_post_restricted"):
+                return {"success": False, "error": "notAllowed"}
+            # If there is already an exercise tag assigned, return an error
             for tag_challenge in tag_challenges:
                 tag = Tags.query.filter_by(id=tag_challenge.tag_id).first()
                 if tag.exercise is True:
