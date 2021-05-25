@@ -36,7 +36,6 @@ badges_namespace.schema_model(
 
 @badges_namespace.route("")
 class BadgeList(Resource):
-    @access_granted_only("api_badge_list_get")
     @badges_namespace.doc(
         description="Endpoint to list Badge objects in bulk",
         responses={
