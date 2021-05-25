@@ -1,10 +1,10 @@
-from CTFd.models import Ressources, ma
+from CTFd.models import Resources, ma
 from CTFd.utils import string_types
 
 
-class RessourceSchema(ma.ModelSchema):
+class ResourceSchema(ma.ModelSchema):
     class Meta:
-        model = Ressources
+        model = Resources
         include_fk = True
         dump_only = ("id", "type", "html")
 
@@ -34,4 +34,4 @@ class RessourceSchema(ma.ModelSchema):
             elif isinstance(view, list):
                 kwargs["only"] = view
 
-        super(RessourceSchema, self).__init__(*args, **kwargs)
+        super(ResourceSchema, self).__init__(*args, **kwargs)

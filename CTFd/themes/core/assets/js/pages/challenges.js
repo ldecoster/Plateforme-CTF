@@ -105,8 +105,8 @@ const displayChal = chal => {
       $("#too-fast").slideUp();
     });
 
-    $(".load-ressource").on("click", function (_event) {
-      loadRessource($(this).data("ressource-id"));
+    $(".load-resource").on("click", function (_event) {
+      loadResource($(this).data("resource-id"));
     });
 
     $("#challenge-submit").click(function (event) {
@@ -544,18 +544,18 @@ $(() => {
 });
 setInterval(update, 300000); // Update every 5 minutes.
 
-const displayRessource = data => {
+const displayResource = data => {
   ezAlert({
-    title: "Ressource",
+    title: "Resource",
     body: data.html,
     button: "Got it!"
   });
 };
 
-const loadRessource = id => {
-  CTFd.api.get_ressource({ ressourceId: id }).then(response => {
+const loadResource = id => {
+  CTFd.api.get_resource({ resourceId: id }).then(response => {
     if (response.data.content) {
-      displayRessource(response.data);
+      displayResource(response.data);
     }
   });
 };
