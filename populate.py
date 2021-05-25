@@ -9,7 +9,7 @@ import argparse
 from CTFd import create_app
 from CTFd.cache import clear_config, clear_pages
 from CTFd.models import (
-    Awards,
+    Badges,
     ChallengeFiles,
     Challenges,
     Fails,
@@ -27,40 +27,19 @@ fake = Faker()
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--mode", help="Set user mode", default="users")
 parser.add_argument("--users", help="Amount of users to generate", default=50, type=int)
-parser.add_argument(
-    "--challenges", help="Amount of challenges to generate", default=20, type=int
-)
-parser.add_argument(
-    "--awards", help="Amount of awards to generate", default=5, type=int
-)
-parser.add_argument(
-    "--tags", help="Amount of tags to generate", default=4, type=int
-)
+parser.add_argument("--challenges", help="Amount of challenges to generate", default=20, type=int)
+parser.add_argument("--badges", help="Amount of badges to generate", default=5, type=int)
+parser.add_argument("--tags", help="Amount of tags to generate", default=4, type=int)
 
 args = parser.parse_args()
 
 app = create_app()
 
-mode = args.mode
 USER_AMOUNT = args.users
 CHAL_AMOUNT = args.challenges
-AWARDS_AMOUNT = args.awards
+BADGES_AMOUNT = args.badges
 TAGS_AMOUNT = args.tags
-
-icons = [
-    None,
-    "shield",
-    "bug",
-    "crown",
-    "crosshairs",
-    "ban",
-    "lightning",
-    "code",
-    "cowboy",
-    "angry",
-]
 
 school = ["ISA", "ISEN", "HEI"]
 
@@ -129,10 +108,6 @@ def gen_value():
 
 def gen_word():
     return fake.word()
-
-
-def gen_icon():
-    return random.choice(icons)
 
 
 def gen_file():
@@ -209,7 +184,7 @@ if __name__ == "__main__":
         print("GENERATING CHALLENGES")
         for x in range(CHAL_AMOUNT):
             word = gen_word()
-            user = random.randint(1,USER_AMOUNT)
+            user = random.randint(1, USER_AMOUNT)
             chal = Challenges(
                 name=word,
                 description=gen_sentence(),
@@ -234,137 +209,125 @@ if __name__ == "__main__":
             db.session.add(chal_file)
 
         db.session.commit()
-       
 
         # Generating Votes
         print("GENERATING VOTES")
-        if mode == "users":
-         for x in range(USER_AMOUNT):
-                used = []
-                base_time = datetime.datetime.utcnow() + datetime.timedelta(
-                    minutes=-10000
-                )
-                for y in range(random.randint(1, CHAL_AMOUNT)):
-                    chalid = random.randint(1, CHAL_AMOUNT)
-                    if chalid not in used:
-                        used.append(chalid)
-                        user = Users.query.filter_by(id=x + 1).first()
-                        vot = Votes(
-                            challenge_id=chalid,
-                            user_id=user.id,
-                            value=random.randint(0, 1),
-                        )
-                        new_base = random_date(
-                            base_time,
-                            base_time
-                            + datetime.timedelta(minutes=random.randint(30, 60)),
-                        )
-                        vot.date = new_base
-                        base_time = new_base
+        for x in range(USER_AMOUNT):
+            used = []
+            base_time = datetime.datetime.utcnow() + datetime.timedelta(
+                minutes=-10000
+            )
+            for y in range(random.randint(1, CHAL_AMOUNT)):
+                chal_id = random.randint(1, CHAL_AMOUNT)
+                if chal_id not in used:
+                    used.append(chal_id)
+                    user = Users.query.filter_by(id=x + 1).first()
+                    vot = Votes(
+                        challenge_id=chal_id,
+                        user_id=user.id,
+                        value=bool(random.randint(0, 1)),
+                    )
+                    new_base = random_date(
+                        base_time,
+                        base_time
+                        + datetime.timedelta(minutes=random.randint(30, 60)),
+                    )
+                    vot.date = new_base
+                    base_time = new_base
 
-                        db.session.add(vot)
-                        db.session.commit()
-
+                    db.session.add(vot)
+                    db.session.commit()
 
         # Generating Solves
         print("GENERATING SOLVES")
-        if mode == "users":
-            for x in range(USER_AMOUNT):
-                used = []
-                base_time = datetime.datetime.utcnow() + datetime.timedelta(
-                    minutes=-10000
-                )
-                for y in range(random.randint(1, CHAL_AMOUNT)):
-                    chalid = random.randint(1, CHAL_AMOUNT)
-                    if chalid not in used:
-                        used.append(chalid)
-                        user = Users.query.filter_by(id=x + 1).first()
-                        solve = Solves(
-                            user_id=user.id,
-                            challenge_id=chalid,
-                            ip="127.0.0.1",
-                            provided=gen_word(),
-                        )
-
-                        new_base = random_date(
-                            base_time,
-                            base_time
-                            + datetime.timedelta(minutes=random.randint(30, 60)),
-                        )
-                        solve.date = new_base
-                        base_time = new_base
-
-                        db.session.add(solve)
-                        db.session.commit()
-    
-        db.session.commit()
-        
-
-        # Generating Awards
-        print("GENERATING AWARDS")
         for x in range(USER_AMOUNT):
-            base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
-            for _ in range(random.randint(0, AWARDS_AMOUNT)):
-                user = Users.query.filter_by(id=x + 1).first()
-                award = Awards(
-                    user_id=user.id,
-                    name=gen_word(),
-                    icon=gen_icon(),
-                )
-                new_base = random_date(
-                    base_time,
-                    base_time + datetime.timedelta(minutes=random.randint(30, 60)),
-                )
-                award.date = new_base
-                base_time = new_base
+            used = []
+            base_time = datetime.datetime.utcnow() + datetime.timedelta(
+                minutes=-10000
+            )
+            for y in range(random.randint(1, CHAL_AMOUNT)):
+                chal_id = random.randint(1, CHAL_AMOUNT)
+                if chal_id not in used:
+                    used.append(chal_id)
+                    user = Users.query.filter_by(id=x + 1).first()
+                    solve = Solves(
+                        user_id=user.id,
+                        challenge_id=chal_id,
+                        ip="127.0.0.1",
+                        provided=gen_word(),
+                    )
 
-                db.session.add(award)
+                    new_base = random_date(
+                        base_time,
+                        base_time
+                        + datetime.timedelta(minutes=random.randint(30, 60)),
+                    )
+                    solve.date = new_base
+                    base_time = new_base
 
+                    db.session.add(solve)
+                    db.session.commit()
+    
         db.session.commit()
 
         # Generating Tags
         print("GENERATING TAGS")
-        tags = ["web","forensics","réseau","pentesting"]
-        for x in range (TAGS_AMOUNT):
+        tags = []
+        for x in range(TAGS_AMOUNT):
+            tags.append(gen_word())
             tag = Tags(
-                value = tags[x]
+                value=tags[x],
+                exercise=bool(random.randint(0, 1))
             )
            
             db.session.add(tag)
 
         db.session.commit()
 
-        #Generating TagChallenge
+        # Generating TagChallenge
         print("GENERATING TAGCHALLENGE")
-        if mode == "users":
-            for x in range(CHAL_AMOUNT):
-                used = []
-                base_time = datetime.datetime.utcnow() + datetime.timedelta(
-                    minutes=-10000
-                )
-                for y in range(random.randint(1, TAGS_AMOUNT)):
-                    tagid = random.randint(1, TAGS_AMOUNT)
-                    if tagid not in used:
-                        used.append(tagid)
-                        chall = Challenges.query.filter_by(id=x + 1).first()
-                        tagchal = TagChallenge(
-                            challenge_id=chall.id,
-                            tag_id=tagid,
-                        )
+        for x in range(CHAL_AMOUNT):
+            used = []
+            base_time = datetime.datetime.utcnow() + datetime.timedelta(
+                minutes=-10000
+            )
+            for y in range(random.randint(1, TAGS_AMOUNT)):
+                tag_id = random.randint(1, len(tags))
+                if tag_id not in used:
+                    used.append(tag_id)
+                    chall = Challenges.query.filter_by(id=x + 1).first()
+                    tagchal = TagChallenge(
+                        challenge_id=chall.id,
+                        tag_id=tag_id,
+                    )
 
-                        new_base = random_date(
-                            base_time,
-                            base_time
-                            + datetime.timedelta(minutes=random.randint(30, 60)),
-                        )
-                        tagchal.date = new_base
-                        base_time = new_base
+                    new_base = random_date(
+                        base_time,
+                        base_time
+                        + datetime.timedelta(minutes=random.randint(30, 60)),
+                    )
+                    tagchal.date = new_base
+                    base_time = new_base
 
-                        db.session.add(tagchal)
-                        db.session.commit()
+                    db.session.add(tagchal)
+                    db.session.commit()
     
         db.session.commit()
-        
+
+        # Generating Badges
+        print("GENERATING BADGES")
+        for x in range(BADGES_AMOUNT):
+            random_int = random.randint(1, BADGES_AMOUNT)
+            tag = Tags.query.filter_by(id=random_int).first()
+            if tag is not None and tag.exercise is True:
+                badge = Badges(
+                    name=gen_word(),
+                    description=gen_sentence(),
+                    tag_id=tag.id
+                )
+                db.session.add(badge)
+
+        db.session.commit()
 
         # Generating Wrong Flags
         print("GENERATING WRONG FLAGS")
@@ -372,13 +335,13 @@ if __name__ == "__main__":
             used = []
             base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
             for y in range(random.randint(1, CHAL_AMOUNT * 20)):
-                chalid = random.randint(1, CHAL_AMOUNT)
-                if chalid not in used:
-                    used.append(chalid)
+                chal_id = random.randint(1, CHAL_AMOUNT)
+                if chal_id not in used:
+                    used.append(chal_id)
                     user = Users.query.filter_by(id=x + 1).first()
                     wrong = Fails(
                         user_id=user.id,
-                        challenge_id=chalid,
+                        challenge_id=chal_id,
                         ip="127.0.0.1",
                         provided=gen_word(),
                     )
