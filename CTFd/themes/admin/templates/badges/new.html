@@ -1,0 +1,60 @@
+{% extends "admin/base.html" %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <div class="container">
+        <h1>
+            Create Badge
+        </h1>
+    </div>
+</div>
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-6 offset-md-3">
+			<div id="create-badge-entry-div">
+                <div class="form-group">
+                    <label>
+                        Name:<br>
+                        <small class="form-text text-muted">
+                            The name of the badge
+                        </small>
+                    </label>
+                    <input type="text" class="form-control" name="badge_name" id="badge_name" placeholder="Enter badge name">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Description:<br>
+                        <small class="form-text text-muted">
+                            Use this to give a brief description of the badge.
+                        </small>
+                    </label>
+                    <textarea class="form-control" name="badge_desc" id="badge_desc" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <select class="form-control custom-select" name="badge_tag" id="badge_tag">
+                        {% for tag in tags %}
+                            {% if tag.exercise %}
+                                <option value="{{ tag.id }}">{{ tag.value }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <button id="badge-create-button" class="btn btn-primary float-right" type="button">Create</button>
+                </div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block entrypoint %}
+	<script defer src="{{ url_for('views.themes', theme='admin', path='js/pages/badge.js') }}"></script>
+{% endblock %}

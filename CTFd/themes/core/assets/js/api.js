@@ -91,19 +91,20 @@ let API = (function() {
       });
   };
 
+
   /**
    *
    * @method
-   * @name API#post_award_list
+   * @name API#get_badge_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.post_award_list = function(parameters) {
+  API.prototype.get_badge_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/awards";
+      path = "/badges";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -111,94 +112,6 @@ let API = (function() {
 
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "POST",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#delete_award
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.awardId - An Award ID
-   */
-  API.prototype.delete_award = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/awards/{award_id}";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{award_id}", parameters["awardId"]);
-
-    if (parameters["awardId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: awardId"));
-      return deferred.promise;
-    }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "DELETE",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_award
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.awardId - An Award ID
-   */
-  API.prototype.get_award = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/awards/{award_id}";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{award_id}", parameters["awardId"]);
-
-    if (parameters["awardId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: awardId"));
-      return deferred.promise;
-    }
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
 
@@ -3045,17 +2958,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_user_awards
+   * @name API#get_user_badges
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.userId - User ID or 'me'
    */
-  API.prototype.get_user_awards = function(parameters) {
+  API.prototype.get_user_badges = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/users/{user_id}/awards";
+      path = "/users/badges";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -3063,13 +2975,6 @@ let API = (function() {
 
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{user_id}", parameters["userId"]);
-
-    if (parameters["userId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: userId"));
-      return deferred.promise;
-    }
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
 

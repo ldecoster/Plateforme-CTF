@@ -27,11 +27,7 @@ const displayRessource = data => {
 
 const loadRessource = id => {
   CTFd.api.get_ressource({ ressourceId: id, preview: true }).then(response => {
-    
     displayRessource(response.data);
-    return;
-    
-    // displayUnlock(id);
   });
 };
 

@@ -5,9 +5,8 @@ import { createGraph, updateGraph } from "../graphs";
 
 const createGraphs = (id, name, account_id) => {
   Promise.all([
-    CTFd.api.get_user_solves({ userId: account_id }),
-    CTFd.api.get_user_fails({ userId: account_id }),
-    CTFd.api.get_user_awards({ userId: account_id })
+    CTFd.api.get_user_solves({ userId: id }),
+    CTFd.api.get_user_fails({ userId: id })
   ]).then(responses => {
     createGraph(
       "solve_percentages",
@@ -22,9 +21,8 @@ const createGraphs = (id, name, account_id) => {
 
 const updateGraphs = (id, name, account_id) => {
   Promise.all([
-    CTFd.api.get_user_solves({ userId: account_id }),
-    CTFd.api.get_user_fails({ userId: account_id }),
-    CTFd.api.get_user_awards({ userId: account_id })
+    CTFd.api.get_user_solves({ userId: id }),
+    CTFd.api.get_user_fails({ userId: id })
   ]).then(responses => {
     updateGraph(
       "solve_percentages",

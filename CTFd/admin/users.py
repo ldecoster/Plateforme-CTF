@@ -2,8 +2,9 @@ from flask import render_template, request, url_for
 from sqlalchemy.sql import not_
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Tracking, Users
+from CTFd.models import Challenges, Tags, Tracking, Users
 from CTFd.utils.decorators import access_granted_only
+from CTFd.utils.user import get_user_badges
 
 
 @admin.route("/admin/users")
@@ -76,8 +77,8 @@ def users_detail(user_id):
     # Get Fails
     fails = user.get_fails()
 
-    # Get Awards
-    awards = user.get_awards()
+    # Get Badges
+    badges = get_user_badges(user_id)
 
     return render_template(
         "admin/users/user.html",
@@ -86,5 +87,6 @@ def users_detail(user_id):
         addrs=addrs,
         missing=missing,
         fails=fails,
-        awards=awards,
+        badges=badges,
+        Tags=Tags,
     )

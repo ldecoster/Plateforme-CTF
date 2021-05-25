@@ -34,6 +34,8 @@ const roots = {
     },
     'js': {
       'pages/main': 'assets/js/pages/main.js',
+      'pages/badge': 'assets/js/pages/badge.js',
+      'pages/badges': 'assets/js/pages/badges.js',
       'pages/challenge': 'assets/js/pages/challenge.js',
       'pages/challenges': 'assets/js/pages/challenges.js',
       'pages/configs': 'assets/js/pages/configs.js',

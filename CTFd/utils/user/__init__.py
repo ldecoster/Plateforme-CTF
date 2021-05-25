@@ -7,7 +7,7 @@ from flask import redirect, request, session, url_for
 
 from CTFd.cache import cache
 from CTFd.constants.users import UserAttrs
-from CTFd.models import Fails, Tracking, Rights, UserRights, Users, db
+from CTFd.models import Badges, Challenges, Fails, Solves, TagChallenge, Tracking, Rights, UserRights, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.security.auth import logout_user
 from CTFd.utils.security.signing import hmac
@@ -149,3 +149,48 @@ def get_wrong_submissions_per_minute(account_id):
         .all()
     )
     return len(fails)
+
+
+def get_user_badges(user_id):
+    user = Users.query.filter_by(id=user_id).first()
+    if user:
+        solved_chal = TagChallenge.query.join(
+            Badges, Badges.tag_id == TagChallenge.tag_id
+        ).with_entities(
+            TagChallenge.challenge_id
+        ).join(
+            Solves, Solves.challenge_id == TagChallenge.challenge_id
+        ).filter_by(user_id=user.id).all()
+
+        badges_chal = TagChallenge.query.join(
+            Badges, Badges.tag_id == TagChallenge.tag_id
+        ).with_entities(
+            TagChallenge.challenge_id
+        ).join(
+            Challenges, Challenges.id == TagChallenge.challenge_id
+        ).filter_by(state="visible").all()
+
+        solved_chal = [value for (value,) in solved_chal]
+        badges_chal = [value for (value,) in badges_chal]
+
+        set_difference = set(badges_chal) - set(solved_chal)
+        list_difference = list(set_difference)
+
+        unearned_badges = Badges.query.join(
+            TagChallenge, TagChallenge.tag_id == Badges.tag_id
+        ).with_entities(
+            Badges.id
+        ).filter(TagChallenge.challenge_id.in_(list_difference))
+
+        badges = Badges.query.filter(Badges.id.notin_(unearned_badges)).all()
+        return badges
+    else:
+        return None
+
+def get_all_badges():
+    users = Users.query.filter_by(hidden=False,banned=False).all()
+    badgesIds=[]
+    for user in users:
+        for badge in get_user_badges(user.id):
+            badgesIds.append(badge.id)
+    return badgesIds

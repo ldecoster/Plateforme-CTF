@@ -80,8 +80,8 @@
 						<th class="sort-col text-center"><b>ID</b></th>
 						<th class="sort-col"><b>Name</b></th>
 						<th class="sort-col"><b>Author</b></th>
+                        <th class="d-none d-md-table-cell d-lg-table-cell sort-col"><b>Tags</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Type</b></th>
-                        <th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Tags</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>State</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Vote +</b></th>
 						<th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Vote -</b></th>
@@ -97,15 +97,16 @@
 							</td>
 							<td class="text-center">{{ challenge.id }}</td>
 							<td><a href="{{ url_for('admin.challenges_detail', challenge_id=challenge.id) }}">{{ challenge.name }}</a></td>
-							<td class="text-center">{{ challenge.author.name }}</td>
-							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.type }}</td>
+							<td>{{ challenge.author.name }}</td>
 							<td class="d-none d-md-table-cell d-lg-table-cell">
 								{% for tag in challenge.tags %}
-								<span class='badge badge-primary mx-1 challenge-tag'>
-									<span>{{ tag.value }}</span>
-								</span>
+                                    {% set tag_state = 'badge-warning' if tag.exercise else 'badge-primary' %}
+								    <span class='badge {{ tag_state }} mx-1 challenge-tag'>
+                                        <span>{{ tag.value }}</span>
+                                    </span>
 								{% endfor %}
 							</td>
+							<td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ challenge.type }}</td>
                             <td class="d-none d-md-table-cell d-lg-table-cell text-center">
 								{% set badge_state = 'badge-danger' if challenge.state == 'hidden' else 'badge-warning' if  challenge.state == 'voting' else 'badge-success'  %}
 								<span class="badge {{ badge_state }}">{{ challenge.state }}</span>

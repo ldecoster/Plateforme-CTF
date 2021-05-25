@@ -141,44 +141,6 @@ function deleteUser(event) {
   });
 }
 
-function awardUser(event) {
-  event.preventDefault();
-  const params = $("#user-award-form").serializeJSON(true);
-  params["user_id"] = window.USER_ID;
-
-  CTFd.fetch("/api/v1/awards", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(params)
-  })
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(response) {
-      if (response.success) {
-        window.location.reload();
-      } else {
-        $("#user-award-form > #results").empty();
-        Object.keys(response.errors).forEach(function(key, _index) {
-          $("#user-award-form > #results").append(
-            ezBadge({
-              type: "error",
-              body: response.errors[key]
-            })
-          );
-          const i = $("#user-award-form").find("input[name={0}]".format(key));
-          const input = $(i);
-          input.addClass("input-filled-invalid");
-          input.removeClass("input-filled-valid");
-        });
-      }
-    });
-}
-
 function emailUser(event) {
   event.preventDefault();
   var params = $("#user-mail-form").serializeJSON(true);
@@ -266,35 +228,6 @@ function deleteSelectedSubmissions(event, target) {
   });
 }
 
-function deleteSelectedAwards(_event) {
-  let awardIDs = $("input[data-award-id]:checked").map(function() {
-    return $(this).data("award-id");
-  });
-  let target = awardIDs.length === 1 ? "award" : "awards";
-
-  ezQuery({
-    title: `Delete Awards`,
-    body: `Are you sure you want to delete ${awardIDs.length} ${target}?`,
-    success: function() {
-      const reqs = [];
-      for (var awardID of awardIDs) {
-        let req = CTFd.fetch("/api/v1/awards/" + awardID, {
-          method: "DELETE",
-          credentials: "same-origin",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          }
-        });
-        reqs.push(req);
-      }
-      Promise.all(reqs).then(_responses => {
-        window.location.reload();
-      });
-    }
-  });
-}
-
 function solveSelectedMissingChallenges(event) {
   event.preventDefault();
   let challengeIDs = $("input[data-missing-challenge-id]:checked").map(
@@ -339,9 +272,8 @@ function solveSelectedMissingChallenges(event) {
 
 const createGraphs = (id, name, account_id) => {
   Promise.all([
-    CTFd.api.get_user_solves({ userId: account_id }),
-    CTFd.api.get_user_fails({ userId: account_id }),
-    CTFd.api.get_user_awards({ userId: account_id })
+    CTFd.api.get_user_solves({ userId: id }),
+    CTFd.api.get_user_fails({ userId: id })
   ]).then(responses => {
     createGraph(
       "solve_percentages",
@@ -356,9 +288,8 @@ const createGraphs = (id, name, account_id) => {
 
 const updateGraphs = (id, name, account_id) => {
   Promise.all([
-    CTFd.api.get_user_solves({ userId: account_id }),
-    CTFd.api.get_user_fails({ userId: account_id }),
-    CTFd.api.get_user_awards({ userId: account_id })
+    CTFd.api.get_user_solves({ userId: id }),
+    CTFd.api.get_user_fails({ userId: id })
   ]).then(responses => {
     updateGraph(
       "solve_percentages",
@@ -376,10 +307,6 @@ $(() => {
 
   $(".edit-user").click(function(_event) {
     $("#user-info-modal").modal("toggle");
-  });
-
-  $(".award-user").click(function(_event) {
-    $("#user-award-modal").modal("toggle");
   });
 
   $(".email-user").click(function(_event) {
@@ -400,10 +327,6 @@ $(() => {
     deleteSelectedSubmissions(e, "fails");
   });
 
-  $("#awards-delete-button").click(function(e) {
-    deleteSelectedAwards(e);
-  });
-
   $("#missing-solve-button").click(function(e) {
     solveSelectedMissingChallenges(e);
   });
@@ -411,7 +334,6 @@ $(() => {
   $("#user-info-create-form").submit(createUser);
 
   $("#user-info-edit-form").submit(updateUser);
-  $("#user-award-form").submit(awardUser);
 
   // Insert CommentBox element
   const commentBox = Vue.extend(CommentBox);
