@@ -1,3 +1,4 @@
+from CTFd.utils.user import get_all_badges
 from flask import render_template
 
 from CTFd.admin import admin
@@ -8,7 +9,7 @@ from CTFd.utils.decorators import access_granted_only
 @admin.route("/admin/badges")
 @access_granted_only("admin_badges_listing")
 def badges_listing():
-    badges = Badges.query.all()
+    badges = get_all_badges()
     return render_template(
         "admin/badges/badges.html",
         badges=badges,

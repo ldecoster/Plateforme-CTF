@@ -46,7 +46,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					{% for badge in badges %}
+					{% for badge in Badges.query.all() %}
 					<tr name="{{ badge.id }}" data-href="{{ url_for('admin.badges_detail', badge_id=badge.id) }}">
 						<td class="border-right" data-checkbox>
 							<div class="form-check text-center">
@@ -68,8 +68,8 @@
                         <td class="d-none d-md-table-cell d-lg-table-cell text-center">
                             {% set challenges_query = TagChallenge.query.join(Badges,Badges.tag_id==TagChallenge.tag_id).filter_by(id=badge.id).with_entities(TagChallenge.challenge_id) %}
                             {% set entrants_query = Submissions.query.filter(Submissions.challenge_id.in_(challenges_query)).group_by(Submissions.user_id) %}
-                            {% set winners_query = entrants_query.filter_by(type="correct") %}
-                            {% set progress = winners_query.count()/entrants_query.count()*100 if entrants_query.count()>0 else 0 %}
+                            {% set winners_query = badges.count(badge.id) %}
+                            {% set progress = winners_query/entrants_query.count()*100 if entrants_query.count() > 0 else 0 %}
                             <div class="progress">
                                 <div class="progress-bar {{'bg-success' if progress == 100 else ''}}" role="progressbar"
                                     aria-valuenow="{winners_query.count()}" aria-valuemin="0"
