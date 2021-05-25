@@ -117,7 +117,7 @@ export default {
 
       this.outputHtml();
 
-      CTFd.api.post_tagChallenge_list({}, params).then(res => {
+      CTFd.api.post_tag_challenge_list({}, params).then(res => {
         this.errorTag(res);
         CTFd.api.get_tag({ tagId: res.data.tag_id, }).then(response => {
           if (response.success) {
@@ -134,7 +134,7 @@ export default {
       };
       CTFd.api.post_tag_list({}, params).then(res => {
         this.errorTag(res);
-        CTFd.api.post_tagChallenge_list({}, { tag_id: res.data.id, challenge_id: window.CHALLENGE_ID }).then(response => {
+        CTFd.api.post_tag_challenge_list({}, { tag_id: res.data.id, challenge_id: window.CHALLENGE_ID }).then(response => {
           this.errorTag(response);
           if (response.success) {
             this.tagValue = "";
@@ -144,7 +144,7 @@ export default {
       });
     },
     deleteTag: function(tagId) {
-      CTFd.api.delete_tagChallenge({ tagId: tagId, challengeId: window.CHALLENGE_ID }).then(response => {
+      CTFd.api.delete_tag_challenge({ tagId: tagId, challengeId: window.CHALLENGE_ID }).then(response => {
         if (response.success) {
           this.loadTags();
         }

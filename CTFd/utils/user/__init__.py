@@ -187,10 +187,11 @@ def get_user_badges(user_id):
     else:
         return None
 
+
 def get_all_badges():
-    users = Users.query.filter_by(hidden=False,banned=False).all()
-    badgesIds=[]
+    users = Users.query.filter_by(hidden=False, banned=False).all()
+    badges_ids = []
     for user in users:
         for badge in get_user_badges(user.id):
-            badgesIds.append(badge.id)
-    return badgesIds
+            badges_ids.append(badge.id)
+    return badges_ids

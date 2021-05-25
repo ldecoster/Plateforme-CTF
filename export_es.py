@@ -98,9 +98,9 @@ def export():
                 c.writerow(x)
 
         # TagChallenge
-        cur.execute("SELECT * from tagChallenge")
+        cur.execute("SELECT * from tag_challenge")
         result = cur.fetchall()
-        cur.execute("SELECT name FROM pragma_table_info('tagChallenge')")
+        cur.execute("SELECT name FROM pragma_table_info('tag_challenge')")
         header_list = cur.fetchall()
 
         with open(upload_folder_name + 'tagChallenge.csv', 'w', newline='', encoding='utf-8') as csvFile:
@@ -117,7 +117,6 @@ def export():
         chal = pd.read_csv(upload_folder_name + "challenge.csv", sep=',')
 
         challenge = chal.rename(columns={"('id',)": "('challenge_id',)"})
-
         challenge = challenge.drop(columns=["('type',)", ], axis=1)
 
         submission = sub.set_index("('challenge_id',)")
@@ -141,14 +140,14 @@ def export():
 
         # Merge Tag and TagChallenge
         tag = pd.read_csv(upload_folder_name + "tag.csv", sep=',', encoding='utf-8')
-        tagchal = pd.read_csv(upload_folder_name + "tagChallenge.csv", sep=',', encoding='utf-8')
+        tag_challenge = pd.read_csv(upload_folder_name + "tagChallenge.csv", sep=',', encoding='utf-8')
 
         tags = tag.rename(columns={"('id',)": "('tag_id',)"})
 
-        tagChallenge = tagchal.set_index("('tag_id',)")
+        tag_challenges = tag_challenge.set_index("('tag_id',)")
         tagss = tags.set_index("('tag_id',)")
 
-        df_mixed_tag_chal = tagChallenge.join(tagss)
+        df_mixed_tag_chal = tag_challenges.join(tagss)
 
         df_mixed_tag_chal.to_csv(upload_folder_name + "merge_tagchal.csv", sep=',')
 

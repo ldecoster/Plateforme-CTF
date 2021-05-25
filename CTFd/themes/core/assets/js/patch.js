@@ -259,13 +259,13 @@ API.prototype.post_tag_list = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.post_tagChallenge_list = function(parameters, body) {
+API.prototype.post_tag_challenge_list = function(parameters, body) {
   if (parameters === undefined) {
     parameters = {};
   }
   let deferred = Q.defer();
   let domain = this.domain,
-    path = "/tagChallenge";
+    path = "/tag_challenge";
   let queryParameters = {},
     headers = {},
     form = {};

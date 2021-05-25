@@ -184,7 +184,7 @@ def import_ctf(backup, erase=True):
         "db/votes.json",
         "db/badges.json",
         "db/tags.json",
-        "db/tagChallenges.json",
+        "db/tag_challenge.json",
         "db/submissions.json",
         "db/rights.json",
         "db/roles.json",
