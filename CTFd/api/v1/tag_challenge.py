@@ -8,12 +8,12 @@ from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
 from CTFd.models import db, TagChallenge, Tags
-from CTFd.schemas.tagChallenge import TagChallengeSchema
+from CTFd.schemas.tag_challenge import TagChallengeSchema
 from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.user import has_right
 from CTFd.utils.helpers.models import build_model_filters
 
-tagChallenge_namespace = Namespace("tagChallenge", description="Endpoint to retrieve TagChallenge")
+tag_challenge_namespace = Namespace("tag_challenge", description="Endpoint to retrieve TagChallenge")
 
 TagChallengeModel = sqlalchemy_to_pydantic(TagChallenge)
 
@@ -26,17 +26,17 @@ class TagChallengeListSuccessResponse(APIListSuccessResponse):
     data: List[TagChallengeModel]
 
 
-tagChallenge_namespace.schema_model(
+tag_challenge_namespace.schema_model(
     "TagChallengeDetailedSuccessResponse", TagChallengeDetailedSuccessResponse.apidoc()
 )
 
-tagChallenge_namespace.schema_model("TagChallengeListSuccessResponse", TagChallengeListSuccessResponse.apidoc())
+tag_challenge_namespace.schema_model("TagChallengeListSuccessResponse", TagChallengeListSuccessResponse.apidoc())
 
 
-@tagChallenge_namespace.route("")
+@tag_challenge_namespace.route("")
 class TagChallengeList(Resource):
     @access_granted_only("api_tag_challenge_list_get")
-    @tagChallenge_namespace.doc(
+    @tag_challenge_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
             200: ("Success", "TagChallengeListSuccessResponse"),
@@ -79,7 +79,7 @@ class TagChallengeList(Resource):
         return {"success": True, "data": response.data}
 
     @access_granted_only("api_tag_challenge_list_post")
-    @tagChallenge_namespace.doc(
+    @tag_challenge_namespace.doc(
         description="Endpoint to create a TagChallenge object",
         responses={
             200: ("Success", "TagChallengeDetailedSuccessResponse"),
@@ -120,12 +120,12 @@ class TagChallengeList(Resource):
         return {"success": True, "data": response.data}
 
 
-@tagChallenge_namespace.route("/<tag_id>/<challenge_id>")
-@tagChallenge_namespace.param("tag_id", "A Tag ID")
-@tagChallenge_namespace.param("challenge_id", "A challenge ID")
+@tag_challenge_namespace.route("/<tag_id>/<challenge_id>")
+@tag_challenge_namespace.param("tag_id", "A Tag ID")
+@tag_challenge_namespace.param("challenge_id", "A challenge ID")
 class TagChal(Resource):
-    @access_granted_only("api_tag_chal_get")
-    @tagChallenge_namespace.doc(
+    @access_granted_only("api_tag_challenge_get")
+    @tag_challenge_namespace.doc(
         description="Endpoint to get a specific TagChallenge object",
         responses={
             200: ("Success", "TagChallengeDetailedSuccessResponse"),
@@ -145,8 +145,8 @@ class TagChal(Resource):
 
         return {"success": True, "data": response.data}
     
-    @access_granted_only("api_tag_chal_delete")
-    @tagChallenge_namespace.doc(
+    @access_granted_only("api_tag_challenge_delete")
+    @tag_challenge_namespace.doc(
         description="Endpoint to delete a specific TagChallenge object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )

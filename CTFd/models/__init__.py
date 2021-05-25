@@ -97,7 +97,7 @@ class Challenges(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"))
     files = db.relationship("ChallengeFiles", backref="challenge")
     resources = db.relationship("Resources", backref="challenge")
-    tags = db.relationship("Tags", secondary="tagChallenge")
+    tags = db.relationship("Tags", secondary="tag_challenge")
     flags = db.relationship("Flags", backref="challenge")
     comments = db.relationship("ChallengeComments", backref="challenge")
     author = db.relationship("Users", foreign_keys="Challenges.author_id", lazy="select")
@@ -175,14 +175,14 @@ class Tags(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.String(80))
     exercise = db.Column(db.Boolean)
-    challenges = db.relationship("Challenges", secondary="tagChallenge")
+    challenges = db.relationship("Challenges", secondary="tag_challenge")
 
     def __init__(self, *args, **kwargs):
         super(Tags, self).__init__(**kwargs)
 
 
 class TagChallenge(db.Model):
-    __tablename__ = "tagChallenge"
+    __tablename__ = "tag_challenge"
     challenge_id = db.Column(db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"),
                              primary_key=True, nullable=False)
     tag_id = db.Column(db.Integer, db.ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True, nullable=False)

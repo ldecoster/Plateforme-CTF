@@ -37,7 +37,7 @@ args = parser.parse_args()
 app = create_app()
 
 USER_AMOUNT = args.users
-CHAL_AMOUNT = args.challenges
+CHALLENGE_AMOUNT = args.challenges
 BADGES_AMOUNT = args.badges
 TAGS_AMOUNT = args.tags
 
@@ -182,15 +182,15 @@ if __name__ == "__main__":
 
         # Generating Challenges
         print("GENERATING CHALLENGES")
-        for x in range(CHAL_AMOUNT):
+        for x in range(CHALLENGE_AMOUNT):
             word = gen_word()
             user = random.randint(1, USER_AMOUNT)
-            chal = Challenges(
+            challenge = Challenges(
                 name=word,
                 description=gen_sentence(),
                 author_id=user,
             )
-            db.session.add(chal)
+            db.session.add(challenge)
             db.session.commit()
             f = Flags(challenge_id=x + 1, content=word, type="static")
             db.session.add(f)
@@ -198,15 +198,15 @@ if __name__ == "__main__":
 
         # Generating Files
         print("GENERATING FILES")
-        AMT_CHALS_WITH_FILES = int(CHAL_AMOUNT * (3.0 / 4.0))
+        AMT_CHALS_WITH_FILES = int(CHALLENGE_AMOUNT * (3.0 / 4.0))
         for x in range(AMT_CHALS_WITH_FILES):
-            chal = random.randint(1, CHAL_AMOUNT)
+            challenge = random.randint(1, CHALLENGE_AMOUNT)
             filename = gen_file()
             md5hash = hashlib.md5(filename.encode("utf-8")).hexdigest()
-            chal_file = ChallengeFiles(
-                challenge_id=chal, location=md5hash + "/" + filename
+            challenge_file = ChallengeFiles(
+                challenge_id=challenge, location=md5hash + "/" + filename
             )
-            db.session.add(chal_file)
+            db.session.add(challenge_file)
 
         db.session.commit()
 
@@ -217,13 +217,13 @@ if __name__ == "__main__":
             base_time = datetime.datetime.utcnow() + datetime.timedelta(
                 minutes=-10000
             )
-            for y in range(random.randint(1, CHAL_AMOUNT)):
-                chal_id = random.randint(1, CHAL_AMOUNT)
-                if chal_id not in used:
-                    used.append(chal_id)
+            for y in range(random.randint(1, CHALLENGE_AMOUNT)):
+                challenge_id = random.randint(1, CHALLENGE_AMOUNT)
+                if challenge_id not in used:
+                    used.append(challenge_id)
                     user = Users.query.filter_by(id=x + 1).first()
                     vot = Votes(
-                        challenge_id=chal_id,
+                        challenge_id=challenge_id,
                         user_id=user.id,
                         value=bool(random.randint(0, 1)),
                     )
@@ -245,14 +245,14 @@ if __name__ == "__main__":
             base_time = datetime.datetime.utcnow() + datetime.timedelta(
                 minutes=-10000
             )
-            for y in range(random.randint(1, CHAL_AMOUNT)):
-                chal_id = random.randint(1, CHAL_AMOUNT)
-                if chal_id not in used:
-                    used.append(chal_id)
+            for y in range(random.randint(1, CHALLENGE_AMOUNT)):
+                challenge_id = random.randint(1, CHALLENGE_AMOUNT)
+                if challenge_id not in used:
+                    used.append(challenge_id)
                     user = Users.query.filter_by(id=x + 1).first()
                     solve = Solves(
                         user_id=user.id,
-                        challenge_id=chal_id,
+                        challenge_id=challenge_id,
                         ip="127.0.0.1",
                         provided=gen_word(),
                     )
@@ -284,9 +284,9 @@ if __name__ == "__main__":
 
         db.session.commit()
 
-        # Generating TagChallenge
-        print("GENERATING TAGCHALLENGE")
-        for x in range(CHAL_AMOUNT):
+        # Generating Tag Challenge
+        print("GENERATING TAG CHALLENGE")
+        for x in range(CHALLENGE_AMOUNT):
             used = []
             base_time = datetime.datetime.utcnow() + datetime.timedelta(
                 minutes=-10000
@@ -295,9 +295,9 @@ if __name__ == "__main__":
                 tag_id = random.randint(1, len(tags))
                 if tag_id not in used:
                     used.append(tag_id)
-                    chall = Challenges.query.filter_by(id=x + 1).first()
-                    tagchal = TagChallenge(
-                        challenge_id=chall.id,
+                    challenge = Challenges.query.filter_by(id=x + 1).first()
+                    tag_challenge = TagChallenge(
+                        challenge_id=challenge.id,
                         tag_id=tag_id,
                     )
 
@@ -306,10 +306,10 @@ if __name__ == "__main__":
                         base_time
                         + datetime.timedelta(minutes=random.randint(30, 60)),
                     )
-                    tagchal.date = new_base
+                    tag_challenge.date = new_base
                     base_time = new_base
 
-                    db.session.add(tagchal)
+                    db.session.add(tag_challenge)
                     db.session.commit()
     
         db.session.commit()
@@ -334,14 +334,14 @@ if __name__ == "__main__":
         for x in range(USER_AMOUNT):
             used = []
             base_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=-10000)
-            for y in range(random.randint(1, CHAL_AMOUNT * 20)):
-                chal_id = random.randint(1, CHAL_AMOUNT)
-                if chal_id not in used:
-                    used.append(chal_id)
+            for y in range(random.randint(1, CHALLENGE_AMOUNT * 20)):
+                challenge_id = random.randint(1, CHALLENGE_AMOUNT)
+                if challenge_id not in used:
+                    used.append(challenge_id)
                     user = Users.query.filter_by(id=x + 1).first()
                     wrong = Fails(
                         user_id=user.id,
-                        challenge_id=chal_id,
+                        challenge_id=challenge_id,
                         ip="127.0.0.1",
                         provided=gen_word(),
                     )

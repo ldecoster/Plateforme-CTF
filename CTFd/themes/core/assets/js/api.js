@@ -2510,17 +2510,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#post_tagChallenge_list
+   * @name API#post_tag_challenge_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.post_tagChallenge_list = function(parameters) {
+  API.prototype.post_tag_challenge_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/tagChallenge";
+      path = "/tag_challenge";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2547,16 +2547,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_tagChallenge_list
+   * @name API#get_tag_challenge_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.get_tagChallenge_list = function(parameters) {
+  API.prototype.get_tag_challenge_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/tagChallenge";
+      path = "/tag_challenge";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2583,18 +2583,18 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_tagChallenge
+   * @name API#get_tag_challenge
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.tagId - A Tag ID
    * @param {string} parameters.challengeId - A Challenge ID
    */
-  API.prototype.get_tagChallenge = function(parameters) {
+  API.prototype.get_tag_challenge = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/tagChallenge/<tag_id>/<challenge_id>";
+      path = "/tag_challenge/<tag_id>/<challenge_id>";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2632,18 +2632,18 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#delete_tagChallenge
+   * @name API#delete_tag_challenge
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.tagId - A Tag ID
    * @param {string} parameters.challengeId - A Challenge ID
    */
-  API.prototype.delete_tagChallenge = function(parameters) {
+  API.prototype.delete_tag_challenge = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/tagChallenge/<tag_id>/<challenge_id>";
+      path = "/tag_challenge/<tag_id>/<challenge_id>";
     let body = {},
       queryParameters = {},
       headers = {},
