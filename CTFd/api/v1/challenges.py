@@ -202,7 +202,7 @@ class ChallengeList(Resource):
         response = []
         tag_schema = TagSchema(view="user", many=True)
         for challenge in chal_q:
-            user = Users.query.filter_by(id=challenge.author_id).first();
+            user = Users.query.filter_by(id=challenge.author_id).first()
             if challenge.requirements:
                 requirements = challenge.requirements.get("prerequisites", [])
                 anonymize = challenge.requirements.get("anonymize")
