@@ -64,19 +64,22 @@ CTFd is a Capture The Flag framework focusing on ease of use and customizability
 2. Install them
   - `sudo dpkg -i elasticsearch-7.12.1-amd64.deb`
   - `sudo dpkg -i kibana-7.12.1-amd64.deb`
-3. Start them and enable launching on startup
+3. Optional: Expose Kibana on a network instead of localhost
+  - Edit `/etc/kibana/kibana.yml` file
+  - Edit the line `#server.host: "localhost"` to `server.host: "{IP_ADDRESS}"` where {IP_ADDRESS} is the IP address of the server
+4. Start them and enable launching on startup
   - `sudo systemctl start elasticsearch.service`
   - `sudo systemctl start kibana.service`
   - `sudo systemctl enable elasticsearch.service`
   - `sudo systemctl enable kibana.service`
-4. From Kibana interface [localhost:5601](http://localhost:5601)
+5. From Kibana interface [localhost:5601](http://localhost:5601)
   - Click on "Stack Management" menu
   - Select "Saved Object"
-  - Click on the "import" button and select the file `admin_dashboard.ndjson` fom the project. Keep the option "Check for existing objects" checked and validate.
-5. Run the export script in a new terminal
+  - Click on the "import" button and select the file `admin_dashboard.ndjson` fom the project. Keep the option "Check for existing objects" checked and validate
+6. Run the export script in a new terminal
   - `source env/bin/activate`
   - `python export_es.py`
-6. Back to Kibana interface [localhost:5601](http://localhost:5601)
+7. Back to Kibana interface [localhost:5601](http://localhost:5601)
   - Click on "Dashboard" menu
   - Select `Admin dashboard` to visualize all the graphs
 
