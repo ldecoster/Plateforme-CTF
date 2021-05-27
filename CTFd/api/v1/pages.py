@@ -10,7 +10,7 @@ from CTFd.cache import clear_pages
 from CTFd.constants import RawEnum
 from CTFd.models import Pages, db
 from CTFd.schemas.pages import PageSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 pages_namespace = Namespace("pages", description="Endpoint to retrieve Pages")
@@ -39,16 +39,16 @@ pages_namespace.schema_model(
 
 @pages_namespace.route("")
 @pages_namespace.doc(
-    responses={200: "Success", 400: "An error occured processing your data"}
+    responses={200: "Success", 400: "An error occurred processing your data"}
 )
 class PageList(Resource):
-    @admins_only
+    @access_granted_only("api_page_list_get")
     @pages_namespace.doc(
         description="Endpoint to get page objects in bulk",
         responses={
             200: ("Success", "PageListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -85,13 +85,13 @@ class PageList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_page_list_post")
     @pages_namespace.doc(
         description="Endpoint to create a page object",
         responses={
             200: ("Success", "PageDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -122,13 +122,13 @@ class PageList(Resource):
     responses={
         200: ("Success", "PageDetailedSuccessResponse"),
         400: (
-            "An error occured processing the provided or stored data",
+            "An error occurred processing the provided or stored data",
             "APISimpleErrorResponse",
         ),
     },
 )
 class PageDetail(Resource):
-    @admins_only
+    @access_granted_only("api_page_detail_get")
     @pages_namespace.doc(description="Endpoint to read a page object")
     def get(self, page_id):
         page = Pages.query.filter_by(id=page_id).first_or_404()
@@ -140,7 +140,7 @@ class PageDetail(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_page_detail_patch")
     @pages_namespace.doc(description="Endpoint to edit a page object")
     def patch(self, page_id):
         page = Pages.query.filter_by(id=page_id).first_or_404()
@@ -161,7 +161,7 @@ class PageDetail(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_page_detail_delete")
     @pages_namespace.doc(
         description="Endpoint to delete a page object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

@@ -3,36 +3,10 @@ import functools
 from flask import abort, jsonify, redirect, request, url_for
 
 from CTFd.cache import cache
-from CTFd.utils import config, get_config
+from CTFd.utils import get_config
 from CTFd.utils import user as current_user
-from CTFd.utils.dates import ctf_ended, ctf_started, ctftime, view_after_ctf
-from CTFd.utils.modes import TEAMS_MODE
-from CTFd.utils.user import authed, get_current_team, is_admin
-
-
-def during_ctf_time_only(f):
-    """
-    Decorator to restrict an endpoint to only be seen during a CTF
-    :param f:
-    :return:
-    """
-
-    @functools.wraps(f)
-    def during_ctf_time_only_wrapper(*args, **kwargs):
-        if ctftime() or current_user.is_admin():
-            return f(*args, **kwargs)
-        else:
-            if ctf_ended():
-                if view_after_ctf():
-                    return f(*args, **kwargs)
-                else:
-                    error = "{} has ended".format(config.ctf_name())
-                    abort(403, description=error)
-            if ctf_started() is False:
-                error = "{} has not started yet".format(config.ctf_name())
-                abort(403, description=error)
-
-    return during_ctf_time_only_wrapper
+from CTFd.utils.user import authed, has_right
+from functools import wraps
 
 
 def require_authentication_if_config(config_key):
@@ -41,7 +15,7 @@ def require_authentication_if_config(config_key):
         def __require_authentication_if_config(*args, **kwargs):
             value = get_config(config_key)
             if value and current_user.authed():
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
             else:
                 return f(*args, **kwargs)
 
@@ -62,7 +36,7 @@ def require_verified_emails(f):
         if get_config("verify_emails"):
             if current_user.authed():
                 if (
-                    current_user.is_admin() is False
+                    current_user.has_right("utils_decorators_require_verified_emails") is False
                     and current_user.is_verified() is False
                 ):  # User is not confirmed
                     if request.content_type == "application/json":
@@ -92,44 +66,32 @@ def authed_only(f):
             ):
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                abort(403)
 
     return authed_only_wrapper
 
 
-def admins_only(f):
+def registered_only(f):
     """
-    Decorator that requires the user to be authenticated and an admin
+    Decorator that requires the user to have a registered account
     :param f:
     :return:
     """
 
     @functools.wraps(f)
-    def admins_only_wrapper(*args, **kwargs):
-        if is_admin():
+    def _registered_only(*args, **kwargs):
+        if authed():
             return f(*args, **kwargs)
         else:
-            if request.content_type == "application/json":
+            if (
+                request.content_type == "application/json"
+                or request.accept_mimetypes.best == "text/event-stream"
+            ):
                 abort(403)
             else:
-                return redirect(url_for("auth.login", next=request.full_path))
+                return redirect(url_for("auth.register", next=request.full_path))
 
-    return admins_only_wrapper
-
-
-def require_team(f):
-    @functools.wraps(f)
-    def require_team_wrapper(*args, **kwargs):
-        if get_config("user_mode") == TEAMS_MODE:
-            team = get_current_team()
-            if team is None:
-                if request.content_type == "application/json":
-                    abort(403)
-                else:
-                    return redirect(url_for("teams.private", next=request.full_path))
-        return f(*args, **kwargs)
-
-    return require_team_wrapper
+    return _registered_only
 
 
 def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
@@ -163,3 +125,18 @@ def ratelimit(method="POST", limit=50, interval=300, key_prefix="rl"):
         return ratelimit_function
 
     return ratelimit_decorator
+
+
+def access_granted_only(right):
+    def decorator(f):
+        @wraps(f)
+        def access_granted_only_wrapper(*args, **kwargs):
+            if has_right(right):
+                return f(*args, **kwargs)
+            else:
+                if request.content_type == "application/json":
+                    abort(403)
+                else:
+                    abort(403)
+        return access_granted_only_wrapper
+    return decorator

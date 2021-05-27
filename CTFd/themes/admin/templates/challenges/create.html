@@ -14,18 +14,6 @@
 	</div>
 	{% endblock %}
 
-	{% block category %}
-	<div class="form-group">
-		<label>
-			Category:<br>
-			<small class="form-text text-muted">
-				The category of your challenge
-			</small>
-		</label>
-		<input type="text" class="form-control" name="category" placeholder="Enter challenge category">
-	</div>
-	{% endblock %}
-
 
 	{% block message %}
 	<div class="form-group">
@@ -36,18 +24,6 @@
 			</small>
 		</label>
 		<textarea id="new-desc-editor" class="form-control markdown" name="description" rows="10"></textarea>
-	</div>
-	{% endblock %}
-
-	{% block value %}
-	<div class="form-group">
-		<label>
-			Value:<br>
-			<small class="form-text text-muted">
-				This is how many points are rewarded for solving this challenge.
-			</small>
-		</label>
-		<input type="number" class="form-control" name="value" placeholder="Enter value" required>
 	</div>
 	{% endblock %}
 

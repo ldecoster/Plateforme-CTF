@@ -9,31 +9,29 @@ from CTFd.api.v1.schemas import (
     APIDetailedSuccessResponse,
     PaginatedAPIListSuccessResponse,
 )
-from CTFd.cache import clear_standings, clear_user_session
+from CTFd.cache import clear_user_session
 from CTFd.constants import RawEnum
 from CTFd.models import (
-    Awards,
     Notifications,
+    Roles,
+    RoleRights,
     Solves,
     Submissions,
     Tracking,
-    Unlocks,
+    UserRights,
     Users,
     db,
 )
-from CTFd.schemas.awards import AwardSchema
+from CTFd.schemas.badges import BadgeSchema
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.users import UserSchema
 from CTFd.utils.config import get_mail_provider
-from CTFd.utils.decorators import admins_only, authed_only, ratelimit
-from CTFd.utils.decorators.visibility import (
-    check_account_visibility,
-    check_score_visibility,
-)
+from CTFd.utils.decorators import access_granted_only, authed_only, ratelimit
+from CTFd.utils.decorators.visibility import check_account_visibility
 from CTFd.utils.email import sendmail, user_created_notification
 from CTFd.utils.helpers.models import build_model_filters
 from CTFd.utils.security.auth import update_user
-from CTFd.utils.user import get_current_user, get_current_user_type, is_admin
+from CTFd.utils.user import get_current_user, get_current_user_type, has_right, get_user_badges
 
 users_namespace = Namespace("users", description="Endpoint to retrieve Users")
 
@@ -67,15 +65,17 @@ class UserList(Resource):
         responses={
             200: ("Success", "UserListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
     @validate_args(
         {
-            "affiliation": (str, None),
             "country": (str, None),
+            "school": (str, None),
+            "cursus": (str, None),
+            "specialisation": (str, None),
             "bracket": (str, None),
             "q": (str, None),
             "field": (
@@ -85,8 +85,10 @@ class UserList(Resource):
                         "name": "name",
                         "website": "website",
                         "country": "country",
+                        "school": "school",
+                        "cursus": "cursus",
+                        "specialisation": "specialisation",
                         "bracket": "bracket",
-                        "affiliation": "affiliation",
                     },
                 ),
                 None,
@@ -99,7 +101,7 @@ class UserList(Resource):
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=Users, query=q, field=field)
 
-        if is_admin() and request.args.get("view") == "admin":
+        if has_right("api_user_list_get_full") and request.args.get("view") == "admin":
             users = (
                 Users.query.filter_by(**query_args)
                 .filter(*filters)
@@ -132,14 +134,13 @@ class UserList(Resource):
             "data": response.data,
         }
 
-    @users_namespace.doc()
-    @admins_only
+    @access_granted_only("api_user_list_post")
     @users_namespace.doc(
         description="Endpoint to create a User object",
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -158,14 +159,25 @@ class UserList(Resource):
         db.session.add(response.data)
         db.session.commit()
 
+        rights = []
+        role = Roles.query.filter_by(name=response.data.type).first()
+        role_rights = RoleRights.query.filter_by(role_id=role.id).all()
+
+        for role_right in role_rights:
+            user_rights = UserRights()
+            user_rights.user_id = response.data.id
+            user_rights.right_id = role_right.right_id
+            rights.append(user_rights)
+
+        db.session.add_all(rights)
+        db.session.commit()
+
         if request.args.get("notify"):
             name = response.data.name
             email = response.data.email
             password = req.get("password")
 
             user_created_notification(addr=email, name=name, password=password)
-
-        clear_standings()
 
         response = schema.dump(response.data)
 
@@ -181,7 +193,7 @@ class UserPublic(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -189,7 +201,7 @@ class UserPublic(Resource):
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
-        if (user.banned or user.hidden) and is_admin() is False:
+        if (user.banned or user.hidden) and has_right("api_user_public_get_full") is False:
             abort(404)
 
         user_type = get_current_user_type(fallback="user")
@@ -198,18 +210,15 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        response.data["place"] = user.place
-        response.data["score"] = user.score
-
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_user_public_patch")
     @users_namespace.doc(
         description="Endpoint to edit a specific User object",
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -233,26 +242,50 @@ class UserPublic(Resource):
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
+        # This generates the response first before actually changing the type
+        # This avoids an error during User type changes where we change
+        # the polymorphic identity resulting in an ObjectDeletedError
+        # https://github.com/CTFd/CTFd/issues/1794
+        response = schema.dump(response.data)
+
         db.session.commit()
 
-        response = schema.dump(response.data)
+        UserRights.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+
+        rights = []
+        role = Roles.query.filter_by(name=response.data["type"]).first()
+        role_rights = RoleRights.query.filter_by(role_id=role.id).all()
+
+        for role_right in role_rights:
+            user_rights = UserRights()
+            user_rights.user_id = response.data["id"]
+            user_rights.right_id = role_right.right_id
+            rights.append(user_rights)
+
+        db.session.add_all(rights)
+        db.session.commit()
 
         db.session.close()
 
         clear_user_session(user_id=user_id)
-        clear_standings()
 
-        return {"success": True, "data": response}
+        return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_user_public_delete")
     @users_namespace.doc(
         description="Endpoint to delete a specific User object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, user_id):
+        # Admins should not be able to delete themselves
+        if user_id == session["id"]:
+            return (
+                {"success": False, "errors": {"id": "You cannot delete yourself"}},
+                400,
+            )
+
         Notifications.query.filter_by(user_id=user_id).delete()
-        Awards.query.filter_by(user_id=user_id).delete()
-        Unlocks.query.filter_by(user_id=user_id).delete()
         Submissions.query.filter_by(user_id=user_id).delete()
         Solves.query.filter_by(user_id=user_id).delete()
         Tracking.query.filter_by(user_id=user_id).delete()
@@ -261,7 +294,6 @@ class UserPublic(Resource):
         db.session.close()
 
         clear_user_session(user_id=user_id)
-        clear_standings()
 
         return {"success": True}
 
@@ -274,7 +306,7 @@ class UserPrivate(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -282,8 +314,6 @@ class UserPrivate(Resource):
     def get(self):
         user = get_current_user()
         response = UserSchema("self").dump(user).data
-        response["place"] = user.place
-        response["score"] = user.score
         return {"success": True, "data": response}
 
     @authed_only
@@ -292,7 +322,7 @@ class UserPrivate(Resource):
         responses={
             200: ("Success", "UserDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -313,8 +343,6 @@ class UserPrivate(Resource):
         response = schema.dump(response.data)
         db.session.close()
 
-        clear_standings()
-
         return {"success": True, "data": response.data}
 
 
@@ -323,9 +351,9 @@ class UserPrivateSolves(Resource):
     @authed_only
     def get(self):
         user = get_current_user()
-        solves = user.get_solves(admin=True)
+        solves = user.get_solves()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_private_solves_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(solves)
 
         if response.errors:
@@ -339,14 +367,14 @@ class UserPrivateFails(Resource):
     @authed_only
     def get(self):
         user = get_current_user()
-        fails = user.get_fails(admin=True)
+        fails = user.get_fails()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_private_fails_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(fails)
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        if is_admin():
+        if has_right("api_user_private_fails_get_full"):
             data = response.data
         else:
             data = []
@@ -355,37 +383,19 @@ class UserPrivateFails(Resource):
         return {"success": True, "data": data, "meta": {"count": count}}
 
 
-@users_namespace.route("/me/awards")
-@users_namespace.param("user_id", "User ID")
-class UserPrivateAwards(Resource):
-    @authed_only
-    def get(self):
-        user = get_current_user()
-        awards = user.get_awards(admin=True)
-
-        view = "user" if not is_admin() else "admin"
-        response = AwardSchema(view=view, many=True).dump(awards)
-
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
-
-        return {"success": True, "data": response.data}
-
-
 @users_namespace.route("/<user_id>/solves")
 @users_namespace.param("user_id", "User ID")
 class UserPublicSolves(Resource):
     @check_account_visibility
-    @check_score_visibility
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
-        if (user.banned or user.hidden) and is_admin() is False:
+        if (user.banned or user.hidden) and has_right("api_user_public_solves_get_full") is False:
             abort(404)
 
-        solves = user.get_solves(admin=is_admin())
+        solves = user.get_solves()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_public_solves_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(solves)
 
         if response.errors:
@@ -398,20 +408,19 @@ class UserPublicSolves(Resource):
 @users_namespace.param("user_id", "User ID")
 class UserPublicFails(Resource):
     @check_account_visibility
-    @check_score_visibility
     def get(self, user_id):
         user = Users.query.filter_by(id=user_id).first_or_404()
 
-        if (user.banned or user.hidden) and is_admin() is False:
+        if (user.banned or user.hidden) and has_right("api_user_public_fails_get_full") is False:
             abort(404)
-        fails = user.get_fails(admin=is_admin())
+        fails = user.get_fails()
 
-        view = "user" if not is_admin() else "admin"
+        view = "user" if not has_right("api_user_public_fails_get_full") else "admin"
         response = SubmissionSchema(view=view, many=True).dump(fails)
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
 
-        if is_admin():
+        if has_right("api_user_public_fails_get_full"):
             data = response.data
         else:
             data = []
@@ -420,20 +429,13 @@ class UserPublicFails(Resource):
         return {"success": True, "data": data, "meta": {"count": count}}
 
 
-@users_namespace.route("/<user_id>/awards")
-@users_namespace.param("user_id", "User ID or 'me'")
-class UserPublicAwards(Resource):
+@users_namespace.route("/badges")
+class UserBadges(Resource):
     @check_account_visibility
-    @check_score_visibility
-    def get(self, user_id):
-        user = Users.query.filter_by(id=user_id).first_or_404()
+    def get(self):
+        badges = get_user_badges(session["id"])
 
-        if (user.banned or user.hidden) and is_admin() is False:
-            abort(404)
-        awards = user.get_awards(admin=is_admin())
-
-        view = "user" if not is_admin() else "admin"
-        response = AwardSchema(view=view, many=True).dump(awards)
+        response = BadgeSchema(many=True).dump(badges)
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -444,7 +446,7 @@ class UserPublicAwards(Resource):
 @users_namespace.route("/<int:user_id>/email")
 @users_namespace.param("user_id", "User ID")
 class UserEmails(Resource):
-    @admins_only
+    @access_granted_only("api_user_emails_post")
     @users_namespace.doc(
         description="Endpoint to email a User object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

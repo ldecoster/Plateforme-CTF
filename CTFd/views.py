@@ -12,25 +12,25 @@ from CTFd.constants.config import (
     ChallengeVisibilityTypes,
     ConfigTypes,
     RegistrationVisibilityTypes,
-    ScoreVisibilityTypes,
 )
+from CTFd.constants.themes import DEFAULT_THEME
 from CTFd.models import (
     Admins,
     Files,
     Notifications,
     Pages,
-    Teams,
+    Rights,
+    Roles,
+    RoleRights,
+    UserRights,
     Users,
     UserTokens,
     db,
 )
 from CTFd.utils import config, get_config, set_config
-from CTFd.utils import user as current_user
 from CTFd.utils import validators
-from CTFd.utils.config import is_setup
 from CTFd.utils.config.pages import build_html, get_page
 from CTFd.utils.config.visibility import challenges_visible
-from CTFd.utils.dates import ctf_ended, ctftime, view_after_ctf
 from CTFd.utils.decorators import authed_only
 from CTFd.utils.email import (
     DEFAULT_PASSWORD_RESET_BODY,
@@ -43,7 +43,6 @@ from CTFd.utils.email import (
     DEFAULT_VERIFICATION_EMAIL_SUBJECT,
 )
 from CTFd.utils.helpers import get_errors, get_infos, markup
-from CTFd.utils.modes import USERS_MODE
 from CTFd.utils.security.auth import login_user
 from CTFd.utils.security.csrf import generate_nonce
 from CTFd.utils.security.signing import (
@@ -53,8 +52,8 @@ from CTFd.utils.security.signing import (
     serialize,
     unserialize,
 )
-from CTFd.utils.uploads import get_uploader
-from CTFd.utils.user import authed, get_current_user, is_admin
+from CTFd.utils.uploads import get_uploader, upload_file
+from CTFd.utils.user import authed, get_current_user
 
 views = Blueprint("views", __name__)
 
@@ -69,13 +68,21 @@ def setup():
             # General
             ctf_name = request.form.get("ctf_name")
             ctf_description = request.form.get("ctf_description")
-            user_mode = request.form.get("user_mode", USERS_MODE)
             set_config("ctf_name", ctf_name)
             set_config("ctf_description", ctf_description)
-            set_config("user_mode", user_mode)
 
             # Style
-            theme = request.form.get("ctf_theme", "core")
+            ctf_logo = request.files.get("ctf_logo")
+            if ctf_logo:
+                f = upload_file(file=ctf_logo)
+                set_config("ctf_logo", f.location)
+
+            ctf_small_icon = request.files.get("ctf_small_icon")
+            if ctf_small_icon:
+                f = upload_file(file=ctf_small_icon)
+                set_config("ctf_small_icon", f.location)
+
+            theme = request.form.get("ctf_theme", DEFAULT_THEME)
             set_config("ctf_theme", theme)
             theme_color = request.form.get("theme_color")
             theme_header = get_config("theme_header")
@@ -90,13 +97,6 @@ def setup():
                 ).format(theme_color=theme_color)
                 set_config("theme_header", css)
 
-            # DateTime
-            start = request.form.get("start")
-            end = request.form.get("end")
-            set_config("start", start)
-            set_config("end", end)
-            set_config("freeze", None)
-
             # Administration
             name = request.form["name"]
             email = request.form["email"]
@@ -110,14 +110,11 @@ def setup():
             pass_short = len(password) == 0
             pass_long = len(password) > 128
             valid_email = validators.validate_email(request.form["email"])
-            team_name_email_check = validators.validate_email(name)
 
             if not valid_email:
                 errors.append("Please enter a valid email address")
             if names:
                 errors.append("That user name is already taken")
-            if team_name_email_check is True:
-                errors.append("Your user name cannot be an email address")
             if emails:
                 errors.append("That email has already been used")
             if pass_short:
@@ -141,11 +138,20 @@ def setup():
                 name=name, email=email, password=password, type="admin", hidden=True
             )
 
-            # Index page
+            # Create an empty index page
+            page = Pages(title=None, route="index", content="", draft=False)
 
-            index = """<div class="row">
+            # Upload banner
+            default_ctf_banner_location = url_for("views.themes", path="img/logo.png")
+            ctf_banner = request.files.get("ctf_banner")
+            if ctf_banner:
+                f = upload_file(file=ctf_banner, page_id=page.id)
+                default_ctf_banner_location = url_for("views.files", path=f.location)
+
+            # Splice in our banner
+            index = f"""<div class="row">
     <div class="col-md-6 offset-md-3">
-        <img class="w-100 mx-auto d-block" style="max-width: 500px;padding: 50px;padding-top: 14vh;" src="themes/core/static/img/logo.png" />
+        <img class="w-100 mx-auto d-block" style="max-width: 500px;padding: 50px;padding-top: 14vh;" src="{default_ctf_banner_location}" />
         <h3 class="text-center">
             <p>A cool CTF platform from <a href="https://ctfd.io">ctfd.io</a></p>
             <p>Follow us on social media:</p>
@@ -160,7 +166,10 @@ def setup():
     </div>
 </div>"""
 
-            page = Pages(title=None, route="index", content=index, draft=False)
+            page.content = index
+
+            # Set up default number of positive votes
+            set_config("votes_number_delta", 3)
 
             # Visibility
             set_config(
@@ -169,7 +178,6 @@ def setup():
             set_config(
                 ConfigTypes.REGISTRATION_VISIBILITY, RegistrationVisibilityTypes.PUBLIC
             )
-            set_config(ConfigTypes.SCORE_VISIBILITY, ScoreVisibilityTypes.PUBLIC)
             set_config(ConfigTypes.ACCOUNT_VISIBILITY, AccountVisibilityTypes.PUBLIC)
 
             # Verify emails
@@ -221,6 +229,563 @@ def setup():
             try:
                 db.session.add(admin)
                 db.session.commit()
+
+                # Store all rights
+                new_rights = [
+                    "admin_view",
+                    "admin_plugin",
+                    "admin_import_ctf",
+                    "admin_export_ctf",
+                    "admin_export_csv",
+                    "admin_config",
+                    "admin_reset",
+                    "admin_badges_detail",
+                    "admin_badges_new",
+                    "admin_badges_listing",
+                    "admin_challenges_listing",
+                    "admin_challenges_listing_restricted",
+                    "admin_challenges_detail",
+                    "admin_challenges_new",
+                    "admin_notifications",
+                    "admin_pages_listing",
+                    "admin_pages_new",
+                    "admin_pages_preview",
+                    "admin_pages_detail",
+                    "admin_statistics",
+                    "admin_submissions_listing",
+                    "admin_user_listing",
+                    "admin_users_new",
+                    "admin_users_detail",
+                    "api_badge_list_post",
+                    "api_badge_get",
+                    "api_badge_patch",
+                    "api_badge_delete",
+                    "api_challenge_list_get",
+                    "api_challenge_list_get_view_full",
+                    "api_challenge_list_post",
+                    "api_challenge_types_get",
+                    "api_challenge_get",
+                    "api_challenge_get_not_hidden",
+                    "api_challenge_patch",
+                    "api_challenge_patch_full",
+                    "api_challenge_patch_partial",
+                    "api_challenge_delete",
+                    "api_challenge_attempt_post",
+                    "api_challenge_attempt_post_full",
+                    "api_challenge_solves_get",
+                    "api_challenge_files_get",
+                    "api_challenge_tags_get",
+                    "api_challenge_resources_get",
+                    "api_challenge_votes_get",
+                    "api_challenge_votes_get_edit_vote",
+                    "api_challenge_flags_get",
+                    "api_challenge_requirements_get",
+                    "api_comment_list_get",
+                    "api_comment_list_post",
+                    "api_comment_delete",
+                    "api_config_list_get",
+                    "api_config_list_post",
+                    "api_config_list_patch",
+                    "api_config_get",
+                    "api_config_patch",
+                    "api_config_delete",
+                    "api_field_list_get",
+                    "api_field_list_post",
+                    "api_field_get",
+                    "api_field_patch",
+                    "api_field_delete",
+                    "api_files_list_get",
+                    "api_files_list_post",
+                    "api_files_detail_get",
+                    "api_files_detail_delete",
+                    "api_flag_list_get",
+                    "api_flag_list_post",
+                    "api_flag_types_get",
+                    "api_flag_get",
+                    "api_flag_delete",
+                    "api_flag_post",
+                    "api_resource_list_get",
+                    "api_resource_list_post",
+                    "api_resource_get",
+                    "api_resource_patch",
+                    "api_resource_delete",
+                    "api_notification_list_get",
+                    "api_notification_list_post",
+                    "api_notification_get",
+                    "api_notification_delete",
+                    "api_page_list_get",
+                    "api_page_list_post",
+                    "api_page_detail_get",
+                    "api_page_detail_patch",
+                    "api_page_detail_delete",
+                    "api_role_rights_list_get",
+                    "api_role_rights_list_post",
+                    "api_role_rights_get",
+                    "api_role_rights_delete",
+                    "api_role_list_get",
+                    "api_role_list_post",
+                    "api_role_get",
+                    "api_role_delete",
+                    "api_submissions_list_get",
+                    "api_submissions_list_post",
+                    "api_submission_get",
+                    "api_submission_delete",
+                    "api_tag_challenge_list_get",
+                    "api_tag_challenge_list_post",
+                    "api_tag_challenge_list_post_restricted",
+                    "api_tag_challenge_get",
+                    "api_tag_challenge_delete",
+                    "api_tag_list_get",
+                    "api_tag_list_post",
+                    "api_tag_list_post_restricted",
+                    "api_tag_get",
+                    "api_tag_patch",
+                    "api_tag_delete",
+                    "api_token_list_get",
+                    "api_token_list_post",
+                    "api_token_detail_get",
+                    "api_token_detail_get_full",
+                    "api_token_detail_delete",
+                    "api_token_detail_delete_full",
+                    "api_user_rights_list_get",
+                    "api_user_rights_list_post",
+                    "api_user_rights_get",
+                    "api_user_rights_delete",
+                    "api_user_list_get",
+                    "api_user_list_get_full",
+                    "api_user_list_post",
+                    "api_user_public_get",
+                    "api_user_public_get_full",
+                    "api_user_public_patch",
+                    "api_user_public_delete",
+                    "api_user_private_get",
+                    "api_user_private_patch",
+                    "api_user_private_solves_get",
+                    "api_user_private_solves_get_full",
+                    "api_user_private_fails_get",
+                    "api_user_private_fails_get_full",
+                    "api_user_public_solves_get",
+                    "api_user_public_solves_get_full",
+                    "api_user_public_fails_get",
+                    "api_user_public_fails_get_full",
+                    "api_user_emails_post",
+                    "api_vote_list_get",
+                    "api_vote_list_post",
+                    "api_vote_get",
+                    "api_vote_delete",
+                    "api_vote_delete_full",
+                    "api_vote_delete_partial",
+                    "api_vote_patch",
+                    "api_vote_patch_full",
+                    "api_vote_patch_partial",
+                    "api_statistics_challenge_property_counts_get",
+                    "api_statistics_challenge_solve_statistics_get",
+                    "api_statistics_challenge_solve_percentages_get",
+                    "api_statistics_submission_property_counts_get",
+                    "api_statistics_user_statistics_get",
+                    "api_statistics_user_property_counts_get",
+                    "forms_user_edit_form_full",
+                    "forms_user_edit_form_partial",
+                    "forms_user_create_form_full",
+                    "forms_user_create_form_partial",
+                    "schemas_user_schema_validate_name",
+                    "schemas_user_schema_validate_email",
+                    "schemas_user_schema_validate_password_confirmation",
+                    "schemas_user_schema_validate_type_full",
+                    "schemas_user_schema_validate_type_partial",
+                    "schemas_user_schema_validate_fields",
+                    "theme_admin_templates_base_full",
+                    "theme_admin_templates_base_partial",
+                    "theme_admin_templates_challenges_challenge",
+                    "theme_admin_templates_challenges_new",
+                    "theme_admin_templates_challenges_update",
+                    "utils_config_visibility_challenges_visible",
+                    "utils_config_visibility_accounts_visible",
+                    "utils_decorators_require_verified_emails",
+                    "utils_decorators_visibility_check_challenge_visibility",
+                    "utils_decorators_visibility_check_account_visibility",
+                    "utils_validators_unique_email",
+                ]
+
+                rights = []
+                for new_right in new_rights:
+                    right = Rights(name=new_right)
+                    rights.append(right)
+                db.session.add_all(rights)
+
+                admin_rights = [
+                    "admin_view",
+                    "admin_plugin",
+                    "admin_import_ctf",
+                    "admin_export_ctf",
+                    "admin_export_csv",
+                    "admin_config",
+                    "admin_reset",
+                    "admin_badges_detail",
+                    "admin_badges_new",
+                    "admin_badges_listing",
+                    "admin_challenges_listing",
+                    "admin_challenges_detail",
+                    "admin_challenges_new",
+                    "admin_notifications",
+                    "admin_pages_listing",
+                    "admin_pages_new",
+                    "admin_pages_preview",
+                    "admin_pages_detail",
+                    "admin_statistics",
+                    "admin_submissions_listing",
+                    "admin_user_listing",
+                    "admin_users_new",
+                    "admin_users_detail",
+                    "api_badge_list_post",
+                    "api_badge_get",
+                    "api_badge_patch",
+                    "api_badge_delete",
+                    "api_challenge_list_get",
+                    "api_challenge_list_get_view_full",
+                    "api_challenge_list_post",
+                    "api_challenge_types_get",
+                    "api_challenge_get",
+                    "api_challenge_get_not_hidden",
+                    "api_challenge_patch",
+                    "api_challenge_patch_full",
+                    "api_challenge_delete",
+                    "api_challenge_attempt_post",
+                    "api_challenge_attempt_post_full",
+                    "api_challenge_solves_get",
+                    "api_challenge_files_get",
+                    "api_challenge_tags_get",
+                    "api_challenge_resources_get",
+                    "api_challenge_votes_get",
+                    "api_challenge_votes_get_edit_vote",
+                    "api_challenge_flags_get",
+                    "api_challenge_requirements_get",
+                    "api_comment_list_get",
+                    "api_comment_list_post",
+                    "api_comment_delete",
+                    "api_config_list_get",
+                    "api_config_list_post",
+                    "api_config_list_patch",
+                    "api_config_get",
+                    "api_config_patch",
+                    "api_config_delete",
+                    "api_field_list_get",
+                    "api_field_list_post",
+                    "api_field_get",
+                    "api_field_patch",
+                    "api_field_delete",
+                    "api_files_list_get",
+                    "api_files_list_post",
+                    "api_files_detail_get",
+                    "api_files_detail_delete",
+                    "api_flag_list_get",
+                    "api_flag_list_post",
+                    "api_flag_types_get",
+                    "api_flag_get",
+                    "api_flag_delete",
+                    "api_flag_post",
+                    "api_resource_list_get",
+                    "api_resource_list_post",
+                    "api_resource_get",
+                    "api_resource_patch",
+                    "api_resource_delete",
+                    "api_notification_list_get",
+                    "api_notification_list_post",
+                    "api_notification_get",
+                    "api_notification_delete",
+                    "api_page_list_get",
+                    "api_page_list_post",
+                    "api_page_detail_get",
+                    "api_page_detail_patch",
+                    "api_page_detail_delete",
+                    "api_role_rights_list_get",
+                    "api_role_rights_list_post",
+                    "api_role_rights_get",
+                    "api_role_rights_delete",
+                    "api_role_list_get",
+                    "api_role_list_post",
+                    "api_role_get",
+                    "api_role_delete",
+                    "api_submissions_list_get",
+                    "api_submissions_list_post",
+                    "api_submission_get",
+                    "api_submission_delete",
+                    "api_tag_challenge_list_get",
+                    "api_tag_challenge_list_post",
+                    "api_tag_challenge_get",
+                    "api_tag_challenge_delete",
+                    "api_tag_list_post",
+                    "api_tag_get",
+                    "api_tag_patch",
+                    "api_tag_delete",
+                    "api_token_list_get",
+                    "api_token_list_post",
+                    "api_token_detail_get",
+                    "api_token_detail_get_full",
+                    "api_token_detail_delete",
+                    "api_token_detail_delete_full",
+                    "api_user_rights_list_get",
+                    "api_user_rights_list_post",
+                    "api_user_rights_get",
+                    "api_user_rights_delete",
+                    "api_user_list_get",
+                    "api_user_list_get_full",
+                    "api_user_list_post",
+                    "api_user_public_get",
+                    "api_user_public_get_full",
+                    "api_user_public_patch",
+                    "api_user_public_delete",
+                    "api_user_private_get",
+                    "api_user_private_patch",
+                    "api_user_private_solves_get",
+                    "api_user_private_solves_get_full",
+                    "api_user_private_fails_get",
+                    "api_user_private_fails_get_full",
+                    "api_user_public_solves_get",
+                    "api_user_public_solves_get_full",
+                    "api_user_public_fails_get",
+                    "api_user_public_fails_get_full",
+                    "api_user_emails_post",
+                    "api_vote_list_get",
+                    "api_vote_list_post",
+                    "api_vote_get",
+                    "api_vote_delete",
+                    "api_vote_delete_full",
+                    "api_vote_patch",
+                    "api_vote_patch_full",
+                    "api_statistics_challenge_property_counts_get",
+                    "api_statistics_challenge_solve_statistics_get",
+                    "api_statistics_challenge_solve_percentages_get",
+                    "api_statistics_submission_property_counts_get",
+                    "api_statistics_user_statistics_get",
+                    "api_statistics_user_property_counts_get",
+                    "forms_user_edit_form_full",
+                    "forms_user_edit_form_partial",
+                    "forms_user_create_form_full",
+                    "forms_user_create_form_partial",
+                    "schemas_user_schema_validate_name",
+                    "schemas_user_schema_validate_email",
+                    "schemas_user_schema_validate_password_confirmation",
+                    "schemas_user_schema_validate_type_full",
+                    "schemas_user_schema_validate_type_partial",
+                    "schemas_user_schema_validate_fields",
+                    "theme_admin_templates_base_full",
+                    "theme_admin_templates_base_partial",
+                    "theme_admin_templates_challenges_challenge",
+                    "theme_admin_templates_challenges_new",
+                    "theme_admin_templates_challenges_update",
+                    "utils_config_visibility_challenges_visible",
+                    "utils_config_visibility_accounts_visible",
+                    "utils_decorators_require_verified_emails",
+                    "utils_decorators_visibility_check_challenge_visibility",
+                    "utils_decorators_visibility_check_account_visibility",
+                    "utils_validators_unique_email",
+                ]
+
+                teacher_rights = [
+                    "admin_view",
+                    "admin_badges_listing",
+                    "admin_badges_detail",
+                    "admin_badges_new",
+                    "admin_challenges_listing",
+                    "admin_challenges_detail",
+                    "admin_challenges_new",
+                    "admin_user_listing",
+                    "admin_users_new",
+                    "admin_users_detail",
+                    "api_badge_list_post",
+                    "api_badge_get",
+                    "api_badge_patch",
+                    "api_badge_delete",
+                    "api_challenge_list_get",
+                    "api_challenge_list_post",
+                    "api_challenge_types_get",
+                    "api_challenge_patch",
+                    "api_challenge_patch_full",
+                    "api_challenge_delete",
+                    "api_challenge_attempt_post",
+                    "api_challenge_files_get",
+                    "api_challenge_tags_get",
+                    "api_challenge_resources_get",
+                    "api_challenge_votes_get",
+                    "api_challenge_flags_get",
+                    "api_challenge_requirements_get",
+                    "api_comment_list_get",
+                    "api_comment_list_post",
+                    "api_comment_delete",
+                    "api_files_list_get",
+                    "api_files_list_post",
+                    "api_files_detail_get",
+                    "api_files_detail_delete",
+                    "api_flag_list_get",
+                    "api_flag_list_post",
+                    "api_flag_types_get",
+                    "api_flag_get",
+                    "api_flag_delete",
+                    "api_flag_post",
+                    "api_resource_list_get",
+                    "api_resource_list_post",
+                    "api_resource_get",
+                    "api_resource_patch",
+                    "api_resource_delete",
+                    "api_notification_list_get",
+                    "api_notification_get",
+                    "api_tag_challenge_list_get",
+                    "api_tag_challenge_list_post",
+                    "api_tag_challenge_get",
+                    "api_tag_challenge_delete",
+                    "api_tag_list_post",
+                    "api_tag_get",
+                    "api_tag_patch",
+                    "api_tag_delete",
+                    "api_token_list_get",
+                    "api_token_list_post",
+                    "api_token_detail_get",
+                    "api_token_detail_delete",
+                    "api_user_list_get",
+                    "api_user_list_post",
+                    "api_user_public_get",
+                    "api_user_public_patch",
+                    "api_user_public_delete",
+                    "api_user_private_get",
+                    "api_user_private_patch",
+                    "api_user_private_solves_get",
+                    "api_user_private_fails_get",
+                    "api_user_public_solves_get",
+                    "api_user_public_fails_get",
+                    "api_vote_list_get",
+                    "api_vote_list_post",
+                    "api_vote_get",
+                    "api_vote_delete",
+                    "api_vote_delete_partial",
+                    "api_vote_patch",
+                    "api_vote_patch_partial",
+                    "api_statistics_user_statistics_get",
+                    "api_statistics_user_property_counts_get",
+                    "forms_user_edit_form_partial",
+                    "forms_user_create_form_partial",
+                    "schemas_user_schema_validate_name",
+                    "schemas_user_schema_validate_email",
+                    "schemas_user_schema_validate_password_confirmation",
+                    "schemas_user_schema_validate_type_partial",
+                    "schemas_user_schema_validate_fields",
+                    "theme_admin_templates_base_partial",
+                    "theme_admin_templates_challenges_challenge",
+                    "theme_admin_templates_challenges_new",
+                    "theme_admin_templates_challenges_update",
+                ]
+
+                contributor_rights = [
+                    "admin_view",
+                    "admin_challenges_listing",
+                    "admin_challenges_listing_restricted",
+                    "admin_challenges_new",
+                    "api_challenge_list_get",
+                    "api_challenge_list_post",
+                    "api_challenge_types_get",
+                    "api_challenge_patch",
+                    "api_challenge_attempt_post",
+                    "api_challenge_files_get",
+                    "api_challenge_tags_get",
+                    "api_challenge_resources_get",
+                    "api_challenge_votes_get",
+                    "api_challenge_flags_get",
+                    "api_challenge_requirements_get",
+                    "api_comment_list_get",
+                    "api_comment_list_post",
+                    "api_files_list_get",
+                    "api_files_list_post",
+                    "api_files_detail_get",
+                    "api_files_detail_delete",
+                    "api_flag_list_get",
+                    "api_flag_list_post",
+                    "api_flag_types_get",
+                    "api_flag_get",
+                    "api_resource_list_get",
+                    "api_resource_get",
+                    "api_notification_list_get",
+                    "api_notification_get",
+                    "api_tag_challenge_list_get",
+                    "api_tag_challenge_list_post",
+                    "api_tag_challenge_list_post_restricted",
+                    "api_tag_challenge_get",
+                    "api_tag_challenge_delete",
+                    "api_tag_list_post",
+                    "api_tag_list_post_restricted",
+                    "api_tag_get",
+                    "api_token_list_get",
+                    "api_token_list_post",
+                    "api_token_detail_get",
+                    "api_token_detail_delete",
+                    "api_user_list_get",
+                    "api_user_public_get",
+                    "api_user_private_get",
+                    "api_user_private_patch",
+                    "api_user_private_solves_get",
+                    "api_user_private_fails_get",
+                    "api_user_public_solves_get",
+                    "api_user_public_fails_get",
+                    "api_vote_list_get",
+                    "api_vote_list_post",
+                    "api_vote_get",
+                    "api_vote_delete",
+                    "api_vote_delete_partial",
+                    "api_vote_patch",
+                    "api_vote_patch_partial",
+                ]
+
+                # Create the new roles
+                admin_role = Roles(name="admin")
+                db.session.add(admin_role)
+                teacher_role = Roles(name="teacher")
+                db.session.add(teacher_role)
+                contributor_role = Roles(name="contributor")
+                db.session.add(contributor_role)
+                user_role = Roles(name="user")
+                db.session.add(user_role)
+                db.session.commit()
+
+                # Link rights and roles together
+                admin_role_rights = []
+                for admin_right in admin_rights:
+                    right = Rights.query.filter_by(name=admin_right).first()
+                    if right is not None:
+                        role_right = RoleRights(role_id=admin_role.id, right_id=right.id)
+                        admin_role_rights.append(role_right)
+
+                teacher_role_rights = []
+                for teacher_right in teacher_rights:
+                    right = Rights.query.filter_by(name=teacher_right).first()
+                    if right is not None:
+                        role_right = RoleRights(role_id=teacher_role.id, right_id=right.id)
+                        teacher_role_rights.append(role_right)
+
+                contributor_role_rights = []
+                for contributor_right in contributor_rights:
+                    right = Rights.query.filter_by(name=contributor_right).first()
+                    if right is not None:
+                        role_right = RoleRights(role_id=contributor_role.id, right_id=right.id)
+                        contributor_role_rights.append(role_right)
+
+                db.session.add_all(admin_role_rights)
+                db.session.add_all(teacher_role_rights)
+                db.session.add_all(contributor_role_rights)
+                db.session.commit()
+
+                # Give rights to the new admin
+                rights = []
+                role_rights = RoleRights.query.filter_by(role_id=admin_role.id).all()
+
+                for role_right in role_rights:
+                    user_rights = UserRights()
+                    user_rights.user_id = admin.id
+                    user_rights.right_id = role_right.right_id
+                    rights.append(user_rights)
+
+                db.session.add_all(rights)
+                db.session.commit()
+
+
             except IntegrityError:
                 db.session.rollback()
 
@@ -241,34 +806,6 @@ def setup():
     return redirect(url_for("views.static_html"))
 
 
-@views.route("/setup/integrations", methods=["GET", "POST"])
-def integrations():
-    if is_admin() or is_setup() is False:
-        name = request.values.get("name")
-        state = request.values.get("state")
-
-        try:
-            state = unserialize(state, max_age=3600)
-        except (BadSignature, BadTimeSignature):
-            state = False
-        except Exception:
-            state = False
-
-        if state:
-            if name == "mlc":
-                mlc_client_id = request.values.get("mlc_client_id")
-                mlc_client_secret = request.values.get("mlc_client_secret")
-                set_config("oauth_client_id", mlc_client_id)
-                set_config("oauth_client_secret", mlc_client_secret)
-                return render_template("admin/integrations.html")
-            else:
-                abort(404)
-        else:
-            abort(403)
-    else:
-        abort(403)
-
-
 @views.route("/notifications", methods=["GET"])
 def notifications():
     notifications = Notifications.query.order_by(Notifications.id.desc()).all()
@@ -284,8 +821,10 @@ def settings():
     name = user.name
     email = user.email
     website = user.website
-    affiliation = user.affiliation
     country = user.country
+    school = user.school
+    cursus = user.cursus
+    specialisation = user.specialisation
 
     tokens = UserTokens.query.filter_by(user_id=user.id).all()
 
@@ -306,8 +845,10 @@ def settings():
         name=name,
         email=email,
         website=website,
-        affiliation=affiliation,
         country=country,
+        school=school,
+        cursus=cursus,
+        specialisation=specialisation,
         tokens=tokens,
         prevent_name_change=prevent_name_change,
         infos=infos,
@@ -366,26 +907,15 @@ def files(path):
     """
     f = Files.query.filter_by(location=path).first_or_404()
     if f.type == "challenge":
-        if challenges_visible():
-            if current_user.is_admin() is False:
-                if not ctftime():
-                    if ctf_ended() and view_after_ctf():
-                        pass
-                    else:
-                        abort(403)
-        else:
-            if not ctftime():
-                abort(403)
-
+        # si les challenges sont visibles
+        if challenges_visible() is False:
             # Allow downloads if a valid token is provided
             token = request.args.get("token", "")
             try:
                 data = unserialize(token, max_age=3600)
                 user_id = data.get("user_id")
-                team_id = data.get("team_id")
                 file_id = data.get("file_id")
                 user = Users.query.filter_by(id=user_id).first()
-                team = Teams.query.filter_by(id=team_id).first()
 
                 # Check user is admin if challenge_visibility is admins only
                 if (
@@ -400,13 +930,6 @@ def files(path):
                         abort(403)
                 else:
                     abort(403)
-
-                # Check that the team isn't banned
-                if team:
-                    if team.banned:
-                        abort(403)
-                else:
-                    pass
 
                 # Check that the token properly refers to the file
                 if file_id != f.id:
@@ -431,8 +954,12 @@ def themes(theme, path):
     :param path:
     :return:
     """
-    filename = safe_join(app.root_path, "themes", theme, "static", path)
-    if os.path.isfile(filename):
-        return send_file(filename)
-    else:
-        abort(404)
+    for cand_path in (
+            safe_join(app.root_path, "themes", cand_theme, "static", path)
+            # The `theme` value passed in may not be the configured one, e.g. for
+            # admin pages, so we check that first
+            for cand_theme in (theme, *config.ctf_theme_candidates())
+    ):
+        if os.path.isfile(cand_path):
+            return send_file(cand_path)
+    abort(404)

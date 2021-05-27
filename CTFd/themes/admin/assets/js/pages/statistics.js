@@ -65,10 +65,21 @@ const graph_configs = {
         },
         dataZoom: [
           {
-            id: "dataZoomY",
-            type: "slider",
-            yAxisIndex: [0],
-            filterMode: "empty"
+            show: false,
+            start: 0,
+            end: 100
+          },
+          {
+            type: "inside",
+            yAxisIndex: 0,
+            show: true,
+            width: 20
+          },
+          {
+            fillerColor: "rgba(233, 236, 241, 0.4)",
+            show: true,
+            yAxisIndex: 0,
+            width: 20
           }
         ],
         series: [
@@ -107,8 +118,9 @@ const graph_configs = {
           }
         },
         legend: {
-          orient: "horizontal",
-          bottom: 0,
+          orient: "vertical",
+          top: "middle",
+          right: 0,
           data: ["Fails", "Solves"]
         },
         series: [
@@ -174,30 +186,31 @@ const graph_configs = {
     }
   },
 
-  "#categories-pie-graph": {
-    data: () => CTFd.api.get_challenge_property_counts({ column: "category" }),
+
+  "#school-pie-graph": {
+    data: () => CTFd.api.get_user_property_counts({ column: "school" }),
     format: response => {
       const data = response.data;
 
-      const categories = [];
+      const schools = [];
       const count = [];
 
-      for (let category in data) {
-        if (data.hasOwnProperty(category)) {
-          categories.push(category);
-          count.push(data[category]);
+      for (let school in data) {
+        if (data.hasOwnProperty(school)) {
+          schools.push(school);
+          count.push(data[school]);
         }
       }
 
       for (let i = 0; i < data.length; i++) {
-        categories.push(data[i].category);
+        schools.push(data[i].school);
         count.push(data[i].count);
       }
 
       let option = {
         title: {
           left: "center",
-          text: "Category Breakdown"
+          text: "School Breakdown"
         },
         tooltip: {
           trigger: "item"
@@ -210,16 +223,17 @@ const graph_configs = {
           }
         },
         legend: {
-          orient: "horizontal",
-          bottom: 0,
+          type: "scroll",
+          orient: "vertical",
+          top: "middle",
+          right: 10,
           data: []
         },
         series: [
           {
-            name: "Category Breakdown",
+            name: "School Breakdown",
             type: "pie",
             radius: ["30%", "50%"],
-            avoidLabelOverlap: false,
             label: {
               show: false,
               position: "center"
@@ -229,7 +243,7 @@ const graph_configs = {
                 label: {
                   show: true,
                   formatter: function(data) {
-                    return `${data.name} - ${data.value} (${data.percent}%)`;
+                    return `${data.percent}% (${data.value})`;
                   }
                 },
                 labelLine: {
@@ -254,26 +268,24 @@ const graph_configs = {
                 fontWeight: "bold"
               }
             },
-            labelLine: {
-              show: false
-            },
             data: []
           }
         ]
       };
 
-      categories.forEach((category, index) => {
-        option.legend.data.push(category);
+      schools.forEach((school, index) => {
+        option.legend.data.push(school);
         option.series[0].data.push({
           value: count[index],
-          name: category,
-          itemStyle: { color: colorHash(category) }
+          name: school,
+          itemStyle: { color: colorHash(school) }
         });
       });
 
       return option;
     }
   },
+
 
   "#solve-percentages-graph": {
     layout: annotations => ({
@@ -282,10 +294,7 @@ const graph_configs = {
         title: "Challenge Name"
       },
       yaxis: {
-        title: "Percentage of {0} (%)".format(
-          CTFd.config.userMode.charAt(0).toUpperCase() +
-            CTFd.config.userMode.slice(1)
-        ),
+        title: "Percentage of Users (%)",
         range: [0, 100]
       },
       annotations: annotations
@@ -349,16 +358,42 @@ const graph_configs = {
           }
         },
         yAxis: {
-          name: "Percentage of {0} (%)".format(
-            CTFd.config.userMode.charAt(0).toUpperCase() +
-              CTFd.config.userMode.slice(1)
-          ),
+          name: "Percentage of Users (%)",
           nameGap: 50,
           nameLocation: "middle",
           type: "value",
           min: 0,
           max: 100
         },
+        dataZoom: [
+          {
+            show: false,
+            start: 0,
+            end: 100
+          },
+          {
+            type: "inside",
+            show: true,
+            start: 0,
+            end: 100
+          },
+          {
+            fillerColor: "rgba(233, 236, 241, 0.4)",
+            show: true,
+            right: 60,
+            yAxisIndex: 0,
+            width: 20
+          },
+          {
+            type: "slider",
+            fillerColor: "rgba(233, 236, 241, 0.4)",
+            top: 35,
+            height: 20,
+            show: true,
+            start: 0,
+            end: 100
+          }
+        ],
         series: [
           {
             itemStyle: { normal: { color: "#1f76b4" } },
@@ -370,95 +405,8 @@ const graph_configs = {
 
       return option;
     }
-  },
-
-  "#score-distribution-graph": {
-    layout: annotations => ({
-      title: "Score Distribution",
-      xaxis: {
-        title: "Score Bracket",
-        showticklabels: true,
-        type: "category"
-      },
-      yaxis: {
-        title: "Number of {0}".format(
-          CTFd.config.userMode.charAt(0).toUpperCase() +
-            CTFd.config.userMode.slice(1)
-        )
-      },
-      annotations: annotations
-    }),
-    data: () =>
-      CTFd.fetch("/api/v1/statistics/scores/distribution").then(function(
-        response
-      ) {
-        return response.json();
-      }),
-    format: response => {
-      const data = response.data.brackets;
-      const keys = [];
-      const brackets = [];
-      const sizes = [];
-
-      for (let key in data) {
-        keys.push(parseInt(key));
-      }
-      keys.sort((a, b) => a - b);
-
-      let start = "<0";
-      keys.map(key => {
-        brackets.push("{0} - {1}".format(start, key));
-        sizes.push(data[key]);
-        start = key;
-      });
-
-      const option = {
-        title: {
-          left: "center",
-          text: "Score Distribution"
-        },
-        tooltip: {
-          trigger: "item"
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            mark: { show: true },
-            dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ["line", "bar"] },
-            restore: { show: true },
-            saveAsImage: { show: true }
-          }
-        },
-        xAxis: {
-          name: "Score Bracket",
-          nameGap: 40,
-          nameLocation: "middle",
-          type: "category",
-          data: brackets
-        },
-        yAxis: {
-          name: "Number of {0}".format(
-            CTFd.config.userMode.charAt(0).toUpperCase() +
-              CTFd.config.userMode.slice(1)
-          ),
-          nameGap: 50,
-          nameLocation: "middle",
-          type: "value"
-        },
-        series: [
-          {
-            itemStyle: { normal: { color: "#1f76b4" } },
-            data: sizes,
-            type: "bar"
-          }
-        ]
-      };
-
-      return option;
-    }
   }
-};
+}; 
 
 const createGraphs = () => {
   for (let key in graph_configs) {

@@ -6,7 +6,10 @@ from marshmallow import ValidationError
 
 from CTFd.models import Users
 from CTFd.utils.countries import lookup_country_code
-from CTFd.utils.user import get_current_user, is_admin
+from CTFd.utils.schools import lookup_school_code
+from CTFd.utils.cursus import lookup_cursus_code
+from CTFd.utils.specialisations import lookup_specialisation_code
+from CTFd.utils.user import get_current_user, has_right
 
 EMAIL_REGEX = r"(^[^@\s]+@[^@\s]+\.[^@\s]+$)"
 
@@ -27,7 +30,7 @@ def validate_email(email):
 
 def unique_email(email, model=Users):
     obj = model.query.filter_by(email=email).first()
-    if is_admin():
+    if has_right("utils_validators_unique_email"):
         if obj:
             raise ValidationError("Email address has already been used")
     if obj and obj.id != get_current_user().id:
@@ -39,3 +42,24 @@ def validate_country_code(country_code):
         return
     if lookup_country_code(country_code) is None:
         raise ValidationError("Invalid Country")
+
+
+def validate_school_code(school_code):
+    if school_code.strip() == "":
+        return
+    if lookup_school_code(school_code) is None:
+        raise ValidationError("Invalid school")
+
+
+def validate_cursus_code(cursus_code):
+    if cursus_code.strip() == "":
+        return
+    if lookup_cursus_code(cursus_code) is None:
+        raise ValidationError("Invalid cursus")
+
+
+def validate_specialisation_code(specialisation_code):
+    if specialisation_code.strip() == "":
+        return
+    if lookup_specialisation_code(specialisation_code) is None:
+        raise ValidationError("Invalid specialisation")

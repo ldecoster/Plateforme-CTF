@@ -7,11 +7,12 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Flags, db
+from CTFd.models import Challenges, Flags, db
 from CTFd.plugins.flags import FLAG_CLASSES, get_flag_class
 from CTFd.schemas.flags import FlagSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
+from CTFd.utils.user import has_right_or_is_author
 
 flags_namespace = Namespace("flags", description="Endpoint to retrieve Flags")
 
@@ -37,13 +38,13 @@ flags_namespace.schema_model(
 
 @flags_namespace.route("")
 class FlagList(Resource):
-    @admins_only
+    @access_granted_only("api_flag_list_get")
     @flags_namespace.doc(
         description="Endpoint to list Flag objects in bulk",
         responses={
             200: ("Success", "FlagListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -68,7 +69,6 @@ class FlagList(Resource):
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
         filters = build_model_filters(model=Flags, query=q, field=field)
-
         flags = Flags.query.filter_by(**query_args).filter(*filters).all()
         schema = FlagSchema(many=True)
         response = schema.dump(flags)
@@ -77,13 +77,13 @@ class FlagList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_flag_list_post")
     @flags_namespace.doc(
         description="Endpoint to create a Flag object",
         responses={
             200: ("Success", "FlagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -97,18 +97,29 @@ class FlagList(Resource):
             return {"success": False, "errors": response.errors}, 400
 
         db.session.add(response.data)
-        db.session.commit()
+        # When a challenge is not completely created yet
+        if response.data.challenge is None:
+            db.session.commit()
 
-        response = schema.dump(response.data)
-        db.session.close()
+            response = schema.dump(response.data)
+            db.session.close()
 
-        return {"success": True, "data": response.data}
+            return {"success": True, "data": response.data}
+        # When a challenge is already created
+        elif has_right_or_is_author("api_flag_list_post", response.data.challenge.author_id):
+            db.session.commit()
+
+            response = schema.dump(response.data)
+            db.session.close()
+
+            return {"success": True, "data": response.data}
+        return {"success": False}
 
 
 @flags_namespace.route("/types", defaults={"type_name": None})
 @flags_namespace.route("/types/<type_name>")
 class FlagTypes(Resource):
-    @admins_only
+    @access_granted_only("api_flag_types_get")
     def get(self, type_name):
         if type_name:
             flag_class = get_flag_class(type_name)
@@ -127,13 +138,13 @@ class FlagTypes(Resource):
 
 @flags_namespace.route("/<flag_id>")
 class Flag(Resource):
-    @admins_only
+    @access_granted_only("api_flag_get")
     @flags_namespace.doc(
         description="Endpoint to get a specific Flag object",
         responses={
             200: ("Success", "FlagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -150,44 +161,49 @@ class Flag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_flag_delete")
     @flags_namespace.doc(
         description="Endpoint to delete a specific Flag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
+        challenge = Challenges.query.filter_by(id=flag.challenge_id).first_or_404()
+        if has_right_or_is_author("api_flag_delete", challenge.author_id):
+            db.session.delete(flag)
+            db.session.commit()
+            db.session.close()
 
-        db.session.delete(flag)
-        db.session.commit()
-        db.session.close()
+            return {"success": True}
+        return{"success": False}
 
-        return {"success": True}
-
-    @admins_only
+    @access_granted_only("api_flag_post")
     @flags_namespace.doc(
         description="Endpoint to edit a specific Flag object",
         responses={
             200: ("Success", "FlagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
     def patch(self, flag_id):
         flag = Flags.query.filter_by(id=flag_id).first_or_404()
-        schema = FlagSchema()
-        req = request.get_json()
+        challenge = Challenges.query.filter_by(id=flag.challenge_id).first_or_404()
+        if has_right_or_is_author("api_flag_post", challenge.author_id):
+            schema = FlagSchema()
+            req = request.get_json()
 
-        response = schema.load(req, session=db.session, instance=flag, partial=True)
+            response = schema.load(req, session=db.session, instance=flag, partial=True)
 
-        if response.errors:
-            return {"success": False, "errors": response.errors}, 400
+            if response.errors:
+                return {"success": False, "errors": response.errors}, 400
 
-        db.session.commit()
+            db.session.commit()
 
-        response = schema.dump(response.data)
-        db.session.close()
+            response = schema.dump(response.data)
+            db.session.close()
 
-        return {"success": True, "data": response.data}
+            return {"success": True, "data": response.data}
+        return {"success": False}

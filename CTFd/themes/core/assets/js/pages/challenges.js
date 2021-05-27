@@ -1,25 +1,28 @@
 import "./main";
 import "bootstrap/js/dist/tab";
-import { ezQuery, ezAlert } from "../ezq";
+import { ezAlert } from "../ezq";
 import { htmlEntities } from "../utils";
-import Moment from "moment";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import $ from "jquery";
 import CTFd from "../CTFd";
 import config from "../config";
+import hljs from "highlight.js";
 
-const api_func = {
-  teams: x => CTFd.api.get_team_solves({ teamId: x }),
-  users: x => CTFd.api.get_user_solves({ userId: x })
-};
+dayjs.extend(relativeTime);
 
 CTFd._internal.challenge = {};
 let challenges = [];
 let solves = [];
+let tag_list = [];
+
+const $challenges_board = $("#challenges-board");
+const $spinner_content = $challenges_board.children().detach();
 
 const loadChal = id => {
   const chal = $.grep(challenges, chal => chal.id == id)[0];
 
-  if (chal.type === "hidden") {
+  if (chal.state === "hidden") {
     ezAlert({
       title: "Challenge Hidden!",
       body: "You haven't unlocked this challenge yet!",
@@ -84,16 +87,16 @@ const displayChal = chal => {
       }
     }
 
-    $(".challenge-solves").click(function(_event) {
+    $(".challenge-solves").click(function (_event) {
       getSolves($("#challenge-id").val());
     });
-    $(".nav-tabs a").click(function(event) {
+    $(".nav-tabs a").click(function (event) {
       event.preventDefault();
       $(this).tab("show");
     });
 
     // Handle modal toggling
-    $("#challenge-window").on("hide.bs.modal", function(_event) {
+    $("#challenge-window").on("hide.bs.modal", function (_event) {
       $("#challenge-input").removeClass("wrong");
       $("#challenge-input").removeClass("correct");
       $("#incorrect-key").slideUp();
@@ -102,11 +105,11 @@ const displayChal = chal => {
       $("#too-fast").slideUp();
     });
 
-    $(".load-hint").on("click", function(_event) {
-      loadHint($(this).data("hint-id"));
+    $(".load-resource").on("click", function (_event) {
+      loadResource($(this).data("resource-id"));
     });
 
-    $("#challenge-submit").click(function(event) {
+    $("#challenge-submit").click(function (event) {
       event.preventDefault();
       $("#challenge-submit").addClass("disabled-button");
       $("#challenge-submit").prop("disabled", true);
@@ -124,6 +127,12 @@ const displayChal = chal => {
     });
 
     challenge.postRender();
+
+    $("#challenge-window")
+      .find("pre code")
+      .each(function(_idx) {
+        hljs.highlightBlock(this);
+      });
 
     window.location.replace(
       window.location.href.split("#")[0] + `#${chal.name}-${chal.id}`
@@ -158,7 +167,7 @@ function renderSubmissionResponse(response) {
 
     answer_input.removeClass("correct");
     answer_input.addClass("wrong");
-    setTimeout(function() {
+    setTimeout(function () {
       answer_input.removeClass("wrong");
     }, 3000);
   } else if (result.status === "correct") {
@@ -167,7 +176,9 @@ function renderSubmissionResponse(response) {
       "alert alert-success alert-dismissable text-center"
     );
     result_notification.slideDown();
-
+    
+    // We clear the challenge list to force a reload and get the unlocked chals
+    challenges = [];
     if (
       $(".challenge-solves")
         .text()
@@ -180,8 +191,8 @@ function renderSubmissionResponse(response) {
             .text()
             .split(" ")[0]
         ) +
-          1 +
-          " Solves"
+        1 +
+        " Solves"
       );
     }
 
@@ -210,11 +221,11 @@ function renderSubmissionResponse(response) {
     result_notification.slideDown();
 
     answer_input.addClass("too-fast");
-    setTimeout(function() {
+    setTimeout(function () {
       answer_input.removeClass("too-fast");
     }, 3000);
   }
-  setTimeout(function() {
+  setTimeout(function () {
     $(".alert").slideUp();
     $("#challenge-submit").removeClass("disabled-button");
     $("#challenge-submit").prop("disabled", false);
@@ -222,27 +233,11 @@ function renderSubmissionResponse(response) {
 }
 
 function markSolves() {
-  return api_func[CTFd.config.userMode]("me").then(function(response) {
-    const solves = response.data;
-    for (let i = solves.length - 1; i >= 0; i--) {
-      const btn = $('button[value="' + solves[i].challenge_id + '"]');
+  challenges.map(challenge => {
+    if (challenge.solved_by_me) {
+      const btn = $(`button[value="${challenge.id}"]`);
       btn.addClass("solved-challenge");
       btn.prepend("<i class='fas fa-check corner-button-check'></i>");
-    }
-  });
-}
-
-function loadUserSolves() {
-  if (CTFd.user.id == 0) {
-    return Promise.resolve();
-  }
-
-  return api_func[CTFd.config.userMode]("me").then(function(response) {
-    const solves = response.data;
-
-    for (let i = solves.length - 1; i >= 0; i--) {
-      const chal_id = solves[i].challenge_id;
-      solves.push(chal_id);
     }
   });
 }
@@ -256,9 +251,7 @@ function getSolves(id) {
     for (let i = 0; i < data.length; i++) {
       const id = data[i].account_id;
       const name = data[i].name;
-      const date = Moment(data[i].date)
-        .local()
-        .fromNow();
+      const date = dayjs(data[i].date).fromNow();
       const account_url = data[i].account_url;
       box.append(
         '<tr><td><a href="{0}">{2}</td><td>{3}</td></tr>'.format(
@@ -272,23 +265,86 @@ function getSolves(id) {
   });
 }
 
+$('select').on('change', function () {
+  update();
+});
+
+function createChalWrapper(chalinfo, catid) {
+  const chalid = catid + '_' + chalinfo.name.replace(/ /g, "-").hashCode();
+  const chalwrap = $("<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid));
+  let chalbutton;
+
+  if (solves.indexOf(chalinfo.id) === -1) {
+    chalbutton = $(
+        "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
+            chalinfo.id
+        )
+    );
+  } else {
+    chalbutton = $(
+        "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
+            chalinfo.id
+        )
+    );
+  }
+
+  const chalheader = $("<p>{0}</p>".format(chalinfo.name));
+
+  chalbutton.append(chalheader);
+  chalwrap.append(chalbutton);
+
+  $("#" + catid + "-row")
+    .find(".category-challenges > .challenges-row")
+    .append(chalwrap);
+}
+
 function loadChals() {
   return CTFd.api.get_challenge_list().then(function(response) {
     const categories = [];
-    const $challenges_board = $("#challenges-board");
+    const challenges_filter = $("#challenges_filter option:selected").val();
     challenges = response.data;
 
-    $challenges_board.empty();
+    switch (challenges_filter) {
+      case "author": {
+        $challenges_board.empty();
+        for (let i = challenges.length - 1; i >= 0; i--) {
+          if ($.inArray(challenges[i].author_name, categories) === -1) {
+            const category = challenges[i].author_name;
+            categories.push(category);
 
-    for (let i = challenges.length - 1; i >= 0; i--) {
-      challenges[i].solves = 0;
-      if ($.inArray(challenges[i].category, categories) == -1) {
-        const category = challenges[i].category;
-        categories.push(category);
+            const categoryid = category.replace(/ /g, "-").hashCode();
+            const categoryrow = $(
+                "" +
+                '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+                '<div class="category-header col-md-12 mb-3">' +
+                "</div>" +
+                '<div class="category-challenges col-md-12">' +
+                '<div class="challenges-row col-md-12"></div>' +
+                "</div>" +
+                "</div>"
+            );
+            categoryrow
+                .find(".category-header")
+                .append($("<h3>" + category + "</h3>"));
+            $challenges_board.append(categoryrow);
+          }
+        }
 
-        const categoryid = category.replace(/ /g, "-").hashCode();
-        const categoryrow = $(
-          "" +
+        for (let i = 0; i <= challenges.length - 1; i++) {
+          const chalinfo = challenges[i];
+          const catid = challenges[i].author_name.replace(/ /g, "-").hashCode();
+          createChalWrapper(chalinfo, catid);
+        }
+        break;
+      }
+      case "solved": {
+        $challenges_board.empty();
+        categories.push("Unsolved", "Solved");
+
+        for (const category of categories) {
+          const categoryid = category.replace(/ /g, "-").hashCode();
+          const categoryrow = $(
+            "" +
             '<div id="{0}-row" class="pt-5">'.format(categoryid) +
             '<div class="category-header col-md-12 mb-3">' +
             "</div>" +
@@ -296,65 +352,158 @@ function loadChals() {
             '<div class="challenges-row col-md-12"></div>' +
             "</div>" +
             "</div>"
-        );
-        categoryrow
-          .find(".category-header")
-          .append($("<h3>" + category + "</h3>"));
+          );
+          categoryrow
+              .find(".category-header")
+              .append($("<h3>" + category + "</h3>"));
+          $challenges_board.append(categoryrow);
+        }
 
+        for (let i = 0; i <= challenges.length - 1; i++) {
+          const chalinfo = challenges[i];
+          const catid = challenges[i].solved_by_me
+              ? "Solved".replace(/ /g, "-").hashCode()
+              : "Unsolved".replace(/ /g, "-").hashCode();
+          createChalWrapper(chalinfo, catid);
+        }
+        break;
+      }
+      case "name": {
+        const categoryid = "names".replace(/ /g, "-").hashCode();
+        const categoryrow = $(
+          "" +
+          '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+          '<div class="category-header col-md-12 mb-3">' +
+          "</div>" +
+          '<div class="category-challenges col-md-12">' +
+          '<div class="challenges-row col-md-12"></div>' +
+          "</div>" +
+          "</div>"
+        );
+        $challenges_board.empty();
         $challenges_board.append(categoryrow);
+
+        challenges.sort((a, b) => a.name.localeCompare(b.name));
+        for (let i = 0; i <= challenges.length - 1; i++) {
+          const chalinfo = challenges[i];
+          createChalWrapper(chalinfo, categoryid);
+        }
+        break;
+      }
+      case "exercise": {
+        return CTFd.api.get_tag_list().then(function (tagResponse) {
+          return CTFd.api.get_badge_list().then(function (badgeResponse){
+            return CTFd.api.get_user_badges().then(function (userBadgesRes){
+              tag_list = tagResponse.data;
+              tag_list.sort((a, b) => b.value.localeCompare(a.value));
+              let badge_list = Object.assign({},...badgeResponse.data.map(badge => ({[badge.tag_id]:badge.name})));
+              let user_badges = Object.assign({},...userBadgesRes.data.map(badge =>({[badge.tag_id]:badge.name})));
+              $challenges_board.empty();
+              for (let i = tag_list.length - 1; i >= 0; i--) {
+                if ($.inArray(tag_list[i].value, categories) === -1 && tag_list[i].exercise) {
+                  const category = tag_list[i].value;
+                  categories.push(category);
+
+                  const categoryid = category.replace(/ /g, "-").hashCode();
+                  const categoryrow = $(
+                    "" +
+                    '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+                    '<div class="category-header col-md-12 mb-3"' +
+                    'style="display: flex; align-items: center;'+
+                    '">' +
+                    "</div>" +
+                    '<div class="category-challenges col-md-12">' +
+                    '<div class="challenges-row col-md-12"></div>' +
+                    "</div>" +
+                    "</div>"
+                  );
+                  categoryrow
+                    .find(".category-header")
+                    .append($("<h3 class='mb-0'>" + category + "</h3>"));
+                  if(badge_list[tag_list[i].id]){
+                    categoryrow
+                    .find(".category-header")
+                    .append($(
+                      "<div>"+
+                      "<span class='badge badge-pill {0} ml-2'>".format(user_badges[tag_list[i].id]?'badge-success':'badge-secondary')+
+                      "<span>{0}</span>".format(badge_list[tag_list[i].id])+
+                      "</span>"+
+                      "</div>"
+                      ));
+                  }
+                  $challenges_board.append(categoryrow);
+                }
+              }
+
+              for (let i = 0; i <= challenges.length - 1; i++) {
+                for (let j = 0; j <= challenges[i].tags.length - 1; j++) {
+                  const chalinfo = challenges[i];
+                  const catid = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
+                  createChalWrapper(chalinfo, catid);
+                }
+              }
+
+              $(".challenge-button").click(function (_event) {
+                loadChal(this.value);
+              });
+            });
+          });
+        });
+      }
+      case "tag":
+      default: {
+        $challenges_board.empty();
+        return CTFd.api.get_tag_list().then(function (response) {
+          tag_list = response.data;
+          tag_list.sort((a, b) => b.value.localeCompare(a.value));
+
+          for (let i = tag_list.length - 1; i >= 0; i--) {
+            if ($.inArray(tag_list[i].value, categories) === -1 && !tag_list[i].exercise) {
+              const category = tag_list[i].value;
+              categories.push(category);
+
+              const categoryid = category.replace(/ /g, "-").hashCode();
+              const categoryrow = $(
+                "" +
+                '<div id="{0}-row" class="pt-5">'.format(categoryid) +
+                '<div class="category-header col-md-12 mb-3">' +
+                "</div>" +
+                '<div class="category-challenges col-md-12">' +
+                '<div class="challenges-row col-md-12"></div>' +
+                "</div>" +
+                "</div>"
+              );
+              categoryrow
+                .find(".category-header")
+                .append($("<h3>" + category + "</h3>"));
+              $challenges_board.append(categoryrow);
+            }
+          }
+
+          for (let i = 0; i <= challenges.length - 1; i++) {
+            for (let j = 0; j <= challenges[i].tags.length - 1; j++) {
+              const chalinfo = challenges[i];
+              const catid = challenges[i].tags[j].value.replace(/ /g, "-").hashCode();
+              createChalWrapper(chalinfo, catid);
+            }
+          }
+
+          $(".challenge-button").click(function (_event) {
+            loadChal(this.value);
+          });
+        });
       }
     }
-
-    for (let i = 0; i <= challenges.length - 1; i++) {
-      const chalinfo = challenges[i];
-      const chalid = chalinfo.name.replace(/ /g, "-").hashCode();
-      const catid = chalinfo.category.replace(/ /g, "-").hashCode();
-      const chalwrap = $(
-        "<div id='{0}' class='col-md-3 d-inline-block'></div>".format(chalid)
-      );
-      let chalbutton;
-
-      if (solves.indexOf(chalinfo.id) == -1) {
-        chalbutton = $(
-          "<button class='btn btn-dark challenge-button w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'></button>".format(
-            chalinfo.id
-          )
-        );
-      } else {
-        chalbutton = $(
-          "<button class='btn btn-dark challenge-button solved-challenge w-100 text-truncate pt-3 pb-3 mb-2' value='{0}'><i class='fas fa-check corner-button-check'></i></button>".format(
-            chalinfo.id
-          )
-        );
-      }
-
-      const chalheader = $("<p>{0}</p>".format(chalinfo.name));
-      const chalscore = $("<span>{0}</span>".format(chalinfo.value));
-      for (let j = 0; j < chalinfo.tags.length; j++) {
-        const tag = "tag-" + chalinfo.tags[j].value.replace(/ /g, "-");
-        chalwrap.addClass(tag);
-      }
-
-      chalbutton.append(chalheader);
-      chalbutton.append(chalscore);
-      chalwrap.append(chalbutton);
-
-      $("#" + catid + "-row")
-        .find(".category-challenges > .challenges-row")
-        .append(chalwrap);
-    }
-
     $(".challenge-button").click(function(_event) {
       loadChal(this.value);
-      getSolves(this.value);
     });
   });
 }
 
 function update() {
-  return loadUserSolves() // Load the user's solved challenge ids
-    .then(loadChals) //  Load the full list of challenges
-    .then(markSolves);
+  $challenges_board.empty();
+  $challenges_board.append($spinner_content);
+  return loadChals().then(markSolves);
 }
 
 $(() => {
@@ -364,27 +513,27 @@ $(() => {
     }
   });
 
-  $("#challenge-input").keyup(function(event) {
+  $("#challenge-input").keyup(function (event) {
     if (event.keyCode == 13) {
       $("#challenge-submit").click();
     }
   });
 
-  $(".nav-tabs a").click(function(event) {
+  $(".nav-tabs a").click(function (event) {
     event.preventDefault();
     $(this).tab("show");
   });
 
-  $("#challenge-window").on("hidden.bs.modal", function(_event) {
+  $("#challenge-window").on("hidden.bs.modal", function (_event) {
     $(".nav-tabs a:first").tab("show");
     history.replaceState("", window.document.title, window.location.pathname);
   });
 
-  $(".challenge-solves").click(function(_event) {
+  $(".challenge-solves").click(function (_event) {
     getSolves($("#challenge-id").val());
   });
 
-  $("#challenge-window").on("hide.bs.modal", function(_event) {
+  $("#challenge-window").on("hide.bs.modal", function (_event) {
     $("#challenge-input").removeClass("wrong");
     $("#challenge-input").removeClass("correct");
     $("#incorrect-key").slideUp();
@@ -395,49 +544,18 @@ $(() => {
 });
 setInterval(update, 300000); // Update every 5 minutes.
 
-const displayHint = data => {
+const displayResource = data => {
   ezAlert({
-    title: "Hint",
+    title: "Resource",
     body: data.html,
     button: "Got it!"
   });
 };
 
-const displayUnlock = id => {
-  ezQuery({
-    title: "Unlock Hint?",
-    body: "Are you sure you want to open this hint?",
-    success: () => {
-      const params = {
-        target: id,
-        type: "hints"
-      };
-      CTFd.api.post_unlock_list({}, params).then(response => {
-        if (response.success) {
-          CTFd.api.get_hint({ hintId: id }).then(response => {
-            displayHint(response.data);
-          });
-
-          return;
-        }
-
-        ezAlert({
-          title: "Error",
-          body: response.errors.score,
-          button: "Got it!"
-        });
-      });
-    }
-  });
-};
-
-const loadHint = id => {
-  CTFd.api.get_hint({ hintId: id }).then(response => {
+const loadResource = id => {
+  CTFd.api.get_resource({ resourceId: id }).then(response => {
     if (response.data.content) {
-      displayHint(response.data);
-      return;
+      displayResource(response.data);
     }
-
-    displayUnlock(id);
   });
 };

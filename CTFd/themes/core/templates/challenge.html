@@ -24,11 +24,8 @@
 						<h2 class='challenge-name text-center pt-3'>
 							{{ challenge.name }}
 						</h2>
-						<h3 class="challenge-value text-center">
-							{{ challenge.value }}
-						</h3>
 
-						<div class="challenge-tags text-center">
+						<div class="challenge-tags text-center mb-1">
 							{% block tags %}
 								{% for tag in tags %}
 									<span class='badge badge-info challenge-tag'>{{ tag }}</span>
@@ -38,25 +35,13 @@
 
 						<span class="challenge-desc">{% block description %}{{ challenge.html }}{% endblock %}</span>
 
-						<div class="challenge-hints hint-row row">
-							{% for hint in hints %}
-								<div class='col-md-12 hint-button-wrapper text-center mb-3'>
-									<a class="btn btn-info btn-hint btn-block load-hint" href="javascript:;" data-hint-id="{{ hint.id }}">
-										{% if hint.content %}
-											<small>
-												View Hint
-											</small>
-										{% else %}
-											{% if hint.cost %}
-												<small>
-													Unlock Hint for {{ hint.cost }} points
-												</small>
-											{% else %}
-												<small>
-													View Hint
-												</small>
-											{% endif %}
-										{% endif %}
+						<div class="challenge-resources resource-row row">
+							{% for resource in resources %}
+								<div class='col-md-12 resource-button-wrapper text-center mb-3'>
+									<a class="btn btn-info btn-resource btn-block load-resource" href="javascript:;" data-resource-id="{{ resource.id }}">
+                                        <small>
+                                            View Resource
+                                        </small>
 									</a>
 								</div>
 							{% endfor %}
@@ -83,11 +68,11 @@
 							{% endfor %}
 						</div>
 
-						{% if max_attempts > 1 %}
+						{% if max_attempts > 0 %}
 						<div class="row text-center">
 							<div class="col-md-12">
 								<p>
-									{{ attempts }}/{{ max_attempts }} attempt{{ attempts|pluralize(attempts) }}
+									{{ attempts }}/{{ max_attempts }} attempt{{ max_attempts|pluralize }}
 								</p>
 							</div>
 						</div>

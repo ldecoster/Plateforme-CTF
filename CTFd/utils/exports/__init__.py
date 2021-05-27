@@ -7,14 +7,15 @@ import zipfile
 from io import BytesIO
 
 import dataset
-from alembic.util import CommandError
 from flask import current_app as app
 from flask_migrate import upgrade as migration_upgrade
-from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.engine.url import make_url
+from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.sql import sqltypes
 
 from CTFd import __version__ as CTFD_VERSION
 from CTFd.cache import cache
+from CTFd.constants.themes import DEFAULT_THEME
 from CTFd.models import db, get_class_by_tablename
 from CTFd.plugins import get_plugin_names
 from CTFd.plugins.migrations import current as plugin_current
@@ -67,7 +68,7 @@ def export_ctf():
     upload_folder = os.path.join(
         os.path.normpath(app.root_path), app.config.get("UPLOAD_FOLDER")
     )
-    for root, dirs, files in os.walk(upload_folder):
+    for root, _dirs, files in os.walk(upload_folder):
         for file in files:
             parent_dir = os.path.basename(root)
             backup_zip.write(
@@ -133,10 +134,31 @@ def import_ctf(backup, erase=True):
             "The version of CTFd that this backup is from is too old to be automatically imported."
         )
 
+    sqlite = get_app_config("SQLALCHEMY_DATABASE_URI").startswith("sqlite")
+    postgres = get_app_config("SQLALCHEMY_DATABASE_URI").startswith("postgres")
+    mysql = get_app_config("SQLALCHEMY_DATABASE_URI").startswith("mysql")
+
     if erase:
         # Clear out existing connections to release any locks
         db.session.close()
         db.engine.dispose()
+
+        # Kill sleeping processes on MySQL so we don't get a metadata lock
+        # In my testing I didn't find that Postgres or SQLite needed the same treatment
+        # Only run this when not in tests as we can't isolate the queries out
+        # This is a very dirty hack. Don't try this at home kids.
+        if mysql and get_app_config("TESTING", default=False) is False:
+            url = make_url(get_app_config("SQLALCHEMY_DATABASE_URI"))
+            r = db.session.execute("SHOW PROCESSLIST")
+            processes = r.fetchall()
+            for proc in processes:
+                if (
+                    proc.Command == "Sleep"
+                    and proc.User == url.username
+                    and proc.db == url.database
+                ):
+                    proc_id = proc.Id
+                    db.session.execute(f"KILL {proc_id}")
 
         # Drop database and recreate it to get to a clean state
         drop_database()
@@ -145,8 +167,6 @@ def import_ctf(backup, erase=True):
         # The import will have this information.
 
     side_db = dataset.connect(get_app_config("SQLALCHEMY_DATABASE_URI"))
-    sqlite = get_app_config("SQLALCHEMY_DATABASE_URI").startswith("sqlite")
-    postgres = get_app_config("SQLALCHEMY_DATABASE_URI").startswith("postgres")
 
     try:
         if postgres:
@@ -157,16 +177,19 @@ def import_ctf(backup, erase=True):
         print("Failed to disable foreign key checks. Continuing.")
 
     first = [
-        "db/teams.json",
         "db/users.json",
         "db/challenges.json",
-        "db/dynamic_challenge.json",
         "db/flags.json",
-        "db/hints.json",
-        "db/unlocks.json",
-        "db/awards.json",
+        "db/resources.json",
+        "db/votes.json",
+        "db/badges.json",
         "db/tags.json",
+        "db/tag_challenge.json",
         "db/submissions.json",
+        "db/rights.json",
+        "db/roles.json",
+        "db/role_rights.json",
+        "db/user_rights.json",
         "db/solves.json",
         "db/files.json",
         "db/notifications.json",
@@ -243,8 +266,7 @@ def import_ctf(backup, erase=True):
                         # This is a hack to ensure we can still accept older exports. See #867
                         if member in (
                             "db/challenges.json",
-                            "db/hints.json",
-                            "db/awards.json",
+                            "db/resources.json",
                         ):
                             requirements = entry.get("requirements")
                             if requirements and isinstance(requirements, string_types):
@@ -283,21 +305,11 @@ def import_ctf(backup, erase=True):
     insertion(first)
 
     # Create tables created by plugins
-    try:
-        # Run plugin migrations
-        plugins = get_plugin_names()
-        try:
-            for plugin in plugins:
-                revision = plugin_current(plugin_name=plugin)
-                plugin_upgrade(plugin_name=plugin, revision=revision)
-        finally:
-            # Create tables that don't have migrations
-            app.db.create_all()
-    except OperationalError as e:
-        if not postgres:
-            raise e
-        else:
-            print("Allowing error during app.db.create_all() due to Postgres")
+    # Run plugin migrations
+    plugins = get_plugin_names()
+    for plugin in plugins:
+        revision = plugin_current(plugin_name=plugin)
+        plugin_upgrade(plugin_name=plugin, revision=revision, lower=None)
 
     # Insert data for plugin tables
     insertion(members)
@@ -323,11 +335,14 @@ def import_ctf(backup, erase=True):
         uploader.store(fileobj=source, filename=filename)
 
     # Alembic sqlite support is lacking so we should just create_all anyway
-    try:
-        migration_upgrade(revision="head")
-    except (OperationalError, CommandError, RuntimeError, SystemExit, Exception):
+    if sqlite:
         app.db.create_all()
         stamp_latest_revision()
+    else:
+        # Run migrations to bring to latest version
+        migration_upgrade(revision="head")
+        # Create any leftover tables, perhaps from old plugins
+        app.db.create_all()
 
     try:
         if postgres:
@@ -341,5 +356,5 @@ def import_ctf(backup, erase=True):
     cache.clear()
 
     # Set default theme in case the current instance or the import does not provide it
-    set_config("ctf_theme", "core")
+    set_config("ctf_theme", DEFAULT_THEME)
     set_config("ctf_version", CTFD_VERSION)

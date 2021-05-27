@@ -8,11 +8,10 @@ from CTFd.api.v1.schemas import (
     APIDetailedSuccessResponse,
     PaginatedAPIListSuccessResponse,
 )
-from CTFd.cache import clear_standings
 from CTFd.constants import RawEnum
 from CTFd.models import Submissions, db
 from CTFd.schemas.submissions import SubmissionSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 submissions_namespace = Namespace(
@@ -42,13 +41,13 @@ submissions_namespace.schema_model(
 
 @submissions_namespace.route("")
 class SubmissionsList(Resource):
-    @admins_only
+    @access_granted_only("api_submissions_list_get")
     @submissions_namespace.doc(
         description="Endpoint to get submission objects in bulk",
         responses={
             200: ("Success", "SubmissionListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -57,7 +56,6 @@ class SubmissionsList(Resource):
         {
             "challenge_id": (int, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "ip": (str, None),
             "provided": (str, None),
             "type": (str, None),
@@ -68,7 +66,6 @@ class SubmissionsList(Resource):
                     {
                         "challenge_id": "challenge_id",
                         "user_id": "user_id",
-                        "team_id": "team_id",
                         "ip": "ip",
                         "provided": "provided",
                         "type": "type",
@@ -113,13 +110,13 @@ class SubmissionsList(Resource):
             "data": response.data,
         }
 
-    @admins_only
+    @access_granted_only("api_submissions_list_post")
     @submissions_namespace.doc(
         description="Endpoint to create a submission object. Users should interact with the attempt endpoint to submit flags.",
         responses={
             200: ("Success", "SubmissionListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -139,22 +136,19 @@ class SubmissionsList(Resource):
         response = schema.dump(response.data)
         db.session.close()
 
-        # Delete standings cache
-        clear_standings()
-
         return {"success": True, "data": response.data}
 
 
 @submissions_namespace.route("/<submission_id>")
 @submissions_namespace.param("submission_id", "A Submission ID")
 class Submission(Resource):
-    @admins_only
+    @access_granted_only("api_submission_get")
     @submissions_namespace.doc(
         description="Endpoint to get submission objects in bulk",
         responses={
             200: ("Success", "SubmissionDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -169,13 +163,13 @@ class Submission(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_submission_delete")
     @submissions_namespace.doc(
         description="Endpoint to get submission objects in bulk",
         responses={
             200: ("Success", "APISimpleSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -185,8 +179,5 @@ class Submission(Resource):
         db.session.delete(submission)
         db.session.commit()
         db.session.close()
-
-        # Delete standings cache
-        clear_standings()
 
         return {"success": True}

@@ -141,44 +141,6 @@ function deleteUser(event) {
   });
 }
 
-function awardUser(event) {
-  event.preventDefault();
-  const params = $("#user-award-form").serializeJSON(true);
-  params["user_id"] = window.USER_ID;
-
-  CTFd.fetch("/api/v1/awards", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(params)
-  })
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(response) {
-      if (response.success) {
-        window.location.reload();
-      } else {
-        $("#user-award-form > #results").empty();
-        Object.keys(response.errors).forEach(function(key, _index) {
-          $("#user-award-form > #results").append(
-            ezBadge({
-              type: "error",
-              body: response.errors[key]
-            })
-          );
-          const i = $("#user-award-form").find("input[name={0}]".format(key));
-          const input = $(i);
-          input.addClass("input-filled-invalid");
-          input.removeClass("input-filled-valid");
-        });
-      }
-    });
-}
-
 function emailUser(event) {
   event.preventDefault();
   var params = $("#user-mail-form").serializeJSON(true);
@@ -266,35 +228,6 @@ function deleteSelectedSubmissions(event, target) {
   });
 }
 
-function deleteSelectedAwards(_event) {
-  let awardIDs = $("input[data-award-id]:checked").map(function() {
-    return $(this).data("award-id");
-  });
-  let target = awardIDs.length === 1 ? "award" : "awards";
-
-  ezQuery({
-    title: `Delete Awards`,
-    body: `Are you sure you want to delete ${awardIDs.length} ${target}?`,
-    success: function() {
-      const reqs = [];
-      for (var awardID of awardIDs) {
-        let req = CTFd.fetch("/api/v1/awards/" + awardID, {
-          method: "DELETE",
-          credentials: "same-origin",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-          }
-        });
-        reqs.push(req);
-      }
-      Promise.all(reqs).then(_responses => {
-        window.location.reload();
-      });
-    }
-  });
-}
-
 function solveSelectedMissingChallenges(event) {
   event.preventDefault();
   let challengeIDs = $("input[data-missing-challenge-id]:checked").map(
@@ -315,7 +248,6 @@ function solveSelectedMissingChallenges(event) {
         let params = {
           provided: "MARKED AS SOLVED BY ADMIN",
           user_id: window.USER_ID,
-          team_id: window.TEAM_ID,
           challenge_id: challengeID,
           type: "correct"
         };
@@ -338,50 +270,15 @@ function solveSelectedMissingChallenges(event) {
   });
 }
 
-const api_funcs = {
-  team: [
-    x => CTFd.api.get_team_solves({ teamId: x }),
-    x => CTFd.api.get_team_fails({ teamId: x }),
-    x => CTFd.api.get_team_awards({ teamId: x })
-  ],
-  user: [
-    x => CTFd.api.get_user_solves({ userId: x }),
-    x => CTFd.api.get_user_fails({ userId: x }),
-    x => CTFd.api.get_user_awards({ userId: x })
-  ]
-};
-
-const createGraphs = (type, id, name, account_id) => {
-  let [solves_func, fails_func, awards_func] = api_funcs[type];
-
+const createGraphs = (id, name, account_id) => {
   Promise.all([
-    solves_func(account_id),
-    fails_func(account_id),
-    awards_func(account_id)
+    CTFd.api.get_user_solves({ userId: id }),
+    CTFd.api.get_user_fails({ userId: id })
   ]).then(responses => {
-    createGraph(
-      "score_graph",
-      "#score-graph",
-      responses,
-      type,
-      id,
-      name,
-      account_id
-    );
-    createGraph(
-      "category_breakdown",
-      "#categories-pie-graph",
-      responses,
-      type,
-      id,
-      name,
-      account_id
-    );
     createGraph(
       "solve_percentages",
       "#keys-pie-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -389,37 +286,15 @@ const createGraphs = (type, id, name, account_id) => {
   });
 };
 
-const updateGraphs = (type, id, name, account_id) => {
-  let [solves_func, fails_func, awards_func] = api_funcs[type];
-
+const updateGraphs = (id, name, account_id) => {
   Promise.all([
-    solves_func(account_id),
-    fails_func(account_id),
-    awards_func(account_id)
+    CTFd.api.get_user_solves({ userId: id }),
+    CTFd.api.get_user_fails({ userId: id })
   ]).then(responses => {
-    updateGraph(
-      "score_graph",
-      "#score-graph",
-      responses,
-      type,
-      id,
-      name,
-      account_id
-    );
-    updateGraph(
-      "category_breakdown",
-      "#categories-pie-graph",
-      responses,
-      type,
-      id,
-      name,
-      account_id
-    );
     updateGraph(
       "solve_percentages",
       "#keys-pie-graph",
       responses,
-      type,
       id,
       name,
       account_id
@@ -432,10 +307,6 @@ $(() => {
 
   $(".edit-user").click(function(_event) {
     $("#user-info-modal").modal("toggle");
-  });
-
-  $(".award-user").click(function(_event) {
-    $("#user-award-modal").modal("toggle");
   });
 
   $(".email-user").click(function(_event) {
@@ -456,10 +327,6 @@ $(() => {
     deleteSelectedSubmissions(e, "fails");
   });
 
-  $("#awards-delete-button").click(function(e) {
-    deleteSelectedAwards(e);
-  });
-
   $("#missing-solve-button").click(function(e) {
     solveSelectedMissingChallenges(e);
   });
@@ -467,7 +334,6 @@ $(() => {
   $("#user-info-create-form").submit(createUser);
 
   $("#user-info-edit-form").submit(updateUser);
-  $("#user-award-form").submit(awardUser);
 
   // Insert CommentBox element
   const commentBox = Vue.extend(CommentBox);
@@ -477,14 +343,14 @@ $(() => {
     propsData: { type: "user", id: window.USER_ID }
   }).$mount(vueContainer);
 
-  let type, id, name, account_id;
-  ({ type, id, name, account_id } = window.stats_data);
+  let id, name, account_id;
+  ({ id, name, account_id } = window.stats_data);
 
   let intervalId;
   $("#user-statistics-modal").on("shown.bs.modal", function(_e) {
-    createGraphs(type, id, name, account_id);
+    createGraphs(id, name, account_id);
     intervalId = setInterval(() => {
-      updateGraphs(type, id, name, account_id);
+      updateGraphs(id, name, account_id);
     }, 300000);
   });
 

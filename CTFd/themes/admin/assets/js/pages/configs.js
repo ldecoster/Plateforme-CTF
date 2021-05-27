@@ -1,8 +1,6 @@
 import "./main";
 import "core/utils";
 import "bootstrap/js/dist/tab";
-import Moment from "moment-timezone";
-import moment from "moment-timezone";
 import CTFd from "core/CTFd";
 import { default as helpers } from "core/helpers";
 import $ from "jquery";
@@ -12,83 +10,12 @@ import "codemirror/mode/htmlmixed/htmlmixed.js";
 import Vue from "vue/dist/vue.esm.browser";
 import FieldList from "../components/configs/fields/FieldList.vue";
 
-function loadTimestamp(place, timestamp) {
-  if (typeof timestamp == "string") {
-    timestamp = parseInt(timestamp, 10);
-  }
-  const m = Moment(timestamp * 1000);
-  $("#" + place + "-month").val(m.month() + 1); // Months are zero indexed (http://momentjs.com/docs/#/get-set/month/)
-  $("#" + place + "-day").val(m.date());
-  $("#" + place + "-year").val(m.year());
-  $("#" + place + "-hour").val(m.hour());
-  $("#" + place + "-minute").val(m.minute());
-  loadDateValues(place);
-}
-
-function loadDateValues(place) {
-  const month = $("#" + place + "-month").val();
-  const day = $("#" + place + "-day").val();
-  const year = $("#" + place + "-year").val();
-  const hour = $("#" + place + "-hour").val();
-  const minute = $("#" + place + "-minute").val();
-  const timezone = $("#" + place + "-timezone").val();
-
-  const utc = convertDateToMoment(month, day, year, hour, minute);
-  if (isNaN(utc.unix())) {
-    $("#" + place).val("");
-    $("#" + place + "-local").val("");
-    $("#" + place + "-zonetime").val("");
-  } else {
-    $("#" + place).val(utc.unix());
-    $("#" + place + "-local").val(
-      utc.local().format("dddd, MMMM Do YYYY, h:mm:ss a zz")
-    );
-    $("#" + place + "-zonetime").val(
-      utc.tz(timezone).format("dddd, MMMM Do YYYY, h:mm:ss a zz")
-    );
-  }
-}
-
-function convertDateToMoment(month, day, year, hour, minute) {
-  let month_num = month.toString();
-  if (month_num.length == 1) {
-    month_num = "0" + month_num;
-  }
-
-  let day_str = day.toString();
-  if (day_str.length == 1) {
-    day_str = "0" + day_str;
-  }
-
-  let hour_str = hour.toString();
-  if (hour_str.length == 1) {
-    hour_str = "0" + hour_str;
-  }
-
-  let min_str = minute.toString();
-  if (min_str.length == 1) {
-    min_str = "0" + min_str;
-  }
-
-  // 2013-02-08 24:00
-  const date_string =
-    year.toString() +
-    "-" +
-    month_num +
-    "-" +
-    day_str +
-    " " +
-    hour_str +
-    ":" +
-    min_str +
-    ":00";
-  return Moment(date_string, Moment.ISO_8601);
-}
-
 function updateConfigs(event) {
   event.preventDefault();
   const obj = $(this).serializeJSON();
   const params = {};
+  const selectedTag = $("#tag-selector :selected").text();
+  const newTagValue = obj["new-tag-value"];
 
   if (obj.mail_useauth === false) {
     obj.mail_username = null;
@@ -100,6 +27,23 @@ function updateConfigs(event) {
     if (obj.mail_password === "") {
       delete obj.mail_password;
     }
+  }
+
+  if (newTagValue !== undefined && newTagValue !== '') {
+    CTFd.api.get_tag_list().then(response => {
+      let tagList = response.data;
+      let matches = tagList.filter(tag => {
+        return tag.value.match(selectedTag);
+      });
+      let tag_id = matches[0].id;
+
+      CTFd.api.patch_tag({ tagId: tag_id, tagValue: newTagValue }).then(response => {
+        if (response.success) {
+          window.location.reload();
+        }
+      });
+
+    });
   }
 
   Object.keys(obj).forEach(function(x) {
@@ -156,6 +100,52 @@ function removeLogo() {
       };
       CTFd.api
         .patch_config({ configKey: "ctf_logo" }, params)
+        .then(_response => {
+          window.location.reload();
+        });
+    }
+  });
+}
+
+function smallIconUpload(event) {
+  event.preventDefault();
+  let form = event.target;
+  helpers.files.upload(form, {}, function(response) {
+    const f = response.data[0];
+    const params = {
+      value: f.location
+    };
+    CTFd.fetch("/api/v1/configs/ctf_small_icon", {
+      method: "PATCH",
+      body: JSON.stringify(params)
+    })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(response) {
+        if (response.success) {
+          window.location.reload();
+        } else {
+          ezAlert({
+            title: "Error!",
+            body: "Icon uploading failed!",
+            button: "Okay"
+          });
+        }
+      });
+  });
+}
+
+function removeSmallIcon() {
+  ezQuery({
+    title: "Remove logo",
+    body: "Are you sure you'd like to remove the small site icon?",
+    success: function() {
+      const params = {
+        value: null
+      };
+      CTFd.api
+        .patch_config({ configKey: "ctf_small_icon" }, params)
         .then(_response => {
           window.location.reload();
         });
@@ -220,16 +210,6 @@ function exportConfig(event) {
   window.location.href = $(this).attr("href");
 }
 
-function insertTimezones(target) {
-  let current = $("<option>").text(moment.tz.guess());
-  $(target).append(current);
-  let tz_names = moment.tz.names();
-  for (let i = 0; i < tz_names.length; i++) {
-    let tz = $("<option>").text(tz_names[i]);
-    $(target).append(tz);
-  }
-}
-
 $(() => {
   const theme_header_editor = CodeMirror.fromTextArea(
     document.getElementById("theme-header"),
@@ -279,6 +259,24 @@ $(() => {
     });
   });
 
+  $("#tag-delete-button").click(function() {
+    const selectedTag = $("#tag-selector :selected").text();
+    CTFd.api.get_tag_list().then(response => {
+      let tagList = response.data;
+      let matches = tagList.filter(tag => {
+        return tag.value.match(selectedTag);
+      })
+      let tag_id = matches[0].id;
+
+      CTFd.api.delete_tag({ tagId: tag_id }).then(response => {
+        if (response.success) {
+          window.location.reload();
+        }
+      });
+    });
+
+  });
+
   $("#theme-settings-modal form").submit(function(e) {
     e.preventDefault();
     theme_settings_editor
@@ -316,13 +314,11 @@ $(() => {
     $("#theme-settings-modal").modal();
   });
 
-  insertTimezones($("#start-timezone"));
-  insertTimezones($("#end-timezone"));
-  insertTimezones($("#freeze-timezone"));
-
   $(".config-section > form:not(.form-upload)").submit(updateConfigs);
   $("#logo-upload").submit(uploadLogo);
   $("#remove-logo").click(removeLogo);
+  $("#ctf-small-icon-upload").submit(smallIconUpload);
+  $("#remove-small-icon").click(removeSmallIcon);
   $("#export-button").click(exportConfig);
   $("#import-button").click(importConfig);
   $("#config-color-update").click(function() {
@@ -343,30 +339,6 @@ $(() => {
     theme_header_editor.getDoc().setValue(new_css);
   });
 
-  $(".start-date").change(function() {
-    loadDateValues("start");
-  });
-  $(".end-date").change(function() {
-    loadDateValues("end");
-  });
-  $(".freeze-date").change(function() {
-    loadDateValues("freeze");
-  });
-
-  const start = $("#start").val();
-  const end = $("#end").val();
-  const freeze = $("#freeze").val();
-
-  if (start) {
-    loadTimestamp("start", start);
-  }
-  if (end) {
-    loadTimestamp("end", end);
-  }
-  if (freeze) {
-    loadTimestamp("freeze", freeze);
-  }
-
   // Toggle username and password based on stored value
   $("#mail_useauth")
     .change(function() {
@@ -383,13 +355,4 @@ $(() => {
       type: "user"
     }
   }).$mount(userVueContainer);
-
-  // Insert FieldList element for teams
-  let teamVueContainer = document.createElement("div");
-  document.querySelector("#team-field-list").appendChild(teamVueContainer);
-  new fieldList({
-    propsData: {
-      type: "team"
-    }
-  }).$mount(teamVueContainer);
 });

@@ -19,14 +19,24 @@
 		{{ form.website(class="form-control") }}
 	</div>
 	<div class="form-group">
-		{{ form.affiliation.label }}
-		<small class="float-right text-muted align-text-bottom">Optional</small>
-		{{ form.affiliation(class="form-control") }}
-	</div>
-	<div class="form-group">
 		{{ form.country.label }}
 		<small class="float-right text-muted align-text-bottom">Optional</small>
 		{{ form.country(class="form-control custom-select") }}
+	</div>
+	<div class="form-group">
+		{{ form.school.label }}
+		<small class="float-right text-muted align-text-bottom">Optional</small>
+		{{ form.school(class="form-control custom-select") }}
+	</div>
+	<div class="form-group">
+		{{ form.cursus.label }}
+		<small class="float-right text-muted align-text-bottom">Optional</small>
+		{{ form.cursus(class="form-control custom-select") }}
+	</div>
+	<div class="form-group">
+		{{ form.specialisation.label }}
+		<small class="float-right text-muted align-text-bottom">Optional</small>
+		{{ form.specialisation(class="form-control custom-select") }}
 	</div>
 
 	{{ render_extra_fields(form.extra) }}

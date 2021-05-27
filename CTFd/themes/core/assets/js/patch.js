@@ -112,29 +112,6 @@ API.prototype.patch_user_private = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.post_unlock_list = function(parameters, body) {
-  let deferred = Q.defer();
-  let domain = this.domain,
-    path = "/unlocks";
-  let headers = {},
-    form = {};
-
-  headers["Accept"] = ["application/json"];
-  headers["Content-Type"] = ["application/json"];
-
-  this.request(
-    "POST",
-    domain + path,
-    parameters,
-    body,
-    headers,
-    {},
-    form,
-    deferred
-  );
-
-  return deferred.promise;
-};
 
 API.prototype.post_notification_list = function(parameters, body) {
   if (parameters === undefined) {
@@ -282,13 +259,13 @@ API.prototype.post_tag_list = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.patch_team_public = function(parameters, body) {
+API.prototype.post_tag_challenge_list = function(parameters, body) {
   if (parameters === undefined) {
     parameters = {};
   }
   let deferred = Q.defer();
   let domain = this.domain,
-    path = "/teams/{team_id}";
+    path = "/tag_challenge";
   let queryParameters = {},
     headers = {},
     form = {};
@@ -296,17 +273,10 @@ API.prototype.patch_team_public = function(parameters, body) {
   headers["Accept"] = ["application/json"];
   headers["Content-Type"] = ["application/json"];
 
-  path = path.replace("{team_id}", parameters["teamId"]);
-
-  if (parameters["teamId"] === undefined) {
-    deferred.reject(new Error("Missing required  parameter: teamId"));
-    return deferred.promise;
-  }
-
   queryParameters = mergeQueryParams(parameters, queryParameters);
 
   this.request(
-    "PATCH",
+    "POST",
     domain + path,
     parameters,
     body,
@@ -347,13 +317,13 @@ API.prototype.post_challenge_attempt = function(parameters, body) {
 
   return deferred.promise;
 };
-API.prototype.get_hint = function(parameters) {
+API.prototype.get_resource = function(parameters) {
   if (parameters === undefined) {
     parameters = {};
   }
   let deferred = Q.defer();
   let domain = this.domain,
-    path = "/hints/{hint_id}";
+    path = "/resources/{resource_id}";
   let body = {},
     queryParameters = {},
     headers = {},
@@ -362,13 +332,13 @@ API.prototype.get_hint = function(parameters) {
   headers["Accept"] = ["application/json"];
   headers["Content-Type"] = ["application/json"];
 
-  path = path.replace("{hint_id}", parameters["hintId"]);
+  path = path.replace("{resource_id}", parameters["resourceId"]);
 
-  if (parameters["hintId"] === undefined) {
-    deferred.reject(new Error("Missing required  parameter: hintId"));
+  if (parameters["resourceId"] === undefined) {
+    deferred.reject(new Error("Missing required  parameter: resourceId"));
     return deferred.promise;
   }
-  delete parameters["hintId"];
+  delete parameters["resourceId"];
 
   queryParameters = mergeQueryParams(parameters, queryParameters);
 

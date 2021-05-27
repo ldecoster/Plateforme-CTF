@@ -91,19 +91,20 @@ let API = (function() {
       });
   };
 
+
   /**
    *
    * @method
-   * @name API#post_award_list
+   * @name API#get_badge_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.post_award_list = function(parameters) {
+  API.prototype.get_badge_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/awards";
+      path = "/badges";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -111,94 +112,6 @@ let API = (function() {
 
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "POST",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#delete_award
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.awardId - An Award ID
-   */
-  API.prototype.delete_award = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/awards/{award_id}";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{award_id}", parameters["awardId"]);
-
-    if (parameters["awardId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: awardId"));
-      return deferred.promise;
-    }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "DELETE",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_award
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.awardId - An Award ID
-   */
-  API.prototype.get_award = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/awards/{award_id}";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{award_id}", parameters["awardId"]);
-
-    if (parameters["awardId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: awardId"));
-      return deferred.promise;
-    }
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
 
@@ -592,18 +505,18 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_challenge_hints
+   * @name API#get_challenge_resources
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.id - A Challenge ID
    * @param {string} parameters.challengeId -
    */
-  API.prototype.get_challenge_hints = function(parameters) {
+  API.prototype.get_challenge_resources = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/challenges/{challenge_id}/hints";
+      path = "/challenges/{challenge_id}/resources";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1423,16 +1336,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#post_hint_list
+   * @name API#post_resource_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.post_hint_list = function(parameters) {
+  API.prototype.post_resource_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/hints";
+      path = "/resources";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1459,16 +1372,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_hint_list
+   * @name API#get_resource_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.get_hint_list = function(parameters) {
+  API.prototype.get_resource_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/hints";
+      path = "/resources";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1495,17 +1408,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#patch_hint
+   * @name API#patch_resource
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.hintId -
+   * @param {string} parameters.resourceId -
    */
-  API.prototype.patch_hint = function(parameters) {
+  API.prototype.patch_resource = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/hints/{hint_id}";
+      path = "/resources/{resource_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1514,10 +1427,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{hint_id}", parameters["hintId"]);
+    path = path.replace("{resource_id}", parameters["resourceId"]);
 
-    if (parameters["hintId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: hintId"));
+    if (parameters["resourceId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: resourceId"));
       return deferred.promise;
     }
 
@@ -1539,17 +1452,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#delete_hint
+   * @name API#delete_resource
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.hintId -
+   * @param {string} parameters.resourceId -
    */
-  API.prototype.delete_hint = function(parameters) {
+  API.prototype.delete_resource = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/hints/{hint_id}";
+      path = "/resources/{resource_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1558,10 +1471,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{hint_id}", parameters["hintId"]);
+    path = path.replace("{resource_id}", parameters["resourceId"]);
 
-    if (parameters["hintId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: hintId"));
+    if (parameters["resourceId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: resourceId"));
       return deferred.promise;
     }
 
@@ -1583,17 +1496,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_hint
+   * @name API#get_resource
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.hintId -
+   * @param {string} parameters.resourceId -
    */
-  API.prototype.get_hint = function(parameters) {
+  API.prototype.get_resource = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/hints/{hint_id}";
+      path = "/resources/{resource_id}";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -1602,10 +1515,10 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{hint_id}", parameters["hintId"]);
+    path = path.replace("{resource_id}", parameters["resourceId"]);
 
-    if (parameters["hintId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: hintId"));
+    if (parameters["resourceId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: resourceId"));
       return deferred.promise;
     }
 
@@ -1991,86 +1904,6 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_scoreboard_list
-   * @param {object} parameters - method options and parameters
-   */
-  API.prototype.get_scoreboard_list = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/scoreboard";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_scoreboard_detail
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.count - How many top teams to return
-   */
-  API.prototype.get_scoreboard_detail = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/scoreboard/top/{count}";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{count}", parameters["count"]);
-
-    if (parameters["count"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: count"));
-      return deferred.promise;
-    }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
    * @name API#get_challenge_solve_statistics
    * @param {object} parameters - method options and parameters
    */
@@ -2212,42 +2045,6 @@ let API = (function() {
       deferred.reject(new Error("Missing required  parameter: column"));
       return deferred.promise;
     }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_team_statistics
-   * @param {object} parameters - method options and parameters
-   */
-  API.prototype.get_team_statistics = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/statistics/teams";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
 
@@ -2582,6 +2379,7 @@ let API = (function() {
    * @name API#patch_tag
    * @param {object} parameters - method options and parameters
    * @param {string} parameters.tagId - A Tag ID
+   * @param {string} parameters.tagValue - A new value for the selected Tag
    */
   API.prototype.patch_tag = function(parameters) {
     if (parameters === undefined) {
@@ -2599,6 +2397,7 @@ let API = (function() {
     headers["Content-Type"] = ["application/json"];
 
     path = path.replace("{tag_id}", parameters["tagId"]);
+    body["tagValue"]=parameters["tagValue"];
 
     if (parameters["tagId"] === undefined) {
       deferred.reject(new Error("Missing required  parameter: tagId"));
@@ -2711,16 +2510,17 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#post_team_list
+   * @name API#post_tag_challenge_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.post_team_list = function(parameters) {
+  API.prototype.post_tag_challenge_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
+    
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/teams";
+      path = "/tag_challenge";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2730,7 +2530,7 @@ let API = (function() {
     headers["Content-Type"] = ["application/json"];
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
-
+   
     this.request(
       "POST",
       domain + path,
@@ -2747,16 +2547,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_team_list
+   * @name API#get_tag_challenge_list
    * @param {object} parameters - method options and parameters
    */
-  API.prototype.get_team_list = function(parameters) {
+  API.prototype.get_tag_challenge_list = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/teams";
+      path = "/tag_challenge";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2783,17 +2583,18 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#patch_team_private
+   * @name API#get_tag_challenge
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Current Team
+   * @param {string} parameters.tagId - A Tag ID
+   * @param {string} parameters.challengeId - A Challenge ID
    */
-  API.prototype.patch_team_private = function(parameters) {
+  API.prototype.get_tag_challenge = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/teams/me";
+      path = "/tag_challenge/<tag_id>/<challenge_id>";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2802,51 +2603,17 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    if (parameters["teamId"] !== undefined) {
-      queryParameters["team_id"] = parameters["teamId"];
+    if (parameters["tagId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: tagId"));
+      return deferred.promise;
     }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "PATCH",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_team_private
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Current Team
-   */
-  API.prototype.get_team_private = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
+    if (parameters["challengeId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: tagId"));
+      return deferred.promise;
     }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/teams/me";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    if (parameters["teamId"] !== undefined) {
-      queryParameters["team_id"] = parameters["teamId"];
-    }
-
+    path = path.replace("<tag_id>", parameters["tagId"]);
+    path = path.replace("<challenge_id>", parameters["challengeId"]);
+    
     queryParameters = mergeQueryParams(parameters, queryParameters);
 
     this.request(
@@ -2865,17 +2632,18 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#patch_team_public
+   * @name API#delete_tag_challenge
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Team ID
+   * @param {string} parameters.tagId - A Tag ID
+   * @param {string} parameters.challengeId - A Challenge ID
    */
-  API.prototype.patch_team_public = function(parameters) {
+  API.prototype.delete_tag_challenge = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/teams/{team_id}";
+      path = "/tag_challenge/<tag_id>/<challenge_id>";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -2884,57 +2652,17 @@ let API = (function() {
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
 
-    path = path.replace("{team_id}", parameters["teamId"]);
-
-    if (parameters["teamId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: teamId"));
+    if (parameters["tagId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: tagId"));
       return deferred.promise;
     }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "PATCH",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#delete_team_public
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Team ID
-   */
-  API.prototype.delete_team_public = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/teams/{team_id}";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{team_id}", parameters["teamId"]);
-
-    if (parameters["teamId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: teamId"));
+    if (parameters["challengeId"] === undefined) {
+      deferred.reject(new Error("Missing required  parameter: tagId"));
       return deferred.promise;
     }
-
+    path = path.replace("<tag_id>", parameters["tagId"]);
+    path = path.replace("<challenge_id>", parameters["challengeId"]);
+    
     queryParameters = mergeQueryParams(parameters, queryParameters);
 
     this.request(
@@ -2950,254 +2678,7 @@ let API = (function() {
 
     return deferred.promise;
   };
-  /**
-   *
-   * @method
-   * @name API#get_team_public
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Team ID
-   */
-  API.prototype.get_team_public = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/teams/{team_id}";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
 
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{team_id}", parameters["teamId"]);
-
-    if (parameters["teamId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: teamId"));
-      return deferred.promise;
-    }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_team_awards
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Team ID or 'me'
-   */
-  API.prototype.get_team_awards = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/teams/{team_id}/awards";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{team_id}", parameters["teamId"]);
-
-    if (parameters["teamId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: teamId"));
-      return deferred.promise;
-    }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_team_fails
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Team ID or 'me'
-   */
-  API.prototype.get_team_fails = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/teams/{team_id}/fails";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{team_id}", parameters["teamId"]);
-
-    if (parameters["teamId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: teamId"));
-      return deferred.promise;
-    }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_team_solves
-   * @param {object} parameters - method options and parameters
-   * @param {string} parameters.teamId - Team ID or 'me'
-   */
-  API.prototype.get_team_solves = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/teams/{team_id}/solves";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{team_id}", parameters["teamId"]);
-
-    if (parameters["teamId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: teamId"));
-      return deferred.promise;
-    }
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#post_unlock_list
-   * @param {object} parameters - method options and parameters
-   */
-  API.prototype.post_unlock_list = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/unlocks";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "POST",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
-  /**
-   *
-   * @method
-   * @name API#get_unlock_list
-   * @param {object} parameters - method options and parameters
-   */
-  API.prototype.get_unlock_list = function(parameters) {
-    if (parameters === undefined) {
-      parameters = {};
-    }
-    let deferred = Q.defer();
-    let domain = this.domain,
-      path = "/unlocks";
-    let body = {},
-      queryParameters = {},
-      headers = {},
-      form = {};
-
-    headers["Accept"] = ["application/json"];
-    headers["Content-Type"] = ["application/json"];
-
-    queryParameters = mergeQueryParams(parameters, queryParameters);
-
-    this.request(
-      "GET",
-      domain + path,
-      parameters,
-      body,
-      headers,
-      queryParameters,
-      form,
-      deferred
-    );
-
-    return deferred.promise;
-  };
   /**
    *
    * @method
@@ -3477,17 +2958,16 @@ let API = (function() {
   /**
    *
    * @method
-   * @name API#get_user_awards
+   * @name API#get_user_badges
    * @param {object} parameters - method options and parameters
-   * @param {string} parameters.userId - User ID or 'me'
    */
-  API.prototype.get_user_awards = function(parameters) {
+  API.prototype.get_user_badges = function(parameters) {
     if (parameters === undefined) {
       parameters = {};
     }
     let deferred = Q.defer();
     let domain = this.domain,
-      path = "/users/{user_id}/awards";
+      path = "/users/badges";
     let body = {},
       queryParameters = {},
       headers = {},
@@ -3495,13 +2975,6 @@ let API = (function() {
 
     headers["Accept"] = ["application/json"];
     headers["Content-Type"] = ["application/json"];
-
-    path = path.replace("{user_id}", parameters["userId"]);
-
-    if (parameters["userId"] === undefined) {
-      deferred.reject(new Error("Missing required  parameter: userId"));
-      return deferred.promise;
-    }
 
     queryParameters = mergeQueryParams(parameters, queryParameters);
 

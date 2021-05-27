@@ -6,49 +6,37 @@ import CTFd from "core/CTFd";
 import { htmlEntities } from "core/utils";
 import { ezQuery, ezAlert, ezToast } from "core/ezq";
 import { default as helpers } from "core/helpers";
-import { addFile, deleteFile } from "../challenges/files";
-import { addTag, deleteTag } from "../challenges/tags";
-import { addRequirement, deleteRequirement } from "../challenges/requirements";
 import { bindMarkdownEditors } from "../styles";
 import Vue from "vue/dist/vue.esm.browser";
 import CommentBox from "../components/comments/CommentBox.vue";
-import {
-  showHintModal,
-  editHint,
-  deleteHint,
-  showEditHintModal
-} from "../challenges/hints";
-import {
-  addFlagModal,
-  editFlagModal,
-  deleteFlag,
-  flagTypeSelect
-} from "../challenges/flags";
+import VotesList from "../components/votes/VotesList.vue";
+import FlagList from "../components/flags/FlagList.vue";
+import Requirements from "../components/requirements/Requirements.vue";
+import TagsList from "../components/tags/TagsList.vue";
+import ChallengeFilesList from "../components/files/ChallengeFilesList.vue";
+import ResourcesList from "../components/resources/ResourcesList.vue";
+import hljs from "highlight.js";
 
-const displayHint = data => {
+const displayResource = data => {
   ezAlert({
-    title: "Hint",
+    title: "Resource",
     body: data.html,
     button: "Got it!"
   });
 };
 
-const loadHint = id => {
-  CTFd.api.get_hint({ hintId: id, preview: true }).then(response => {
-    if (response.data.content) {
-      displayHint(response.data);
-      return;
-    }
-    // displayUnlock(id);
+const loadResource = id => {
+  CTFd.api.get_resource({ resourceId: id, preview: true }).then(response => {
+    displayResource(response.data);
   });
 };
 
 function renderSubmissionResponse(response, cb) {
-  var result = response.data;
+  const result = response.data;
 
-  var result_message = $("#result-message");
-  var result_notification = $("#result-notification");
-  var answer_input = $("#submission-input");
+  const result_message = $("#result-message");
+  const result_notification = $("#result-notification");
+  const answer_input = $("#submission-input");
   result_notification.removeClass();
   result_message.text(result.message);
 
@@ -158,6 +146,18 @@ function loadChalTemplate(challenge) {
                 response.data.id
               );
               $("#challenge-create-options").modal();
+            } else {
+              let body = "";
+              for (const k in response.errors) {
+                body += response.errors[k].join("\n");
+                body += "\n";
+              }
+
+              ezAlert({
+                title: "Error",
+                body: body,
+                button: "OK"
+              });
             }
           });
       });
@@ -244,7 +244,7 @@ $(() => {
       CTFd.config.urlRoot + "/api/v1/challenges/" + window.CHALLENGE_ID,
       function(response) {
         // Preview should not show any solves
-        var challenge_data = response.data;
+        const challenge_data = response.data;
         challenge_data["solves"] = null;
 
         $.getScript(
@@ -283,8 +283,8 @@ $(() => {
               $("#too-fast").slideUp();
             });
 
-            $(".load-hint").on("click", function(_event) {
-              loadHint($(this).data("hint-id"));
+            $(".load-resource").on("click", function(_event) {
+              loadResource($(this).data("resource-id"));
             });
 
             $("#challenge-submit").click(function(e) {
@@ -304,6 +304,13 @@ $(() => {
             });
 
             challenge.postRender();
+
+            $("#challenge-window")
+              .find("pre code")
+              .each(function(_idx) {
+                hljs.highlightBlock(this);
+              });
+
             window.location.replace(
               window.location.href.split("#")[0] + "#preview"
             );
@@ -339,7 +346,7 @@ $(() => {
 
   $("#challenge-update-container > form").submit(function(e) {
     e.preventDefault();
-    var params = $(e.target).serializeJSON(true);
+    const params = $(e.target).serializeJSON(true);
 
     CTFd.fetch("/api/v1/challenges/" + window.CHALLENGE_ID + "/flags", {
       method: "GET",
@@ -373,11 +380,19 @@ $(() => {
                   case "visible":
                     $(".challenge-state")
                       .removeClass("badge-danger")
+                      .removeClass("badge-warning")
                       .addClass("badge-success");
+                    break;
+                  case "voting":
+                    $(".challenge-state")
+                      .removeClass("badge-success")
+                      .removeClass("badge-danger")
+                      .addClass("badge-warning");
                     break;
                   case "hidden":
                     $(".challenge-state")
                       .removeClass("badge-success")
+                      .removeClass("badge-warning")
                       .addClass("badge-danger");
                     break;
                   default:
@@ -385,7 +400,22 @@ $(() => {
                 }
                 ezToast({
                   title: "Success",
-                  body: "Your challenge has been updated!"
+                  body: "The challenge has been updated!"
+                });
+              } else {
+                let body = "";
+                if (response.errors === "votes") {
+                  body = "Not enough positive votes for this challenge!";
+                } else {
+                  for (const k in response.errors) {
+                    body += response.errors[k].join("\n");
+                    body += "\n";
+                  }
+                }
+                ezAlert({
+                  title: "Error",
+                  body: body,
+                  button: "OK"
                 });
               }
             });
@@ -406,24 +436,65 @@ $(() => {
 
   $("#challenge-create-options form").submit(handleChallengeOptions);
 
-  $("#tags-add-input").keyup(addTag);
-  $(".delete-tag").click(deleteTag);
+  // Load FlagList component
+  if (document.querySelector("#challenge-flags")) {
+    const flagList = Vue.extend(FlagList);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-flags").appendChild(vueContainer);
+    new flagList({
+      propsData: { challenge_id: window.CHALLENGE_ID }
+    }).$mount(vueContainer);
+  }
 
-  $("#prerequisite-add-form").submit(addRequirement);
-  $(".delete-requirement").click(deleteRequirement);
+  // Load TagsList component
+  if (document.querySelector("#challenge-tags")) {
+    const tagList = Vue.extend(TagsList);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-tags").appendChild(vueContainer);
+    new tagList({
+      propsData: { challenge_id: window.CHALLENGE_ID }
+    }).$mount(vueContainer);
+  }
 
-  $("#file-add-form").submit(addFile);
-  $(".delete-file").click(deleteFile);
+  // Load Requirements component
+  if (document.querySelector("#prerequisite-add-form")) {
+    const reqsComponent = Vue.extend(Requirements);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#prerequisite-add-form").appendChild(vueContainer);
+    new reqsComponent({
+      propsData: { challenge_id: window.CHALLENGE_ID }
+    }).$mount(vueContainer);
+  }
 
-  $("#hint-add-button").click(showHintModal);
-  $(".delete-hint").click(deleteHint);
-  $(".edit-hint").click(showEditHintModal);
-  $("#hint-edit-form").submit(editHint);
+  // Load ChallengeFilesList component
+  if (document.querySelector("#challenge-files")) {
+    const challengeFilesList = Vue.extend(ChallengeFilesList);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-files").appendChild(vueContainer);
+    new challengeFilesList({
+      propsData: { challenge_id: window.CHALLENGE_ID }
+    }).$mount(vueContainer);
+  }
 
-  $("#flag-add-button").click(addFlagModal);
-  $(".delete-flag").click(deleteFlag);
-  $("#flags-create-select").change(flagTypeSelect);
-  $(".edit-flag").click(editFlagModal);
+  // Load ResourcesList component
+  if (document.querySelector("#challenge-resources")) {
+    const resourcesList = Vue.extend(ResourcesList);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-resources").appendChild(vueContainer);
+    new resourcesList({
+      propsData: { challenge_id: window.CHALLENGE_ID }
+    }).$mount(vueContainer);
+  }
+
+  // Load VotesList component
+  if (document.querySelector("#challenge-votes")) {
+    const votesList = Vue.extend(VotesList);
+    let vueContainer = document.createElement("div");
+    document.querySelector("#challenge-votes").appendChild(vueContainer);
+    new votesList({
+      propsData: { challenge_id: window.CHALLENGE_ID }
+    }).$mount(vueContainer);
+  }
 
   // Because this JS is shared by a few pages,
   // we should only insert the CommentBox if it's actually in use

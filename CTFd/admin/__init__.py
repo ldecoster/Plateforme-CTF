@@ -17,50 +17,46 @@ from flask import (
 admin = Blueprint("admin", __name__)
 
 # isort:imports-firstparty
+from CTFd.admin import badges  # noqa: F401
 from CTFd.admin import challenges  # noqa: F401
 from CTFd.admin import notifications  # noqa: F401
 from CTFd.admin import pages  # noqa: F401
-from CTFd.admin import scoreboard  # noqa: F401
 from CTFd.admin import statistics  # noqa: F401
 from CTFd.admin import submissions  # noqa: F401
-from CTFd.admin import teams  # noqa: F401
 from CTFd.admin import users  # noqa: F401
-from CTFd.cache import cache, clear_config, clear_pages, clear_standings
+from CTFd.cache import cache, clear_config, clear_pages
 from CTFd.models import (
-    Awards,
+    Badges,
     Challenges,
     Configs,
     Notifications,
     Pages,
     Solves,
     Submissions,
-    Teams,
+    Tags,
     Tracking,
-    Unlocks,
     Users,
     db,
     get_class_by_tablename,
 )
 from CTFd.utils import config as ctf_config
 from CTFd.utils import get_config, set_config
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.exports import export_ctf as export_ctf_util
 from CTFd.utils.exports import import_ctf as import_ctf_util
 from CTFd.utils.helpers import get_errors
 from CTFd.utils.security.auth import logout_user
 from CTFd.utils.uploads import delete_file
-from CTFd.utils.user import is_admin
 
 
 @admin.route("/admin", methods=["GET"])
+@access_granted_only("admin_view")
 def view():
-    if is_admin():
-        return redirect(url_for("admin.statistics"))
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("admin.challenges_listing"))
 
 
 @admin.route("/admin/plugins/<plugin>", methods=["GET", "POST"])
-@admins_only
+@access_granted_only("admin_plugin")
 def plugin(plugin):
     if request.method == "GET":
         plugins_path = os.path.join(app.root_path, "plugins")
@@ -88,7 +84,7 @@ def plugin(plugin):
 
 
 @admin.route("/admin/import", methods=["POST"])
-@admins_only
+@access_granted_only("admin_import_ctf")
 def import_ctf():
     backup = request.files["backup"]
     errors = get_errors()
@@ -105,7 +101,7 @@ def import_ctf():
 
 
 @admin.route("/admin/export", methods=["GET", "POST"])
-@admins_only
+@access_granted_only("admin_export_ctf")
 def export_ctf():
     backup = export_ctf_util()
     ctf_name = ctf_config.ctf_name()
@@ -117,7 +113,7 @@ def export_ctf():
 
 
 @admin.route("/admin/export/csv")
-@admins_only
+@access_granted_only("admin_export_csv")
 def export_csv():
     table = request.args.get("table")
 
@@ -158,22 +154,24 @@ def export_csv():
 
 
 @admin.route("/admin/config", methods=["GET", "POST"])
-@admins_only
+@access_granted_only("admin_config")
 def config():
     # Clear the config cache so that we don't get stale values
     clear_config()
 
     configs = Configs.query.all()
-    configs = dict([(c.key, get_config(c.key)) for c in configs])
+    configs = {c.key: get_config(c.key) for c in configs}
 
     themes = ctf_config.get_themes()
     themes.remove(get_config("ctf_theme"))
 
-    return render_template("admin/config.html", themes=themes, **configs)
+    tags = Tags.query.all()
+
+    return render_template("admin/config.html", themes=themes, tags=tags, **configs)
 
 
 @admin.route("/admin/reset", methods=["GET", "POST"])
-@admins_only
+@access_granted_only("admin_reset")
 def reset():
     if request.method == "POST":
         require_setup = False
@@ -202,15 +200,13 @@ def reset():
 
         if data.get("accounts"):
             Users.query.delete()
-            Teams.query.delete()
             require_setup = True
             logout = True
 
         if data.get("submissions"):
             Solves.query.delete()
             Submissions.query.delete()
-            Awards.query.delete()
-            Unlocks.query.delete()
+            Badges.query.delete()
             Tracking.query.delete()
 
         if require_setup:
@@ -222,7 +218,6 @@ def reset():
         db.session.commit()
 
         clear_pages()
-        clear_standings()
         clear_config()
 
         if logout is True:

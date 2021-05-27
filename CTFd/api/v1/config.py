@@ -6,13 +6,13 @@ from flask_restx import Namespace, Resource
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import clear_config, clear_standings
+from CTFd.cache import clear_config
 from CTFd.constants import RawEnum
 from CTFd.models import Configs, Fields, db
 from CTFd.schemas.config import ConfigSchema
 from CTFd.schemas.fields import FieldSchema
 from CTFd.utils import set_config
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 configs_namespace = Namespace("configs", description="Endpoint to retrieve Configs")
@@ -39,13 +39,13 @@ configs_namespace.schema_model(
 
 @configs_namespace.route("")
 class ConfigList(Resource):
-    @admins_only
+    @access_granted_only("api_config_list_get")
     @configs_namespace.doc(
         description="Endpoint to get Config objects in bulk",
         responses={
             200: ("Success", "ConfigListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -72,13 +72,13 @@ class ConfigList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_config_list_post")
     @configs_namespace.doc(
         description="Endpoint to get create a Config object",
         responses={
             200: ("Success", "ConfigDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -98,11 +98,10 @@ class ConfigList(Resource):
         db.session.close()
 
         clear_config()
-        clear_standings()
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_config_list_patch")
     @configs_namespace.doc(
         description="Endpoint to get patch Config objects in bulk",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -114,20 +113,19 @@ class ConfigList(Resource):
             set_config(key=key, value=value)
 
         clear_config()
-        clear_standings()
 
         return {"success": True}
 
 
 @configs_namespace.route("/<config_key>")
 class Config(Resource):
-    @admins_only
+    @access_granted_only("api_config_get")
     @configs_namespace.doc(
         description="Endpoint to get a specific Config object",
         responses={
             200: ("Success", "ConfigDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -138,13 +136,13 @@ class Config(Resource):
         response = schema.dump(config)
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_config_patch")
     @configs_namespace.doc(
         description="Endpoint to edit a specific Config object",
         responses={
             200: ("Success", "ConfigDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -170,11 +168,10 @@ class Config(Resource):
         db.session.close()
 
         clear_config()
-        clear_standings()
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_config_delete")
     @configs_namespace.doc(
         description="Endpoint to delete a Config object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
@@ -187,14 +184,13 @@ class Config(Resource):
         db.session.close()
 
         clear_config()
-        clear_standings()
 
         return {"success": True}
 
 
 @configs_namespace.route("/fields")
 class FieldList(Resource):
-    @admins_only
+    @access_granted_only("api_field_list_get")
     @validate_args(
         {
             "type": (str, None),
@@ -218,7 +214,7 @@ class FieldList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_field_list_post")
     def post(self):
         req = request.get_json()
         schema = FieldSchema()
@@ -238,7 +234,7 @@ class FieldList(Resource):
 
 @configs_namespace.route("/fields/<field_id>")
 class Field(Resource):
-    @admins_only
+    @access_granted_only("api_field_get")
     def get(self, field_id):
         field = Fields.query.filter_by(id=field_id).first_or_404()
         schema = FieldSchema()
@@ -250,7 +246,7 @@ class Field(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_field_patch")
     def patch(self, field_id):
         field = Fields.query.filter_by(id=field_id).first_or_404()
         schema = FieldSchema()
@@ -268,7 +264,7 @@ class Field(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_field_delete")
     def delete(self, field_id):
         field = Fields.query.filter_by(id=field_id).first_or_404()
         db.session.delete(field)

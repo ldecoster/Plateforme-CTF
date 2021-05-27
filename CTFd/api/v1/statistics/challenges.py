@@ -3,14 +3,14 @@ from sqlalchemy import func
 from sqlalchemy.sql import and_
 
 from CTFd.api.v1.statistics import statistics_namespace
-from CTFd.models import Challenges, Solves, db
-from CTFd.utils.decorators import admins_only
+from CTFd.models import Challenges, Solves, Users, db
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.modes import get_model
 
 
 @statistics_namespace.route("/challenges/<column>")
 class ChallengePropertyCounts(Resource):
-    @admins_only
+    @access_granted_only("api_statistics_challenge_property_counts_get")
     def get(self, column):
         if column in Challenges.__table__.columns.keys():
             prop = getattr(Challenges, column)
@@ -27,13 +27,12 @@ class ChallengePropertyCounts(Resource):
 
 @statistics_namespace.route("/challenges/solves")
 class ChallengeSolveStatistics(Resource):
-    @admins_only
+    @access_granted_only("api_statistics_challenge_solve_statistics_get")
     def get(self):
         chals = (
             Challenges.query.filter(
-                and_(Challenges.state != "hidden", Challenges.state != "locked")
+                and_(Challenges.state != "hidden")
             )
-            .order_by(Challenges.value)
             .all()
         )
 
@@ -77,21 +76,21 @@ class ChallengeSolveStatistics(Resource):
 
 @statistics_namespace.route("/challenges/solves/percentages")
 class ChallengeSolvePercentages(Resource):
-    @admins_only
+    @access_granted_only("api_statistics_challenge_solve_percentages_get")
     def get(self):
         challenges = (
             Challenges.query.add_columns("id", "name", "state", "max_attempts")
-            .order_by(Challenges.value)
             .all()
         )
 
         Model = get_model()
 
-        teams_with_points = (
-            db.session.query(Solves.account_id)
-            .join(Model)
-            .filter(Model.banned == False, Model.hidden == False)
-            .group_by(Solves.account_id)
+        number_of_users = (
+            Users.query
+            .filter(
+                Model.banned == False,
+                Model.hidden == False,
+            )
             .count()
         )
 
@@ -107,10 +106,10 @@ class ChallengeSolvePercentages(Resource):
                 .count()
             )
 
-            if teams_with_points > 0:
-                percentage = float(solve_count) / float(teams_with_points)
+            if number_of_users == 0:
+                percentage = 0
             else:
-                percentage = 0.0
+                percentage = float(solve_count) / float(number_of_users)
 
             percentage_data.append(
                 {"id": challenge.id, "name": challenge.name, "percentage": percentage}

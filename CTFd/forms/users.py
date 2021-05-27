@@ -6,6 +6,10 @@ from CTFd.forms import BaseForm
 from CTFd.forms.fields import SubmitField
 from CTFd.models import UserFieldEntries, UserFields
 from CTFd.utils.countries import SELECT_COUNTRIES_LIST
+from CTFd.utils.schools import SELECT_SCHOOLS_LIST
+from CTFd.utils.specialisations import SELECT_SPECIALISATIONS_LIST
+from CTFd.utils.cursus import SELECT_CURSUS_LIST
+from CTFd.utils.user import has_right
 
 
 def build_custom_user_fields(
@@ -13,7 +17,7 @@ def build_custom_user_fields(
     include_entries=False,
     fields_kwargs=None,
     field_entries_kwargs=None,
-    blacklisted_items=("affiliation", "website"),
+    blacklisted_items=("website"),
 ):
     """
     Function used to reinject values back into forms for accessing by themes
@@ -86,7 +90,6 @@ class UserSearchForm(BaseForm):
             ("name", "Name"),
             ("id", "ID"),
             ("email", "Email"),
-            ("affiliation", "Affiliation"),
             ("website", "Website"),
             ("ip", "IP Address"),
         ],
@@ -102,7 +105,6 @@ class PublicUserSearchForm(BaseForm):
         "Search Field",
         choices=[
             ("name", "Name"),
-            ("affiliation", "Affiliation"),
             ("website", "Website"),
         ],
         default="name",
@@ -112,14 +114,34 @@ class PublicUserSearchForm(BaseForm):
     submit = SubmitField("Search")
 
 
-class UserBaseForm(BaseForm):
+class UserBaseFormFull(BaseForm):
     name = StringField("User Name", validators=[InputRequired()])
     email = EmailField("Email", validators=[InputRequired()])
     password = PasswordField("Password")
     website = StringField("Website")
-    affiliation = StringField("Affiliation")
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
-    type = SelectField("Type", choices=[("user", "User"), ("admin", "Admin")])
+    school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
+    cursus = SelectField("Cursus", choices=SELECT_CURSUS_LIST)
+    specialisation = SelectField("Specialiastion", choices=SELECT_SPECIALISATIONS_LIST)
+    type = SelectField("Type", choices=[
+        ("user", "User"), ("contributor", "Contributor"), ("teacher", "Teacher"), ("admin", "Admin")
+    ])
+    verified = BooleanField("Verified")
+    hidden = BooleanField("Hidden")
+    banned = BooleanField("Banned")
+    submit = SubmitField("Submit")
+
+
+class UserBaseFormPartial(BaseForm):
+    name = StringField("User Name", validators=[InputRequired()])
+    email = EmailField("Email", validators=[InputRequired()])
+    password = PasswordField("Password")
+    website = StringField("Website")
+    country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
+    school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
+    cursus = SelectField("Cursus", choices=SELECT_CURSUS_LIST)
+    specialisation = SelectField("Specialisation", choices=SELECT_SPECIALISATIONS_LIST)
+    type = SelectField("Type", choices=[("user", "User"), ("contributor", "Contributor")])
     verified = BooleanField("Verified")
     hidden = BooleanField("Hidden")
     banned = BooleanField("Banned")
@@ -127,26 +149,48 @@ class UserBaseForm(BaseForm):
 
 
 def UserEditForm(*args, **kwargs):
-    class _UserEditForm(UserBaseForm):
-        pass
+    if has_right("forms_user_edit_form_full"):
+        class _UserEditForm(UserBaseFormFull):
+            pass
 
-        @property
-        def extra(self):
-            return build_custom_user_fields(
-                self,
-                include_entries=True,
-                fields_kwargs=None,
-                field_entries_kwargs={"user_id": self.obj.id},
-            )
+            @property
+            def extra(self):
+                return build_custom_user_fields(
+                    self,
+                    include_entries=True,
+                    fields_kwargs=None,
+                    field_entries_kwargs={"user_id": self.obj.id},
+                )
 
-        def __init__(self, *args, **kwargs):
-            """
-            Custom init to persist the obj parameter to the rest of the form
-            """
-            super().__init__(*args, **kwargs)
-            obj = kwargs.get("obj")
-            if obj:
-                self.obj = obj
+            def __init__(self, *args, **kwargs):
+                """
+                Custom init to persist the obj parameter to the rest of the form
+                """
+                super().__init__(*args, **kwargs)
+                obj = kwargs.get("obj")
+                if obj:
+                    self.obj = obj
+    elif has_right("forms_user_edit_form_partial"):
+        class _UserEditForm(UserBaseFormPartial):
+            pass
+
+            @property
+            def extra(self):
+                return build_custom_user_fields(
+                    self,
+                    include_entries=True,
+                    fields_kwargs=None,
+                    field_entries_kwargs={"user_id": self.obj.id},
+                )
+
+            def __init__(self, *args, **kwargs):
+                """
+                Custom init to persist the obj parameter to the rest of the form
+                """
+                super().__init__(*args, **kwargs)
+                obj = kwargs.get("obj")
+                if obj:
+                    self.obj = obj
 
     attach_custom_user_fields(_UserEditForm)
 
@@ -154,12 +198,20 @@ def UserEditForm(*args, **kwargs):
 
 
 def UserCreateForm(*args, **kwargs):
-    class _UserCreateForm(UserBaseForm):
-        notify = BooleanField("Email account credentials to user", default=True)
+    if has_right("forms_user_create_form_full"):
+        class _UserCreateForm(UserBaseFormFull):
+            notify = BooleanField("Email account credentials to user", default=True)
 
-        @property
-        def extra(self):
-            return build_custom_user_fields(self, include_entries=False)
+            @property
+            def extra(self):
+                return build_custom_user_fields(self, include_entries=False)
+    elif has_right("forms_user_create_form_partial"):
+        class _UserCreateForm(UserBaseFormPartial):
+            notify = BooleanField("Email account credentials to user", default=True)
+
+            @property
+            def extra(self):
+                return build_custom_user_fields(self, include_entries=False)
 
     attach_custom_user_fields(_UserCreateForm)
 

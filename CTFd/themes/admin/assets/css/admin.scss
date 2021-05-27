@@ -1,11 +1,5 @@
 @import "includes/sticky-footer.css";
 
-#score-graph {
-  min-height: 400px;
-  display: block;
-  clear: both;
-}
-
 #solves-graph {
   display: block;
   height: 350px;
@@ -16,17 +10,12 @@
   display: block;
 }
 
-#categories-pie-graph {
+#school-pie-graph {
   min-height: 400px;
   display: block;
 }
 
 #solve-percentages-graph {
-  min-height: 400px;
-  display: block;
-}
-
-#score-distribution-graph {
   min-height: 400px;
   display: block;
 }

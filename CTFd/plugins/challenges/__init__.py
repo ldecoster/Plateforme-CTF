@@ -5,9 +5,10 @@ from CTFd.models import (
     Challenges,
     Fails,
     Flags,
-    Hints,
+    Resources,
     Solves,
-    Tags,
+    TagChallenge,
+    Votes,
     db,
 )
 from CTFd.plugins import register_plugin_assets_directory
@@ -51,9 +52,7 @@ class BaseChallenge(object):
         data = {
             "id": challenge.id,
             "name": challenge.name,
-            "value": challenge.value,
             "description": challenge.description,
-            "category": challenge.category,
             "state": challenge.state,
             "max_attempts": challenge.max_attempts,
             "type": challenge.type,
@@ -94,12 +93,13 @@ class BaseChallenge(object):
         Fails.query.filter_by(challenge_id=challenge.id).delete()
         Solves.query.filter_by(challenge_id=challenge.id).delete()
         Flags.query.filter_by(challenge_id=challenge.id).delete()
+        Votes.query.filter_by(challenge_id=challenge.id).delete()
         files = ChallengeFiles.query.filter_by(challenge_id=challenge.id).all()
         for f in files:
             delete_file(f.id)
         ChallengeFiles.query.filter_by(challenge_id=challenge.id).delete()
-        Tags.query.filter_by(challenge_id=challenge.id).delete()
-        Hints.query.filter_by(challenge_id=challenge.id).delete()
+        TagChallenge.query.filter_by(challenge_id=challenge.id).delete()
+        Resources.query.filter_by(challenge_id=challenge.id).delete()
         Challenges.query.filter_by(id=challenge.id).delete()
         cls.challenge_model.query.filter_by(id=challenge.id).delete()
         db.session.commit()
@@ -123,16 +123,16 @@ class BaseChallenge(object):
                 if get_flag_class(flag.type).compare(flag, submission):
                     return True, "Correct"
             except FlagException as e:
-                return False, e.message
+                return False, str(e)
         return False, "Incorrect"
 
     @classmethod
-    def solve(cls, user, team, challenge, request):
+    def solve(cls, user, challenge, request):
         """
         This method is used to insert Solves into the database in order to mark a challenge as solved.
 
-        :param team: The Team object from the database
-        :param chal: The Challenge object from the database
+        :param user: The User object from the database
+        :param challenge: The Challenge object from the database
         :param request: The request the user submitted
         :return:
         """
@@ -140,7 +140,6 @@ class BaseChallenge(object):
         submission = data["submission"].strip()
         solve = Solves(
             user_id=user.id,
-            team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(req=request),
             provided=submission,
@@ -149,12 +148,12 @@ class BaseChallenge(object):
         db.session.commit()
 
     @classmethod
-    def fail(cls, user, team, challenge, request):
+    def fail(cls, user, challenge, request):
         """
         This method is used to insert Fails into the database in order to mark an answer incorrect.
 
-        :param team: The Team object from the database
-        :param chal: The Challenge object from the database
+        :param user: The User object from the database
+        :param challenge: The Challenge object from the database
         :param request: The request the user submitted
         :return:
         """
@@ -162,7 +161,6 @@ class BaseChallenge(object):
         submission = data["submission"].strip()
         wrong = Fails(
             user_id=user.id,
-            team_id=team.id if team else None,
             challenge_id=challenge.id,
             ip=get_ip(request),
             provided=submission,

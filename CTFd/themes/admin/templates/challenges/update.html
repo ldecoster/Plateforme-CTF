@@ -12,16 +12,6 @@
 	</div>
 	{% endblock %}
 
-	{% block category %}
-	<div class="form-group">
-		<label>
-			Category<br>
-			<small class="form-text text-muted">Challenge Category</small>
-		</label>
-		<input type="text" class="form-control chal-category" name="category" value="{{ challenge.category }}">
-	</div>
-	{% endblock %}
-
 	{% block message %}
 	<div class="form-group">
 		<label>
@@ -33,19 +23,7 @@
 		<textarea id="desc-editor" class="form-control chal-desc-editor markdown" name="description" rows="10">{{ challenge.description }}</textarea>
 	</div>
 	{% endblock %}
-
-	{% block value %}
-	<div class="form-group">
-		<label for="value">
-			Value<br>
-			<small class="form-text text-muted">
-				This is how many points teams will receive once they solve this challenge.
-			</small>
-		</label>
-		<input type="number" class="form-control chal-value" name="value" value="{{ challenge.value }}" required>
-	</div>
-	{% endblock %}
-
+    
 	{% block max_attempts %}
 	<div class="form-group">
 		<label>
@@ -57,15 +35,20 @@
 	</div>
 	{% endblock %}
 
+	{% if has_right_or_is_author("theme_admin_templates_challenges_update", challenge.author_id) %}
 	{% block state %}
 	<div class="form-group">
 		<label>
 			State<br>
-			<small class="form-text text-muted">Changes the state of the challenge (e.g. visible, hidden)</small>
+			<small class="form-text text-muted">
+                Changes the state of the challenge (e.g. visible, voting, hidden). <br>
+                You need at least {{ votes_delta }} positive votes over the negative ones before setting the challenge to visible.
+            </small>
 		</label>
 
 		<select class="form-control custom-select" name="state">
 			<option value="visible" {% if challenge.state == "visible" %}selected{% endif %}>Visible</option>
+			<option value="voting" {% if challenge.state == "voting" %}selected{% endif %}>Voting</option>
 			<option value="hidden" {% if challenge.state == "hidden" %}selected{% endif %}>Hidden</option>
 		</select>
 	</div>
@@ -79,6 +62,7 @@
 	</div>
 	{% endblock %}
 </form>
+{% endif %}
 
 {% block footer %}
 {% endblock %}

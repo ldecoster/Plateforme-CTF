@@ -10,7 +10,7 @@ from CTFd.models import Tokens, db
 from CTFd.schemas.tokens import TokenSchema
 from CTFd.utils.decorators import authed_only, require_verified_emails
 from CTFd.utils.security.auth import generate_user_token
-from CTFd.utils.user import get_current_user, get_current_user_type, is_admin
+from CTFd.utils.user import get_current_user, get_current_user_type, has_right
 
 tokens_namespace = Namespace("tokens", description="Endpoint to retrieve Tokens")
 
@@ -53,7 +53,7 @@ class TokenList(Resource):
         responses={
             200: ("Success", "TokenListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -77,7 +77,7 @@ class TokenList(Resource):
         responses={
             200: ("Success", "TokenDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -111,13 +111,13 @@ class TokenDetail(Resource):
         responses={
             200: ("Success", "ValuelessTokenDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
     def get(self, token_id):
-        if is_admin():
+        if has_right("api_token_detail_get_full"):
             token = Tokens.query.filter_by(id=token_id).first_or_404()
         else:
             token = Tokens.query.filter_by(
@@ -140,7 +140,7 @@ class TokenDetail(Resource):
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, token_id):
-        if is_admin():
+        if has_right("api_token_detail_delete_full"):
             token = Tokens.query.filter_by(id=token_id).first_or_404()
         else:
             user = get_current_user()

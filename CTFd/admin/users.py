@@ -2,14 +2,13 @@ from flask import render_template, request, url_for
 from sqlalchemy.sql import not_
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Tracking, Users
-from CTFd.utils import get_config
-from CTFd.utils.decorators import admins_only
-from CTFd.utils.modes import TEAMS_MODE
+from CTFd.models import Challenges, Tags, Tracking, Users
+from CTFd.utils.decorators import access_granted_only
+from CTFd.utils.user import get_user_badges
 
 
 @admin.route("/admin/users")
-@admins_only
+@access_granted_only("admin_user_listing")
 def users_listing():
     q = request.args.get("q")
     field = request.args.get("field")
@@ -50,28 +49,22 @@ def users_listing():
 
 
 @admin.route("/admin/users/new")
-@admins_only
+@access_granted_only("admin_users_new")
 def users_new():
     return render_template("admin/users/new.html")
 
 
 @admin.route("/admin/users/<int:user_id>")
-@admins_only
+@access_granted_only("admin_users_detail")
 def users_detail(user_id):
     # Get user object
     user = Users.query.filter_by(id=user_id).first_or_404()
 
     # Get the user's solves
-    solves = user.get_solves(admin=True)
+    solves = user.get_solves()
 
     # Get challenges that the user is missing
-    if get_config("user_mode") == TEAMS_MODE:
-        if user.team:
-            all_solves = user.team.get_solves(admin=True)
-        else:
-            all_solves = user.get_solves(admin=True)
-    else:
-        all_solves = user.get_solves(admin=True)
+    all_solves = user.get_solves()
 
     solve_ids = [s.challenge_id for s in all_solves]
     missing = Challenges.query.filter(not_(Challenges.id.in_(solve_ids))).all()
@@ -82,23 +75,18 @@ def users_detail(user_id):
     )
 
     # Get Fails
-    fails = user.get_fails(admin=True)
+    fails = user.get_fails()
 
-    # Get Awards
-    awards = user.get_awards(admin=True)
-
-    # Get user properties
-    score = user.get_score(admin=True)
-    place = user.get_place(admin=True)
+    # Get Badges
+    badges = get_user_badges(user_id)
 
     return render_template(
         "admin/users/user.html",
         solves=solves,
         user=user,
         addrs=addrs,
-        score=score,
         missing=missing,
-        place=place,
         fails=fails,
-        awards=awards,
+        badges=badges,
+        Tags=Tags,
     )

@@ -36,22 +36,6 @@
 	</div>
 </div>
 
-<div id="user-award-modal" class="modal fade">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h2 class="modal-action text-center w-100">Award User</h2>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body clearfix">
-				{% include "admin/modals/awards/create.html" %}
-			</div>
-		</div>
-	</div>
-</div>
-
 <div id="user-email-modal" class="modal fade">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -86,10 +70,16 @@
 
 <div class="jumbotron">
 	<div class="container">
-		<h1 id="team-id" class="text-center p-0 m-0">{{ user.name }}</h1>
+		<h1 class="text-center p-0 m-0">{{ user.name }}</h1>
 		<div class="mb-2">
 			{% if user.type == 'admin' %}
 				<span class="badge badge-primary">admin</span>
+			{% endif %}
+            {% if user.type == 'teacher' %}
+				<span class="badge badge-primary">teacher</span>
+			{% endif %}
+            {% if user.type == 'contributor' %}
+				<span class="badge badge-primary">contributor</span>
 			{% endif %}
 			{% if user.verified %}
 				<span class="badge badge-success">verified</span>
@@ -102,12 +92,6 @@
 			{% endif %}
 		</div>
 
-			{% if user.affiliation %}
-				<h3 class="d-inline-block">
-					<span class="badge badge-primary">{{ user.affiliation }}</span>
-				</h3>
-			{% endif %}
-
 			{% if user.country %}
 				<h3 class="d-inline-block">
 					<span class="badge badge-primary">
@@ -117,20 +101,24 @@
 				</h3>
 			{% endif %}
 
-		<h2 id="team-email" class="text-center">{{ user.email }}</h2>
-		{% if user.oauth_id %}
-			<a href="https://majorleaguecyber.org/u/{{ user.name }}">
-				<h3><span class="badge badge-primary">Official</span></h3>
-			</a>
-		{% endif %}
+            {% if user.school %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_school_code(user.school) }}</span>
+				</h3>
+			{% endif %}
 
-		{% if user.team_id %}
-			<h2 id="team-acc" class="text-center">
-				<a href="{{ url_for('admin.teams_detail', team_id=user.team_id) }}">
-					{{ user.team.name }}
-				</a>
-			</h2>
-		{% endif %}
+			{% if user.cursus %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_cursus_code(user.cursus) }}</span>
+				</h3>
+			{% endif %}
+			{% if user.specialisation %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_specialisation_code(user.specialisation) }}</span>
+				</h3>
+			{% endif %}
+
+		<h2 class="text-center">{{ user.email }}</h2>
 
 		{% for field in user.get_fields(admin=true) %}
 			<h3 class="d-block">
@@ -138,18 +126,6 @@
 			</h3>
 		{% endfor %}
 
-		<h3 id="team-place" class="text-center">
-			{% if place %}
-				{{ place }}
-				<small>place</small>
-			{% endif %}
-		</h3>
-		<h3 id="team-score" class="text-center">
-			{% if score %}
-				{{ score }}
-				<small>points</small>
-			{% endif %}
-		</h3>
 		<hr class="w-50">
 		<div class="pt-3">
 			<a class="edit-user text-dark">
@@ -157,9 +133,6 @@
 			</a>
 			<a class="statistics-user text-dark">
 				<i class="btn-fa fas fa-chart-pie fa-2x px-2" data-toggle="tooltip" data-placement="top" title="User Statistics"></i>
-			</a>
-			<a class="award-user text-dark">
-				<i class="btn-fa fas fa-trophy fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Award User"></i>
 			</a>
 			<a class="email-user text-dark">
 				<i class="btn-fa fas fa-envelope fa-2x px-2" data-toggle="tooltip" data-placement="top" title="Email User"></i>
@@ -190,8 +163,8 @@
 		<a class="nav-item nav-link" id="nav-wrong-tab" data-toggle="tab" href="#nav-wrong" role="tab"
 		   aria-controls="nav-wrong" aria-selected="false">Fails</a>
 
-		<a class="nav-item nav-link" id="nav-awards-tab" data-toggle="tab" href="#nav-awards" role="tab"
-		   aria-controls="nav-awards" aria-selected="false">Awards</a>
+		<a class="nav-item nav-link" id="nav-badges-tab" data-toggle="tab" href="#nav-badges" role="tab"
+		   aria-controls="nav-badges" aria-selected="false">Badges</a>
 
 		<a class="nav-item nav-link" id="nav-missing-tab" data-toggle="tab" href="#nav-missing" role="tab"
 		   aria-controls="nav-missing" aria-selected="false">Missing</a>
@@ -223,8 +196,6 @@
 							</th>
 							<th class="sort-col text-center"><b>Challenge</b></th>
 							<th class="sort-col text-center"><b>Submitted</b></th>
-							<th class="sort-col text-center"><b>Category</b></th>
-							<th class="sort-col text-center"><b>Value</b></th>
 							<th class="sort-col text-center"><b>Time</b></th>
 						</tr>
 					</thead>
@@ -244,8 +215,6 @@
 								</a>
 							</td>
 							<td class="flag" id="{{ solve.id }}"><pre>{{ solve.provided }}</pre></td>
-							<td class="text-center">{{ solve.challenge.category }}</td>
-							<td class="text-center">{{ solve.challenge.value }}</td>
 							<td class="text-center solve-time">
 								<span data-time="{{ solve.date | isoformat }}"></span>
 							</td>
@@ -314,53 +283,29 @@
 			</div>
 		</div>
 
-		<div class="tab-pane fade" id="nav-awards" role="tabpanel" aria-labelledby="nav-awards-tab">
-			<h3 class="text-center pt-5 d-block">Awards</h3>
-			<div class="row">
-				<div class="col-md-12">
-					<div class="float-right pb-3">
-						<div class="btn-group" role="group">
-							<button type="button" class="btn btn-outline-danger" id="awards-delete-button">
-								<i class="btn-fa fas fa-trash-alt"></i>
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
+		<div class="tab-pane fade" id="nav-badges" role="tabpanel" aria-labelledby="nav-badges-tab">
+			<h3 class="text-center pt-5 d-block">Badges</h3>
 			<div class="row">
 				<div class="col-md-12">
 					<table class="table table-striped border">
 						<thead>
 							<tr>
-								<th class="border-right" data-checkbox>
-									<div class="form-check text-center">
-										<input type="checkbox" class="form-check-input" data-checkbox-all>&nbsp;
-									</div>
-								</th>
-								<th class="sort-col text-center"><b>Name</b></th>
-								<th class="sort-col text-center"><b>Description</b></th>
-								<th class="sort-col text-center"><b>Date</b></th>
-								<th class="sort-col text-center"><b>Value</b></th>
-								<th class="sort-col text-center"><b>Category</b></th>
-								<th class="sort-col text-center"><b>Icon</b></th>
+								<th class="sort-col"><b>Name</b></th>
+								<th class="d-none d-md-block d-lg-block sort-col"><b>Description</b></th>
+								<th class="sort-col text-center"><b>Exercise</b></th>
 							</tr>
 						</thead>
-						<tbody id="awards-body">
-						{% for award in awards %}
-							<tr class="award-row">
-								<td class="border-right" data-checkbox>
-									<div class="form-check text-center">
-										<input type="checkbox" class="form-check-input" value="{{ award.id }}" data-award-id="{{ award.id }}" data-award-name="{{ award.name }}">&nbsp;
-									</div>
+						<tbody id="badges-body">
+						{% for badge in badges %}
+							<tr class="badge-row">
+								<td>{{ badge.name }}</td>
+								<td class="d-none d-md-block d-lg-block">{{ badge.description }}</td>
+								<td class="text-center">
+									{% set tag = Tags.query.filter_by(id=badge.tag_id).first_or_404() %}
+                                    <span class='badge badge-warning mx-1'>
+                                        <span>{{ tag.value }}</span>
+                                    </span>
 								</td>
-								<td class="text-center chal" id="{{ award.id }}">{{ award.name }}</td>
-								<td class=""><pre>{{ award.description }}</pre></td>
-								<td class="text-center solve-time">
-									<span data-time="{{ award.date | isoformat }}"></span>
-								</td>
-								<td class="text-center">{{ award.value }}</td>
-								<td class="text-center">{{ award.category }}</td>
-								<td class="text-center"> <i class="award-icon award-{{ award.icon }}"></i> {{ award.icon }}</td>
 							</tr>
 						{% endfor %}
 						</tbody>
@@ -393,8 +338,6 @@
 								</div>
 							</th>
 							<th class="sort-col text-center"><b>Challenge</b></th>
-							<th class="sort-col text-center"><b>Category</b></th>
-							<th class="sort-col text-center"><b>Value</b></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -411,8 +354,6 @@
 									{{ challenge.name }}
 								</a>
 							</td>
-							<td class="text-center">{{ challenge.category }}</td>
-							<td class="text-center">{{ challenge.value }}</td>
 						</tr>
 					{% endfor %}
 					</tbody>
@@ -436,16 +377,14 @@
 <script>
 var USER_ID = {{ user.id }};
 var USER_NAME = {{ user.name | tojson }};
-var TEAM_ID = {{ user.team_id | tojson }};
+
 var stats_data = {{ {
-	'type': 'user',
 	'id': user.id,
 	'name': user.name,
 	'account_id': user.id,
 } | tojson }};
 </script>
 <script defer src="{{ url_for('views.themes', theme='admin', path='js/echarts.bundle.js') }}"></script>
-<script defer src="{{ url_for('views.themes', theme='admin', path='js/graphs.js') }}"></script>
 {% endblock %}
 
 {% block entrypoint %}

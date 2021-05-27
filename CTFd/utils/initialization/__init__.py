@@ -16,7 +16,6 @@ from CTFd.utils.config import (
     ctf_logo,
     ctf_name,
     ctf_theme,
-    integrations,
     is_setup,
 )
 from CTFd.utils.config.pages import get_pages
@@ -35,11 +34,11 @@ from CTFd.utils.security.auth import login_user, logout_user, lookup_user_token
 from CTFd.utils.security.csrf import generate_nonce
 from CTFd.utils.user import (
     authed,
-    get_current_team_attrs,
     get_current_user_attrs,
     get_current_user_recent_ips,
     get_ip,
-    is_admin,
+    has_right,
+    has_right_or_is_author
 )
 
 
@@ -56,17 +55,17 @@ def init_template_globals(app):
     from CTFd.constants.config import Configs
     from CTFd.constants.plugins import Plugins
     from CTFd.constants.sessions import Session
-    from CTFd.constants.static import Static
     from CTFd.constants.users import User
-    from CTFd.constants.teams import Team
     from CTFd.forms import Forms
     from CTFd.utils.config.visibility import (
         accounts_visible,
         challenges_visible,
         registration_visible,
-        scores_visible,
     )
     from CTFd.utils.countries import get_countries, lookup_country_code
+    from CTFd.utils.schools import get_schools, lookup_school_code
+    from CTFd.utils.cursus import get_cursus, lookup_cursus_code
+    from CTFd.utils.specialisations import get_specialisations, lookup_specialisation_code
     from CTFd.utils.countries.geoip import lookup_ip_address
 
     app.jinja_env.globals.update(config=config)
@@ -88,25 +87,27 @@ def init_template_globals(app):
     app.jinja_env.globals.update(generate_account_url=generate_account_url)
     app.jinja_env.globals.update(get_countries=get_countries)
     app.jinja_env.globals.update(lookup_country_code=lookup_country_code)
+    app.jinja_env.globals.update(get_schools=get_schools)
+    app.jinja_env.globals.update(lookup_school_code=lookup_school_code)
+    app.jinja_env.globals.update(get_cursus=get_cursus)
+    app.jinja_env.globals.update(lookup_cursus_code=lookup_cursus_code)
+    app.jinja_env.globals.update(get_specialisations=get_specialisations)
+    app.jinja_env.globals.update(lookup_specialisation_code=lookup_specialisation_code)
     app.jinja_env.globals.update(lookup_ip_address=lookup_ip_address)
     app.jinja_env.globals.update(accounts_visible=accounts_visible)
     app.jinja_env.globals.update(challenges_visible=challenges_visible)
     app.jinja_env.globals.update(registration_visible=registration_visible)
-    app.jinja_env.globals.update(scores_visible=scores_visible)
     app.jinja_env.globals.update(get_mode_as_word=get_mode_as_word)
-    app.jinja_env.globals.update(integrations=integrations)
     app.jinja_env.globals.update(authed=authed)
-    app.jinja_env.globals.update(is_admin=is_admin)
+    app.jinja_env.globals.update(has_right=has_right)
+    app.jinja_env.globals.update(has_right_or_is_author=has_right_or_is_author)
     app.jinja_env.globals.update(get_current_user_attrs=get_current_user_attrs)
-    app.jinja_env.globals.update(get_current_team_attrs=get_current_team_attrs)
     app.jinja_env.globals.update(get_ip=get_ip)
     app.jinja_env.globals.update(Configs=Configs)
     app.jinja_env.globals.update(Plugins=Plugins)
     app.jinja_env.globals.update(Session=Session)
-    app.jinja_env.globals.update(Static=Static)
     app.jinja_env.globals.update(Forms=Forms)
     app.jinja_env.globals.update(User=User)
-    app.jinja_env.globals.update(Team=Team)
 
     # Add in JinjaEnums
     # The reason this exists is that on double import, JinjaEnums are not reinitialized
@@ -192,8 +193,8 @@ def init_request_processors(app):
         if is_setup() is False:
             if request.endpoint in (
                 "views.setup",
-                "views.integrations",
                 "views.themes",
+                "views.files",
             ):
                 return
             else:
@@ -237,21 +238,11 @@ def init_request_processors(app):
 
         if authed():
             user = get_current_user_attrs()
-            team = get_current_team_attrs()
 
             if user and user.banned:
                 return (
                     render_template(
                         "errors/403.html", error="You have been banned from this CTF"
-                    ),
-                    403,
-                )
-
-            if team and team.banned:
-                return (
-                    render_template(
-                        "errors/403.html",
-                        error="Your team has been banned from this CTF",
                     ),
                     403,
                 )
@@ -266,7 +257,7 @@ def init_request_processors(app):
             except UserNotFoundException:
                 abort(401)
             except UserTokenExpiredException:
-                abort(401)
+                abort(401, description="Your access token has expired")
             except Exception:
                 abort(401)
             else:

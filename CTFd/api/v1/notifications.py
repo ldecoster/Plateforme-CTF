@@ -9,7 +9,7 @@ from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessRespon
 from CTFd.constants import RawEnum
 from CTFd.models import Notifications, db
 from CTFd.schemas.notifications import NotificationSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
 
 notifications_namespace = Namespace(
@@ -44,7 +44,7 @@ class NotificantionList(Resource):
         responses={
             200: ("Success", "NotificationListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -54,7 +54,6 @@ class NotificantionList(Resource):
             "title": (str, None),
             "content": (str, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "q": (str, None),
             "field": (
                 RawEnum("NotificationFields", {"title": "title", "content": "content"}),
@@ -77,13 +76,13 @@ class NotificantionList(Resource):
             return {"success": False, "errors": result.errors}, 400
         return {"success": True, "data": result.data}
 
-    @admins_only
+    @access_granted_only("api_notification_list_post")
     @notifications_namespace.doc(
         description="Endpoint to create a notification object",
         responses={
             200: ("Success", "NotificationDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -121,7 +120,7 @@ class Notification(Resource):
         responses={
             200: ("Success", "NotificationDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -135,7 +134,7 @@ class Notification(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_notification_delete")
     @notifications_namespace.doc(
         description="Endpoint to delete a notification object",
         responses={200: ("Success", "APISimpleSuccessResponse")},

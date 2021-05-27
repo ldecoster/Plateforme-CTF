@@ -7,10 +7,11 @@ from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
 from CTFd.constants import RawEnum
-from CTFd.models import Tags, db
+from CTFd.models import db, TagChallenge, Tags
 from CTFd.schemas.tags import TagSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
+from CTFd.utils.user import has_right
 
 tags_namespace = Namespace("tags", description="Endpoint to retrieve Tags")
 
@@ -34,25 +35,23 @@ tags_namespace.schema_model("TagListSuccessResponse", TagListSuccessResponse.api
 
 @tags_namespace.route("")
 class TagList(Resource):
-    @admins_only
     @tags_namespace.doc(
         description="Endpoint to list Tag objects in bulk",
         responses={
             200: ("Success", "TagListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
     )
     @validate_args(
         {
-            "challenge_id": (int, None),
             "value": (str, None),
             "q": (str, None),
             "field": (
                 RawEnum(
-                    "TagFields", {"challenge_id": "challenge_id", "value": "value"}
+                    "TagFields", {"value": "value"}
                 ),
                 None,
             ),
@@ -73,13 +72,13 @@ class TagList(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_tag_list_post")
     @tags_namespace.doc(
         description="Endpoint to create a Tag object",
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -88,6 +87,19 @@ class TagList(Resource):
         req = request.get_json()
         schema = TagSchema()
         response = schema.load(req, session=db.session)
+
+        tag_challenges = TagChallenge.query.filter_by(challenge_id=req.get("challenge_id")).all()
+
+        # Check if the challenge already has an exercise tag
+        if response.data.exercise is True:
+            # If a contributor try to add an exercise tag, return an error
+            if has_right("api_tag_list_post_restricted"):
+                return {"success": False, "error": "notAllowed"}
+            # If there is already an exercise tag assigned, return an error
+            for tag_challenge in tag_challenges:
+                tag = Tags.query.filter_by(id=tag_challenge.tag_id).first()
+                if tag.exercise is True:
+                    return {"success": False, "error": "alreadyAssigned"}
 
         if response.errors:
             return {"success": False, "errors": response.errors}, 400
@@ -104,13 +116,13 @@ class TagList(Resource):
 @tags_namespace.route("/<tag_id>")
 @tags_namespace.param("tag_id", "A Tag ID")
 class Tag(Resource):
-    @admins_only
+    @access_granted_only("api_tag_get")
     @tags_namespace.doc(
         description="Endpoint to get a specific Tag object",
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -125,13 +137,13 @@ class Tag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_tag_patch")
     @tags_namespace.doc(
         description="Endpoint to edit a specific Tag object",
         responses={
             200: ("Success", "TagDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -140,6 +152,8 @@ class Tag(Resource):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
         schema = TagSchema()
         req = request.get_json()
+
+        tag.value = req["tagValue"]
 
         response = schema.load(req, session=db.session, instance=tag)
         if response.errors:
@@ -152,13 +166,18 @@ class Tag(Resource):
 
         return {"success": True, "data": response.data}
 
-    @admins_only
+    @access_granted_only("api_tag_delete")
     @tags_namespace.doc(
         description="Endpoint to delete a specific Tag object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, tag_id):
         tag = Tags.query.filter_by(id=tag_id).first_or_404()
+        tag_challenges = TagChallenge.query.filter_by(tag_id=tag.id).all()
+
+        for t in tag_challenges:
+            db.session.delete(t)
+
         db.session.delete(tag)
         db.session.commit()
         db.session.close()

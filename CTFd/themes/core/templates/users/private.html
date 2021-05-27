@@ -8,28 +8,6 @@
 		<div class="container">
 			<h1>{{ user.name }}</h1>
 
-			{% if user.team_id %}
-				<h2>
-					<a href="{{ url_for('teams.private') }}">
-						<span class="badge badge-secondary">
-							{{ user.team.name }}
-						</span>
-					</a>
-				</h2>
-			{% endif %}
-
-			{% if user.oauth_id %}
-				<a href="https://majorleaguecyber.org/u/{{ user.name }}">
-					<h3><span class="badge badge-primary">Official</span></h3>
-				</a>
-			{% endif %}
-
-			{% if user.affiliation %}
-				<h3 class="d-inline-block">
-					<span class="badge badge-primary">{{ user.affiliation }}</span>
-				</h3>
-			{% endif %}
-
 			{% if user.country %}
 				<h3 class="d-inline-block">
 					<span class="badge badge-primary">
@@ -39,24 +17,27 @@
 				</h3>
 			{% endif %}
 
+			{% if user.school %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_school_code(user.school) }}</span>
+				</h3>
+			{% endif %}
+			{% if user.cursus %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_cursus_code(user.cursus) }}</span>
+				</h3>
+			{% endif %}
+			{% if user.specialisation %}
+				<h3 class="d-inline-block">
+					<span class="badge badge-primary">{{ lookup_specialisation_code(user.specialisation) }}</span>
+				</h3>
+			{% endif %}
+
 			{% for field in user.fields %}
 				<h3 class="d-inline-block">
 					{{ field.name }}: {{ field.value }}
 				</h3>
 			{% endfor %}
-
-			<div>
-				<h2 class="text-center">
-					{% if account.place %}
-						{{ account.place }} <small>place</small>
-					{% endif %}
-				</h2>
-				<h2 class="text-center">
-					{% if account.place %}
-						{{ account.score }} <small>points</small>
-					{% endif %}
-				</h2>
-			</div>
 
 			<div class="pt-3">
 				{% if user.website %}
@@ -71,25 +52,11 @@
 	<div class="container">
 		{% include "components/errors.html" %}
 
-		{% if user.solves %}
+		{% set solves = user.solves %}
+		{% if solves %}
 			<div class="row">
-				<div class="col-md-6 d-none d-md-block d-lg-block">
+				<div class="col-md-6 offset-md-3 d-none d-md-block d-lg-block">
 					<div id="keys-pie-graph" class="d-flex align-items-center">
-						<div class="text-center w-100">
-							<i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6 d-none d-md-block d-lg-block">
-					<div id="categories-pie-graph" class="d-flex align-items-center">
-						<div class="text-center w-100">
-							<i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-						</div>
-					</div>
-				</div>
-				<br class="clearfix">
-				<div class="col-md-12 d-none d-md-block d-lg-block">
-					<div id="score-graph" class="w-100 d-flex align-items-center">
 						<div class="text-center w-100">
 							<i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
 						</div>
@@ -101,20 +68,31 @@
 
 			<div class="row">
 				<div class="col-md-12">
-					<h3>Awards</h3>
+					<h3>Badges</h3>
+                    <table class="table table-striped">
+						<thead>
+                            <tr>
+                                <td><b>Name</b></td>
+                                <td class="d-none d-md-block d-lg-block"><b>Description</b></td>
+                                <td class="text-center"><b>Exercise</b></td>
+                            </tr>
+						</thead>
+						<tbody>
+                            {% for badge in badges %}
+                                <tr>
+                                    <td>{{ badge.name }}</td>
+                                    <td class="d-none d-md-block d-lg-block">{{ badge.description }}</td>
+                                    <td class="text-center">
+                                        {% set tag = Tags.query.filter_by(id=badge.tag_id).first_or_404() %}
+                                        <span class='badge badge-warning mx-1'>
+                                            <span>{{ tag.value }}</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+						</tbody>
+					</table>
 				</div>
-				{% for award in user.awards %}
-					<div class="col-md-3 col-sm-6">
-						<p class="text-center">
-							<i class="award-icon award-{{ award.icon }} fa-2x"></i>
-							<br>
-							<strong>{{ award.name }}</strong>
-						</p>
-						<p class="text-center">{{ award.category or ""}}</p>
-						<p class="text-center">{{ award.description or ""}}</p>
-						<p class="text-center">{{ award.value }}</p>
-					</div>
-				{% endfor %}
 			</div>
 
 			<br>
@@ -126,21 +104,26 @@
 						<thead>
 						<tr>
 							<td><b>Challenge</b></td>
-							<td class="d-none d-md-block d-lg-block"><b>Category</b></td>
-							<td><b>Value</b></td>
+							<td><b>Tags</b></td>
 							<td><b>Time</b></td>
 						</tr>
 						</thead>
 						<tbody>
-						{% for solve in user.solves %}
+						{% for solve in solves %}
 							<tr>
 								<td>
 									<a href="{{ url_for('challenges.listing') }}#{{ solve.challenge.name }}-{{ solve.challenge.id }}">
 										{{ solve.challenge.name }}
 									</a>
 								</td>
-								<td class="d-none d-md-block d-lg-block">{{ solve.challenge.category }}</td>
-								<td>{{ solve.challenge.value }}</td>
+                                <td>
+                                    {% for tag in solve.challenge.tags %}
+                                        {% set tag_state = 'badge-warning' if tag.exercise else 'badge-primary' %}
+                                        <span class='badge {{ tag_state }} mx-1 challenge-tag'>
+                                            <span>{{ tag.value }}</span>
+                                        </span>
+								    {% endfor %}
+                                </td>
 								<td class="solve-time">
 									<span data-time="{{ solve.date | isoformat }}"></span>
 								</td>
@@ -163,14 +146,12 @@
 {% block scripts %}
 	<script>
 		var stats_data = {{ {
-			'type': 'user',
 			'id': user.id,
 			'name': user.name,
-			'account_id': 'me' if user.id == id else user.id,
+			'account_id': 'me',
 		} | tojson }};
 	</script>
 	<script defer src="{{ url_for('views.themes', path='js/echarts.bundle.js') }}"></script>
-	<script defer src="{{ url_for('views.themes', path='js/graphs.js') }}"></script>
 {% endblock %}
 
 {% block entrypoint %}

@@ -11,13 +11,13 @@ from CTFd.models import (
     ChallengeComments,
     Comments,
     PageComments,
-    TeamComments,
     UserComments,
     db,
 )
 from CTFd.schemas.comments import CommentSchema
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import access_granted_only
 from CTFd.utils.helpers.models import build_model_filters
+from CTFd.utils.user import has_right_or_is_author
 
 comments_namespace = Namespace("comments", description="Endpoint to retrieve Comments")
 
@@ -48,8 +48,6 @@ def get_comment_model(data):
         model = ChallengeComments
     elif "user_id" in data:
         model = UserComments
-    elif "team_id" in data:
-        model = TeamComments
     elif "page_id" in data:
         model = PageComments
     else:
@@ -59,13 +57,13 @@ def get_comment_model(data):
 
 @comments_namespace.route("")
 class CommentList(Resource):
-    @admins_only
+    @access_granted_only("api_comment_list_get")
     @comments_namespace.doc(
         description="Endpoint to list Comment objects in bulk",
         responses={
             200: ("Success", "CommentListSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -74,7 +72,6 @@ class CommentList(Resource):
         {
             "challenge_id": (int, None),
             "user_id": (int, None),
-            "team_id": (int, None),
             "page_id": (int, None),
             "q": (str, None),
             "field": (RawEnum("CommentFields", {"content": "content"}), None),
@@ -114,13 +111,13 @@ class CommentList(Resource):
             "data": response.data,
         }
 
-    @admins_only
+    @access_granted_only("api_comment_list_post")
     @comments_namespace.doc(
         description="Endpoint to create a Comment object",
         responses={
             200: ("Success", "CommentDetailedSuccessResponse"),
             400: (
-                "An error occured processing the provided or stored data",
+                "An error occurred processing the provided or stored data",
                 "APISimpleErrorResponse",
             ),
         },
@@ -145,15 +142,16 @@ class CommentList(Resource):
 
 @comments_namespace.route("/<comment_id>")
 class Comment(Resource):
-    @admins_only
     @comments_namespace.doc(
         description="Endpoint to delete a specific Comment object",
         responses={200: ("Success", "APISimpleSuccessResponse")},
     )
     def delete(self, comment_id):
         comment = Comments.query.filter_by(id=comment_id).first_or_404()
-        db.session.delete(comment)
-        db.session.commit()
-        db.session.close()
+        if has_right_or_is_author("api_comment_delete", comment.author_id):
+            db.session.delete(comment)
+            db.session.commit()
+            db.session.close()
 
-        return {"success": True}
+            return {"success": True}
+        return {"success": False}

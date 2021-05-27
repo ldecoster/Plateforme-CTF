@@ -6,9 +6,8 @@ from flask import current_app as app
 from flask import redirect, request, session, url_for
 
 from CTFd.cache import cache
-from CTFd.constants.teams import TeamAttrs
 from CTFd.constants.users import UserAttrs
-from CTFd.models import Fails, Teams, Tracking, Users, db
+from CTFd.models import Badges, Challenges, Fails, Solves, TagChallenge, Tracking, Rights, UserRights, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.security.auth import logout_user
 from CTFd.utils.security.signing import hmac
@@ -52,65 +51,6 @@ def get_user_attrs(user_id):
     return None
 
 
-@cache.memoize(timeout=300)
-def get_user_place(user_id):
-    user = Users.query.filter_by(id=user_id).first()
-    if user:
-        return user.account.place
-    return None
-
-
-@cache.memoize(timeout=300)
-def get_user_score(user_id):
-    user = Users.query.filter_by(id=user_id).first()
-    if user:
-        return user.account.score
-    return None
-
-
-@cache.memoize(timeout=300)
-def get_team_place(team_id):
-    team = Teams.query.filter_by(id=team_id).first()
-    if team:
-        return team.place
-    return None
-
-
-@cache.memoize(timeout=300)
-def get_team_score(team_id):
-    team = Teams.query.filter_by(id=team_id).first()
-    if team:
-        return team.score
-    return None
-
-
-def get_current_team():
-    if authed():
-        user = get_current_user()
-        return user.team
-    else:
-        return None
-
-
-def get_current_team_attrs():
-    if authed():
-        user = get_user_attrs(user_id=session["id"])
-        if user.team_id:
-            return get_team_attrs(team_id=user.team_id)
-    return None
-
-
-@cache.memoize(timeout=300)
-def get_team_attrs(team_id):
-    team = Teams.query.filter_by(id=team_id).first()
-    if team:
-        d = {}
-        for field in TeamAttrs._fields:
-            d[field] = getattr(team, field)
-        return TeamAttrs(**d)
-    return None
-
-
 def get_current_user_type(fallback=None):
     if authed():
         user = get_current_user_attrs()
@@ -123,12 +63,22 @@ def authed():
     return bool(session.get("id", False))
 
 
-def is_admin():
-    if authed():
-        user = get_current_user_attrs()
-        return user.type == "admin"
-    else:
-        return False
+def has_right(right_name):
+    right = Rights.query.filter_by(name=right_name).first()
+    if right is not None and session.get("id"):
+        user_rights = UserRights.query.filter_by(right_id=right.id, user_id=session["id"]).first()
+        if user_rights is not None:
+            return True
+    return False
+
+
+def has_right_or_is_author(right_name, author_id):
+    right = Rights.query.filter_by(name=right_name).first()
+    if right is not None and session.get("id"):
+        user_rights = UserRights.query.filter_by(right_id=right.id, user_id=session["id"]).first()
+        if user_rights is not None or author_id == session["id"]:
+            return True
+    return False
 
 
 def is_verified():
@@ -182,7 +132,7 @@ def get_user_recent_ips(user_id):
         .filter(Tracking.user_id == user_id, Tracking.date >= hour_ago)
         .all()
     )
-    return set([ip for (ip,) in addrs])
+    return {ip for (ip,) in addrs}
 
 
 def get_wrong_submissions_per_minute(account_id):
@@ -199,3 +149,49 @@ def get_wrong_submissions_per_minute(account_id):
         .all()
     )
     return len(fails)
+
+
+def get_user_badges(user_id):
+    user = Users.query.filter_by(id=user_id).first()
+    if user:
+        solved_chal = TagChallenge.query.join(
+            Badges, Badges.tag_id == TagChallenge.tag_id
+        ).with_entities(
+            TagChallenge.challenge_id
+        ).join(
+            Solves, Solves.challenge_id == TagChallenge.challenge_id
+        ).filter_by(user_id=user.id).all()
+
+        badges_chal = TagChallenge.query.join(
+            Badges, Badges.tag_id == TagChallenge.tag_id
+        ).with_entities(
+            TagChallenge.challenge_id
+        ).join(
+            Challenges, Challenges.id == TagChallenge.challenge_id
+        ).filter_by(state="visible").all()
+
+        solved_chal = [value for (value,) in solved_chal]
+        badges_chal = [value for (value,) in badges_chal]
+
+        set_difference = set(badges_chal) - set(solved_chal)
+        list_difference = list(set_difference)
+
+        unearned_badges = Badges.query.join(
+            TagChallenge, TagChallenge.tag_id == Badges.tag_id
+        ).with_entities(
+            Badges.id
+        ).filter(TagChallenge.challenge_id.in_(list_difference))
+
+        badges = Badges.query.filter(Badges.id.notin_(unearned_badges)).all()
+        return badges
+    else:
+        return None
+
+
+def get_all_badges():
+    users = Users.query.filter_by(hidden=False, banned=False).all()
+    badges_ids = []
+    for user in users:
+        for badge in get_user_badges(user.id):
+            badges_ids.append(badge.id)
+    return badges_ids
