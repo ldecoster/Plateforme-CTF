@@ -6,7 +6,7 @@ CTFd is a Capture The Flag framework focusing on ease of use and customizability
 
 ## Features
 
-- Create your own challenges, categories, hints, and flags from the Admin Interface
+- Create your own challenges, tags, resources, and flags from the Admin Interface
   - Unlockable challenge support
   - Challenge plugin architecture to create your own custom challenges
   - Static & Regex based flags
@@ -101,7 +101,18 @@ Check out the [CTFd docs](https://docs.ctfd.io/) for [deployment options](https:
 
 ## Credits
 
+### Original CTFd
 - Original CTFd by [Kevin Chung](https://ctfd.io)
 - Logo by [Laura Barbera](http://www.laurabb.com/)
 - Theme by [Christopher Thompson](https://github.com/breadchris)
 - Notification Sound by [Terrence Martin](https://soundcloud.com/tj-martin-composer)
+
+### Customised CTFd
+- Solène CORRE
+- Loïc DECOSTER
+- Lina KADA
+- Sébastien LEGAIT
+- Julien LECOEUCHE
+- Maxime MARE
+- Kylian SALOMON
+- Maxime THOOR
