@@ -56,7 +56,7 @@ CTFd is a Capture The Flag framework focusing on ease of use and customizability
   - `pip install wheel gunicorn`
   - `pip install -r requirements.txt`
 4. Run project with an IP address
-  - `gunicorn --bind {IP_ADDRESS}:8000 "CTFd:create_app()"`
+  - `gunicorn --workers={WORKER_NUMBER} --bind {IP_ADDRESS}:8000 "CTFd:create_app()"` where {WORKER_NUMBER} is equal to (2 x the number of cores of the server) + 1 and {IP_ADDRESS} is the IP address of the server on the network
 
 ### Install ElasticSearch and Kibana
 
