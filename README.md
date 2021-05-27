@@ -60,18 +60,16 @@ CTFd is a Capture The Flag framework focusing on ease of use and customizability
 
 ### Install ElasticSearch and Kibana
 
-1. Download [ElasticSearch](https://www.elastic.co/downloads/past-releases/elasticsearch-7-12-1) and [Kibana](https://www.elastic.co/downloads/past-releases/kibana-7-12-1) version 7.12.1
+1. Download [ElasticSearch](https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.12.1-amd64.deb) and [Kibana](https://artifacts.elastic.co/downloads/kibana/kibana-7.12.1-amd64.deb) version 7.12.1
 2. Install them
   - `sudo dpkg -i elasticsearch-7.12.1-amd64.deb`
   - `sudo dpkg -i kibana-7.12.1-amd64.deb`
-3. Optional: Expose Kibana on a network instead of localhost
+3. Optional: Expose Kibana on a network instead of localhost (Security Warning: as there is no authentication, everyone on the network can see the data exposed by Kibana)
   - Edit `/etc/kibana/kibana.yml` file
   - Edit the line `#server.host: "localhost"` to `server.host: "{IP_ADDRESS}"` where {IP_ADDRESS} is the IP address of the server
 4. Start them and enable launching on startup
-  - `sudo systemctl start elasticsearch.service`
-  - `sudo systemctl start kibana.service`
-  - `sudo systemctl enable elasticsearch.service`
-  - `sudo systemctl enable kibana.service`
+  - `sudo systemctl enable --now elasticsearch.service`
+  - `sudo systemctl enable --now kibana.service`
 5. From Kibana interface [localhost:5601](http://localhost:5601)
   - Click on "Stack Management" menu
   - Select "Saved Object"
