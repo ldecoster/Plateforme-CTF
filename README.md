@@ -73,7 +73,7 @@ CTFd is a Capture The Flag framework focusing on ease of use and customizability
 5. From Kibana interface [localhost:5601](http://localhost:5601)
   - Click on "Stack Management" menu
   - Select "Saved Object"
-  - Click on the "import" button and select the file `admin_dashboard.ndjson` fom the project. Keep the option "Check for existing objects" checked and validate
+  - Click on the "import" button and select the file `admin_dashboard.ndjson` from the project. Keep the option "Check for existing objects" checked and validate
 6. Run the export script in a new terminal
   - `source env/bin/activate`
   - `python export_es.py`
@@ -107,7 +107,7 @@ Check out the [CTFd docs](https://docs.ctfd.io/) for [deployment options](https:
 - Theme by [Christopher Thompson](https://github.com/breadchris)
 - Notification Sound by [Terrence Martin](https://soundcloud.com/tj-martin-composer)
 
-### Customised CTFd
+### Customized CTFd
 - Solène CORRE
 - Loïc DECOSTER
 - Lina KADA
