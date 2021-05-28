@@ -122,7 +122,7 @@ class UserBaseFormFull(BaseForm):
     country = SelectField("Country", choices=SELECT_COUNTRIES_LIST)
     school = SelectField("School", choices=SELECT_SCHOOLS_LIST)
     cursus = SelectField("Cursus", choices=SELECT_CURSUS_LIST)
-    specialisation = SelectField("Specialiastion", choices=SELECT_SPECIALISATIONS_LIST)
+    specialisation = SelectField("Specialisation", choices=SELECT_SPECIALISATIONS_LIST)
     type = SelectField("Type", choices=[
         ("user", "User"), ("contributor", "Contributor"), ("teacher", "Teacher"), ("admin", "Admin")
     ])
